@@ -1,0 +1,97 @@
+.header {
+  width: 100vw;
+  color: #080599;
+  font-family: Arial, sans-serif;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  
+  img {
+    height: 30px;
+    margin-right: 8px;
+  }
+
+  span {
+    font-size: 18px;
+    font-weight: bold;
+  }
+}
+
+.topMenu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.navBar {
+  display: flex;
+  justify-content: space-between;
+  background: #0052cc;
+  padding: 10px 20px;
+}
+
+.menu {
+  display: flex;
+  gap: 10px;
+
+  button {
+    background: transparent;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+.rightButtons {
+  display: flex;
+  gap: 10px;
+
+  button {
+    background: #0073e6;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    &:hover {
+      background: #005bb5;
+    }
+  }
+}
