@@ -1,7 +1,7 @@
 .sidebar {
     width: 250px;
     background-color: #f8f9fa; /* Màu nền sidebar */
-    padding: 16px;
+    padding: 0 16px 16px 16px;
     font-family: Arial, sans-serif;
 
     h3 {
@@ -28,7 +28,7 @@
     /* Style cho từng danh mục */
     .category-group {
         background: white;
-        padding: 12px;
+        padding: 20px;
         border-radius: 8px;
         margin-bottom: 12px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);

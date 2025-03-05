@@ -32,7 +32,6 @@ export default function MenuPage() {
                 <div className="menu-container">
                     <MenuSidebar selectedFilters={filters} onFilterChange={handleFilterChange} />
                     <div className="menu-content">
-                        <h2>Hàng hóa</h2>
                         <MenuList items={filteredItems} />
                     </div>
                 </div>

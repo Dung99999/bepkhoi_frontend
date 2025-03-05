@@ -20,6 +20,13 @@ const MenuList: React.FC<MenuListProps> = ({ items }) => {
     return (
         <>
             <div className={styles.menuList}>
+                <div className={styles.title}>
+                    <h2>Hàng hóa</h2>
+                    <div className={styles.btnGroup}>
+                        <button>Thêm mới</button>
+                        <button>Xuất file</button>
+                    </div>
+                </div>
                 <table className={styles.table}>
                     <thead>
                         <tr>

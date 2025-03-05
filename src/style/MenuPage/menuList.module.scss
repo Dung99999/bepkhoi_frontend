@@ -1,39 +1,72 @@
 .menuList {
-    width: 100%;
-    overflow-x: auto;
-    background: #ffffff;
-    width: 75%;
-    padding: 10px;
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  min-height: 70vh;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  justify-content: space-between;
+
+  .btnGroup {
+    display: flex;
+    gap: 10px; // Khoảng cách giữa các nút
   }
-  
-  .table {
-    width: 100%;
-    border-collapse: collapse;
+
+  button {
+    justify-content: right;
+    background-color: #00b33c;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.2s;
+
+    &:hover {
+      background-color: #00972e;
+    }
   }
-  
-  .table th {
-    background-color: #eaf6ff;
-    font-weight: bold;
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .table td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .empty {
-    text-align: center;
-    padding: 30px;
-    color: gray;
-  }
-  
-  .emptyBox {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto;
-    background-size: contain;
-  }
-  
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: #eaf6ff;
+  font-weight: bold;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.empty {
+  text-align: center;
+  padding: 30px;
+  color: gray;
+}
+
+.emptyBox {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  background-size: contain;
+}
