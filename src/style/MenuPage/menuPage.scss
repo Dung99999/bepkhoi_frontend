@@ -1,0 +1,18 @@
+.menu {
+    background-color: #f8f9fa;
+    height: 100vh;
+    .menu-container {
+        display: flex;
+        justify-content: center;
+        /* Căn giữa nội dung */
+        padding: 0 10%;
+        /* Tạo khoảng trắng hai bên */
+    }
+
+    .menu-content {
+        width: 80%;
+        /* Định nghĩa độ rộng phù hợp */
+        max-width: 1200px;
+        /* Giới hạn độ rộng tối đa */
+    }
+}
