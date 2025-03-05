@@ -4,15 +4,10 @@
     .menu-container {
         display: flex;
         justify-content: center;
-        /* Căn giữa nội dung */
-        padding: 0 6%;
-        /* Tạo khoảng trắng hai bên */
+        padding: 0 5%;
     }
 
     .menu-content {
         width: 80%;
-        /* Định nghĩa độ rộng phù hợp */
-        max-width: 1200px;
-        /* Giới hạn độ rộng tối đa */
     }
 }
