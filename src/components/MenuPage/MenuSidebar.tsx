@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import styles from "./../../style/MenuPage/menuSidebar.module.scss";
-import MenuSearch from "./MenuSearch.tsx"; // Import từ cùng thư mục
+import MenuSearch from "./MenuSearch.tsx";
 
 
 const MenuSidebar = ({ selectedFilters, onFilterChange }) => {
