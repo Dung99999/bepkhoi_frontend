@@ -11,7 +11,7 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.topBar}>
         <div className={styles.logo}>
-          <img src="/logo.png" alt="Logo" />
+          <img src="https://e7.pngegg.com/pngimages/361/627/png-clipart-leaf-logo-green-leaves-green-and-teal-leaf-logo-text-maple-leaf-thumbnail.png" alt="Logo" />
           <span>Nhà hàng Bếp Khói</span>
         </div>
         <div className={styles.topMenu}>
