@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "./../../style/MenuPage/menuSearch.module.scss";
+import styles from "./../../style/MenuPage/menuSearch.module.css";
 
 const MenuSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");

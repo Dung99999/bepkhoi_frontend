@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import styles from "./../../style/Common/header.module.scss";
+import styles from "./../../style/Common/header.module.css";
 import config from "../../config/config";
 
 export default function Header() {

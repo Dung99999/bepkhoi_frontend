@@ -3,7 +3,7 @@ import config from "../config/config";
 import Header from "./../components/Common/Header.tsx";
 import MenuList from "./../components/MenuPage/MenuList.tsx";
 import MenuSidebar from "./../components/MenuPage/MenuSidebar.tsx";
-import "./../style/MenuPage/menuPage.scss";
+import "./../style/MenuPage/menuPage.css";
 
 const allItems = [
     { id: 1, code: "SP001", name: "Bánh mì", category: "Đồ ăn", price: 20000, cost: 15000, order: 2, imageUrl: ["https://e7.pngegg.com/pngimages/361/627/png-clipart-leaf-logo-green-leaves-green-and-teal-leaf-logo-text-maple-leaf-thumbnail.png", "https://img.freepik.com/premium-vector/free-vector-beautiful-flying-hummingbird-design-element-banners-posters-leaflets-brochur_1009653-1.jpg"] },
