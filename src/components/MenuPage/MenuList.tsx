@@ -1,17 +1,6 @@
 import React, { useState } from "react";
 import styles from "./../../style/MenuPage/menuList.module.css";
 
-interface MenuItem {
-    id: number;
-    code: string;
-    name: string;
-    category: string;
-    price: number;
-    cost: number;
-    stock: number;
-    order: number;
-}
-
 const MenuList = ({ items }) => {
 
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);

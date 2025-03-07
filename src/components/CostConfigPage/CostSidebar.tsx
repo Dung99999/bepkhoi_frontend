@@ -1,12 +1,11 @@
 import React, {useState} from "react";
-import styles from "./../../style/MenuPage/menuSidebar.module.css";
-import MenuSearch from "./MenuSearch.tsx";
+import styles from "./../../style/CostConfigPage/costSidebar.module.css";
+import MenuSearch from "./CostSearch.tsx";
 
 
-const MenuSidebar = ({ selectedFilters, onFilterChange }) => {
+const CostSidebar = ({ selectedFilters, onFilterChange }) => {
   const categories = [
-    { title: "Loại thực đơn", items: ["Đồ ăn", "Đồ uống", "Khác"] },
-    { title: "Lựa chọn hiển thị", items: ["Hàng đang kinh doanh", "Hàng ngừng kinh doanh"] },
+    { title: "Nhóm hàng", items: ["Đồ ăn", "Đồ uống", "Khác"] },
   ];
 
   const handleCheckboxChange = (category: string) => {
@@ -39,4 +38,4 @@ const MenuSidebar = ({ selectedFilters, onFilterChange }) => {
   );
 };
 
-export default MenuSidebar;
+export default CostSidebar;

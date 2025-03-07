@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./../../style/Common/header.module.css";
 import config from "../../config/config";
@@ -6,6 +6,7 @@ import config from "../../config/config";
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   return (
     <header className={styles.header}>
@@ -22,13 +23,30 @@ export default function Header() {
       <div className={styles.navBar}>
         <nav className={styles.menu}>
           {config.menuItem.map((item) => (
-            <button
+            <div
               key={item.id}
-              className={location.pathname === item.path ? styles.active : ""}
-              onClick={() => navigate(item.path)}
+              className={styles.menuItem}
+              onMouseEnter={() => item.subMenu && setOpenDropdown(item.id)}
+              onMouseLeave={() => item.subMenu && setOpenDropdown(null)}
             >
-              {item.label}
-            </button>
+              <button
+                className={`${styles.menuButton} ${
+                  location.pathname === item.path ? styles.active : ""
+                }`}
+                onClick={() => !item.subMenu && navigate(item.path)}
+              >
+                {item.label} {item.subMenu && "▼"}
+              </button>
+              {openDropdown === item.id && item.subMenu && (
+                <div className={styles.dropdownContent}>
+                  {item.subMenu.map((sub, index) => (
+                    <button key={index} onClick={() => navigate(sub.path)}>
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
 
