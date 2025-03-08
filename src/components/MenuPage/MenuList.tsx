@@ -1,16 +1,5 @@
 import React, { useState } from "react";
-import styles from "./../../style/MenuPage/menuList.module.scss";
-
-interface MenuItem {
-    id: number;
-    code: string;
-    name: string;
-    category: string;
-    price: number;
-    cost: number;
-    stock: number;
-    order: number;
-}
+import styles from "./../../style/MenuPage/menuList.module.css";
 
 const MenuList = ({ items }) => {
 

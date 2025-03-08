@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import config from "../config/config";
 import Header from "./../components/Common/Header.tsx";
-import MenuList from "./../components/MenuPage/MenuList.tsx";
-import MenuSidebar from "./../components/MenuPage/MenuSidebar.tsx";
+import CostList from "./../components/CostConfigPage/CostList.tsx";
+import CostSidebar from "../components/CostConfigPage/CostSidebar.tsx";
 import "./../style/MenuPage/menuPage.css";
 
 const allItems = [
@@ -11,7 +11,7 @@ const allItems = [
     { id: 3, code: "SP003", name: "Mì gói", category: "Đồ ăn", price: 10000, cost: 8000, stock: 20, order: 5 },
 ];
 
-export default function MenuPage() {
+export default function CostConfigPage() {
 
     const [filters, setFilters] = useState<string[]>(["Đồ ăn"]);
 
@@ -28,9 +28,9 @@ export default function MenuPage() {
             <div className="menu">
                 <Header />
                 <div className="menu-container">
-                    <MenuSidebar selectedFilters={filters} onFilterChange={handleFilterChange} />
+                    <CostSidebar selectedFilters={filters} onFilterChange={handleFilterChange} />
                     <div className="menu-content">
-                        <MenuList items={filteredItems} />
+                        <CostList items={filteredItems} />
                     </div>
                 </div>
             </div>

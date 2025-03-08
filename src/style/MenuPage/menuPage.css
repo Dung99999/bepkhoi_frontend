@@ -1,0 +1,13 @@
+.menu {
+    background-color: #f8f9fa;
+    height: 100vh;
+    .menu-container {
+        display: flex;
+        justify-content: center;
+        padding: 0 5%;
+    }
+
+    .menu-content {
+        width: 80%;
+    }
+}

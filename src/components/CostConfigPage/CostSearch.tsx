@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import styles from "./../../style/MenuPage/menuSearch.module.css";
+import styles from "./../../style/CostConfigPage/costSearch.module.css";
 
-const MenuSearch = () => {
+const CostSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
@@ -17,4 +17,4 @@ const MenuSearch = () => {
   );
 };
 
-export default MenuSearch;
+export default CostSearch;
