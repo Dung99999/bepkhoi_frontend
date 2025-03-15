@@ -7,11 +7,11 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<ManageLayout />}>
+        <Route path="/manage" element={<ManageLayout />}>
           {/* Nếu vào "/" thì tự động chuyển về "/menu" */}
-          <Route index element={<Navigate to="/menu" replace />} />
+          <Route index element={<Navigate to="/manage/menu" replace />} />
           {/* Trang menu chính */}
-          <Route path="menu" element={<MenuPage />} />
+          <Route path="/manage/menu" element={<MenuPage />} />
           {/* Có thể thêm các route khác ở đây nếu cần */}
         </Route>
       </Routes>

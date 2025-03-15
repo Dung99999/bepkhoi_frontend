@@ -28,11 +28,12 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-
+  const apiEndpoint = process.env.REACT_APP_API_APP_ENDPOINT;
+  console.log(process.env.REACT_APP_API_APP_ENDPOINT);
   // Fetch API
   useEffect(() => {
     setLoading(true);
-    fetch("https://localhost:7257/api/Menu/menus?page=1&pageSize=10&sortBy=ProductId&sortDirection=asc")
+    fetch(apiEndpoint+"api/Menu/menus?page=1&pageSize=10&sortBy=ProductId&sortDirection=asc")
       .then((response) => response.json())
       .then((data) => setItems(data.data))
       .catch((error) => console.error("Error fetching menu:", error))
