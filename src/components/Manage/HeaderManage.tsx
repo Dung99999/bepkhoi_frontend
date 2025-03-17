@@ -5,9 +5,11 @@ import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png"; // ✅ 
 
 const navItems = [
   { label: "Tổng quan", path: "/dashboard" },
-  { label: "Hàng hóa", path: "/menu" },
+  { label: "Hàng hóa", path: "/manage/menu" },
+  { label: "Điều chỉnh giá", path: "/manage/cost-fix" },
   { label: "Phòng/Bàn", path: "/rooms" },
   { label: "Đối tác", path: "/partners" },
+  { label: "Khách hàng", path: "/manage/customers" },
 ];
 
 const HeaderManage: React.FC = () => {

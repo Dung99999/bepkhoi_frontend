@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Tag } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import './MenuList.css'; // Import file CSS custom
+import './../Menu/MenuList.css';
 
 interface MenuListProps {
   search: string;
@@ -29,7 +29,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const apiEndpoint = process.env.REACT_APP_API_APP_ENDPOINT;
-  // Fetch API
   useEffect(() => {
     setLoading(true);
     fetch(`${apiEndpoint}api/Menu/menus?page=1&pageSize=10&sortBy=ProductId&sortDirection=asc`)
@@ -39,7 +38,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Lọc dữ liệu
   const filteredItems = items.filter((item) => {
     const matchSearch = item.productName.toLowerCase().includes(search.toLowerCase());
     const matchCategory =
@@ -56,7 +54,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     return matchSearch && matchCategory && matchStatus;
   });
 
-  // Cột
   const columns: TableColumnsType<MenuItem> = [
     { title: "ID", dataIndex: "productId", key: "productId", width: 60 },
     { title: "Tên món", dataIndex: "productName", key: "productName", render: (text) => <span className="font-medium">{text}</span> },
@@ -73,7 +70,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     },
   ];
 
-  // Row selection
   const rowSelection: TableProps<MenuItem>["rowSelection"] = {
     selectedRowKeys,
     onChange: (newSelectedRowKeys) => setSelectedRowKeys(newSelectedRowKeys),
