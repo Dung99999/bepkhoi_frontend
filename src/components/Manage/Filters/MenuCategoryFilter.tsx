@@ -1,44 +1,39 @@
 import React, { useState } from "react";
-import { Checkbox } from "antd";
-import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons"; // ✅ Đổi icon
+import { Radio } from "antd";
+import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons"; 
 import "./MenuFilterCommon.css";
 
 interface Props {
-  category: string[]; // Cho phép chọn nhiều
+  category: string[]; 
   setCategory: (value: string[]) => void;
 }
 
 const options = [
-  { label: "Tất cả", value: "all" }, // Option tất cả
-  { label: "Đồ ăn", value: "food" },
-  { label: "Đồ uống", value: "drink" },
-  { label: "Khác", value: "other" },
+  { label: "Tất cả", value: "all" }, 
+  { label: "Đồ ăn", value: "1" },
+  { label: "Đồ ăn nhanh", value: "2" },
+  { label: "Đồ uống", value: "3" },
 ];
-
-const allOptionValues = options.slice(1).map((opt) => opt.value); // ["food", "drink", "other"]
 
 const MenuCategoryFilter: React.FC<Props> = ({ category, setCategory }) => {
   const [isOpen, setIsOpen] = useState(true);
 
-  const handleChange = (checkedValues: (string | number)[]) => {
-    if (checkedValues.includes("all")) {
-      // Toggle "Tất cả"
-      if (category.length === allOptionValues.length) {
-        setCategory([]); // Bỏ chọn tất cả
-      } else {
-        setCategory(allOptionValues); // Chọn tất cả
-      }
-    } else {
-      const filteredValues = (checkedValues as string[]).filter((val) => val !== "all");
-      setCategory(filteredValues);
+  // choose radio
+  const handleChange = (e: any) => {
+    const value = e.target.value;
+    if (value === "all") 
+    {
+      setCategory([]);
+    }
+    else 
+    {
+      setCategory([value]);
     }
   };
 
   const getCheckedValues = () => {
-    if (category.length === allOptionValues.length) {
-      return ["all", ...allOptionValues];
-    }
-    return category;
+    if (category.length === 0) return "all";
+    return category[0];
   };
 
   return (
@@ -46,22 +41,22 @@ const MenuCategoryFilter: React.FC<Props> = ({ category, setCategory }) => {
       <div className="category-filter-header">
         <label className="block font-semibold m-0">Loại hàng</label>
         <div className="toggle-icon-wrapper" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <CaretUpOutlined /> : <CaretDownOutlined />} {/* ✅ Dùng Caret icon */}
+          {isOpen ? <CaretUpOutlined /> : <CaretDownOutlined />} 
         </div>
       </div>
 
       {isOpen && (
-        <Checkbox.Group
+        <Radio.Group
           value={getCheckedValues()}
           onChange={handleChange}
-          className="custom-checkbox-group"
+          className="custom-radio-group"
         >
           {options.map((opt) => (
-            <Checkbox key={opt.value} value={opt.value}>
+            <Radio key={opt.value} value={opt.value}>
               {opt.label}
-            </Checkbox>
+            </Radio>
           ))}
-        </Checkbox.Group>
+        </Radio.Group>
       )}
     </div>
   );

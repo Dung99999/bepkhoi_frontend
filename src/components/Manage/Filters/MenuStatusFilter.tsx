@@ -1,42 +1,24 @@
 import React, { useState } from "react";
-import { Checkbox } from "antd";
+import { Radio } from "antd";
 import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons";
-import "./MenuFilterCommon.css"; // ✅ Dùng file CSS chung
+import "./MenuFilterCommon.css";
 
 interface Props {
-  status: string[]; // ✅ Cho phép chọn nhiều trạng thái
-  setStatus: (value: string[]) => void;
+  status: string;
+  setStatus: (value: string) => void;
 }
 
 const options = [
-  { label: "Tất cả", value: "all" }, // Option tất cả
-  { label: "Đang hiển thị", value: "visible" },
-  { label: "Không hiển thị", value: "hidden" },
+  { label: "Tất cả", value: "all"},
+  { label: "Đang hiển thị", value: "1" },
+  { label: "Không hiển thị", value: "0" },
 ];
-
-const allOptionValues = options.slice(1).map((opt) => opt.value); // ["visible", "hidden"]
 
 const MenuStatusFilter: React.FC<Props> = ({ status, setStatus }) => {
   const [isOpen, setIsOpen] = useState(true);
 
-  const handleChange = (checkedValues: (string | number)[]) => {
-    if (checkedValues.includes("all")) {
-      if (status.length === allOptionValues.length) {
-        setStatus([]); // Bỏ chọn tất cả
-      } else {
-        setStatus(allOptionValues); // Chọn tất cả
-      }
-    } else {
-      const filteredValues = (checkedValues as string[]).filter((val) => val !== "all");
-      setStatus(filteredValues);
-    }
-  };
-
-  const getCheckedValues = () => {
-    if (status.length === allOptionValues.length) {
-      return ["all", ...allOptionValues];
-    }
-    return status;
+  const handleChange = (e: any) => {
+    setStatus(e.target.value); // return string 
   };
 
   return (
@@ -49,17 +31,17 @@ const MenuStatusFilter: React.FC<Props> = ({ status, setStatus }) => {
       </div>
 
       {isOpen && (
-        <Checkbox.Group
-          value={getCheckedValues()}
+        <Radio.Group
+          value={status}
           onChange={handleChange}
-          className="custom-checkbox-group"
+          className="custom-radio-group"
         >
           {options.map((opt) => (
-            <Checkbox key={opt.value} value={opt.value}>
+            <Radio key={opt.value} value={opt.value}>
               {opt.label}
-            </Checkbox>
+            </Radio>
           ))}
-        </Checkbox.Group>
+        </Radio.Group>
       )}
     </div>
   );
