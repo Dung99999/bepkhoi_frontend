@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../../styles/LoginPage/css/main.module.css";
 import loginImage from "../../styles/LoginPage/images/login_image.png";
 
@@ -8,6 +10,7 @@ interface LoginForm {
 }
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<LoginForm>({
     username: "",
     password: ""
@@ -48,15 +51,17 @@ export default function LoginPage() {
   
       if (data.message === "not_verify") {
         alert("Tài khoản chưa xác minh!");
+        navigate("/verify");
         return;
       }
   
       if (data.message === "succesfull") {
         console.log("Login successful:", data);
-        // localStorage.setItem("token", data.token);
-        // localStorage.setItem("userId", data.userId);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.userId);
         alert("Đăng nhập thành công!");
-        // Chuyển hướng hoặc cập nhật UI theo nhu cầu
+        // Chuyển hướng tới site chức năng
+        navigate("/manage/menu");
       }
     } catch (error) {
       console.error("Error in login process:", error);
@@ -64,6 +69,12 @@ export default function LoginPage() {
     }
   };
   
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/manage/menu");
+    }
+  }, [navigate]);
 
   return (
     <div className={styles.loginContainer}>
@@ -75,7 +86,7 @@ export default function LoginPage() {
       {/* Cột bên phải chứa form đăng nhập */}
       <div className={styles.loginFormContainer}>
         <div className={styles.loginForm}>
-        <h2>Login</h2>
+        <h1>Login</h1>
         <form onSubmit={handleSubmit}>
           {/* Username */}
           <div className={styles.formGroup}>

@@ -1,10 +1,20 @@
 import  React, { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../../styles/VerifyAccount/VerifyAccount.module.css"; // Import CSS module
 
 export default function VerifyPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpStage, setIsOtpStage] = useState(false); // Trạng thái giữa lần bấm đầu và thứ hai
+
+    useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        navigate("/manage/menu");
+      }
+    }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,11 +53,10 @@ export default function VerifyPassword() {
         if (response.ok) {
           alert("Xác thực thành công!");
           console.log(data);
-        //   localStorage.setItem("token", data.token); // Lưu token vào localStorage
-        //   localStorage.setItem("userId", data.UserId);
-          
+          localStorage.setItem("token", data.token); // Lưu token vào localStorage
+          localStorage.setItem("userId", data.UserId);
           // Chuyển hướng người dùng sau khi xác thực thành công
-        //   window.location.href = "/dashboard"; 
+          navigate("/manage/menu");
         } else {
           alert(data.message || "OTP không hợp lệ!");
         }
