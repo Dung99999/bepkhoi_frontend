@@ -4,6 +4,11 @@ import ManageLayout from "./layouts/ManageLayout";
 import MenuPage from "./pages/Manage/MenuPage";
 import LoginPage from "./pages/POS/LoginPage"
 import VerifyAccount from "./pages/POS/VerifyAccount"
+import manangeRoutes from "./Routes/ManageRoutes";
+import ForbiddenPage from "./pages/Error/403";
+import NotFoundPage from "./pages/Error/404";
+import ServerErrorPage from "./pages/Error/500";
+import "./pages/Manage/SettingPricePage.css";
 
 const App: React.FC = () => {
   return (
@@ -23,6 +28,20 @@ const App: React.FC = () => {
 
         {/* Nếu truy cập đường dẫn không hợp lệ, chuyển hướng về login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<ManageLayout />}>
+          {manangeRoutes.map((route, index) => (
+            <Route 
+              key={index}
+              path={route.path}
+              element={route.element}
+            />
+          ))}
+        </Route>
+
+        {/* Route for error type */}
+        <Route path="/403" element={<ForbiddenPage/>}/>
+        <Route path="/404" element={<NotFoundPage/>}/>
+        <Route path="/500" element={<ServerErrorPage/>}/>
       </Routes>
     </Router>
   );

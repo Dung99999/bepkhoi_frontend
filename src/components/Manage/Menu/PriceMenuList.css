@@ -1,0 +1,104 @@
+.price-menu-table .ant-table-thead>tr>th {
+    background-color: #fff1d6 !important;
+    color: #333;
+    font-weight: bold;
+}
+
+.price-menu-table .ant-table-tbody>tr.ant-table-row-selected>td {
+    background-color: #fffcf899 !important;
+}
+
+.price-menu-table .ant-table-tbody>tr:hover>td {
+    background-color: #fff7eb99 !important;
+}
+
+.price-menu-table-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #fcdca6 !important;
+    border-color: #FFE4B5 !important;
+}
+
+.price-menu-table-wrapper .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.price-menu-table-wrapper .ant-checkbox:hover .ant-checkbox-inner {
+    border-color: #FFD39B !important;
+}
+
+.price-menu-table .ant-table {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.price-menu-table .ant-pagination-item-active {
+    background-color: #ffffff !important;
+    border-color: #FFD39B !important;
+}
+
+.price-menu-table .ant-pagination-item-active a {
+    color: #333 !important;
+    font-weight: bold;
+}
+
+.price-menu-table .ant-pagination-item a:hover {
+    color: #FF8C00 !important;
+}
+
+.price-menu-table .ant-pagination-prev:hover .ant-pagination-item-link,
+.price-menu-table .ant-pagination-next:hover .ant-pagination-item-link,
+.price-menu-table .ant-pagination-prev:focus-visible .ant-pagination-item-link,
+.price-menu-table .ant-pagination-next:focus-visible .ant-pagination-item-link {
+    color: #FF8C00 !important;
+    border-color: #FFD39B !important;
+}
+
+.price-menu-table .ant-table-tbody>tr>td,
+.price-menu-table .ant-table-thead>tr>th {
+    padding: 12px 14px;
+    text-align: center;
+    vertical-align: middle;
+    height: 48px;
+    padding: 8px;
+}
+
+.price-menu-table .ant-table-tbody>tr>td:nth-child(2),
+.price-menu-table .ant-table-thead>tr>th:nth-child(2) {
+    text-align: left;
+}
+
+.price-menu-table .price-value {
+    font-weight: bold;
+    color: #d48806;
+}
+
+.price-menu-table .edit-price-button {
+    background-color: #ffa940;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.price-menu-table .edit-price-button:hover {
+    background-color: #fa8c16;
+}
+
+.edit-button {
+    display: flex;
+    align-items: center;
+    background-color: #FF8C00;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 12px;
+    width: 100px;
+    height: 32px;  
+    margin: 0 auto; 
+}
+
+.edit-button:hover {
+    background-color: #e07b00;
+}

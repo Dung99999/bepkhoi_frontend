@@ -8,8 +8,8 @@ interface MenuSidebarProps {
   setSearch: (value: string) => void;
   category: string[];
   setCategory: (value: string[]) => void;
-  status: string[]; // ✅ Sửa thành mảng string
-  setStatus: (value: string[]) => void; // ✅ Sửa thành mảng string
+  status: string; 
+  setStatus: (value: string) => void; 
   showSearch?: boolean;
   showCategory?: boolean;
   showStatus?: boolean;
@@ -37,7 +37,10 @@ const MenuSidebar: React.FC<MenuSidebarProps> = ({
           <MenuCategoryFilter category={category} setCategory={setCategory} />
         )}
         {showStatus && (
-          <MenuStatusFilter status={status} setStatus={setStatus} />
+          <MenuStatusFilter 
+            status={String(status)} 
+            setStatus={(value) => setStatus(value)} 
+          />
         )}
       </div>
     </aside>
