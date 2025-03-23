@@ -1,91 +1,97 @@
 import React, { useEffect, useState } from "react";
-import { Table, Tag } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
+import { message, Table } from "antd";
+import type { TableColumnsType } from "antd";
 import './../Menu/MenuList.css';
+import CustomerDetailModal from "./CustomerDetailModal";
 
 interface MenuListProps {
   search: string;
-  category: string[];
-  status: string[];
 }
 
 interface MenuItem {
-  productId: number;
-  productName: string;
-  productCategoryId: number;
-  costPrice: number;
-  sellPrice: number;
-  salePrice: number;
-  productVat: number;
-  description: string;
-  unitId: number;
-  isAvailable: boolean;
-  status: boolean;
-  isDelete: boolean;
+  customerId: number;
+  customerName: string;
+  phone: string;
+  totalAmountSpent: string;
 }
 
-const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
+const MenuList: React.FC<MenuListProps> = ({ search }) => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const apiEndpoint = process.env.REACT_APP_API_APP_ENDPOINT;
-  useEffect(() => {
+  const [page, setPage] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
+
+  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+  const [detailData, setDetailData] = useState<MenuItem | null>(null);
+  const [openDetail, setOpenDetail] = useState<boolean>(false);
+
+  const fetchMenuList = () => {  
     setLoading(true);
-    fetch(`${apiEndpoint}api/Menu/menus?page=1&pageSize=10&sortBy=ProductId&sortDirection=asc`)
+    const apiUrl = search.trim()
+      ? `https://localhost:7257/api/Customer/search?searchTerm=${encodeURIComponent(search.trim())}`
+      : `https://localhost:7257/api/Customer`;
+
+    fetch(apiUrl)
       .then((response) => response.json())
-      .then((data) => setItems(data.data))
-      .catch((error) => console.error("Error fetching menu:", error))
+      .then((data) => {
+        setItems(data ?? []);
+        setTotal(data.length || 0);
+      })
+      .catch((error) => {
+        console.error("Error fetching menu:", error);
+        setItems([]);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  };
 
-  const filteredItems = items.filter((item) => {
-    const matchSearch = item.productName.toLowerCase().includes(search.toLowerCase());
-    const matchCategory =
-      category.length === 0 ||
-      category.includes("all") ||
-      category.includes(item.productCategoryId.toString());
+  useEffect(() => {
+    fetchMenuList();
+  }, [search, page]);
 
-    const matchStatus =
-      status.length === 0 ||
-      status.includes("all") ||
-      (status.includes("visible") && item.status) ||
-      (status.includes("hidden") && !item.status);
+  const handleRowClick = (record: MenuItem) => {
+    setOpenDetail(true);
+    setLoadingDetail(true);
 
-    return matchSearch && matchCategory && matchStatus;
-  });
+    fetch(`https://localhost:7257/api/Customer/${record.customerId}`)
+      .then((response) => response.json())
+      .then((res) => setDetailData(res))
+      .catch((error) => console.error("Error fetching detail:", error))
+      .finally(() => setLoadingDetail(false));
+  }
 
   const columns: TableColumnsType<MenuItem> = [
-    { title: "ID", dataIndex: "productId", key: "productId", width: 60 },
-    { title: "Tên món", dataIndex: "productName", key: "productName", render: (text) => <span className="font-medium">{text}</span> },
-    { title: "Giá bán", dataIndex: "sellPrice", key: "sellPrice", render: (price) => <span>{price.toLocaleString()}đ</span> },
-    {
-      title: "Giá KM", dataIndex: "salePrice", key: "salePrice", render: (price) =>
-        price != null ? <span>{price.toLocaleString()}đ</span> : <span>Không có KM</span>
-    },
-    { title: "VAT (%)", dataIndex: "productVat", key: "productVat" },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
-    {
-      title: "Trạng thái", dataIndex: "status", key: "status", render: (value: boolean) =>
-        value ? <Tag color="green">Đang bán</Tag> : <Tag color="red">Ngừng bán</Tag>,
-    },
+    { title: "ID", dataIndex: "customerId", key: "customerId", width: 60 },
+    { title: "Tên khách hàng", dataIndex: "customerName", key: "customerName" },
+    { title: "Số điện thoại", dataIndex: "phone", key: "phone" },
+    { title: "Tổng tiền sử dụng", dataIndex: "totalAmountSpent", key: "totalAmountSpent" },
   ];
-
-  const rowSelection: TableProps<MenuItem>["rowSelection"] = {
-    selectedRowKeys,
-    onChange: (newSelectedRowKeys) => setSelectedRowKeys(newSelectedRowKeys),
-  };
 
   return (
     <div className="mt-4 custom-table-wrapper">
       <Table<MenuItem>
-        rowKey="productId"
+        rowKey="customerId"
         loading={loading}
         columns={columns}
-        dataSource={filteredItems}
-        pagination={{ pageSize: 10 }}
-        rowSelection={{ type: "checkbox", ...rowSelection }}
+        dataSource={items}
+        pagination={{
+          pageSize: 10,
+          total: total,
+          current: page,
+          onChange: (page) => setPage(page),
+        }}
         locale={{ emptyText: "Không có dữ liệu phù hợp." }}
         className="custom-table"
+        onRow={(record) => ({
+          onClick: () => handleRowClick(record), // Bắt sự kiện click vào hàng
+        })}
+      />
+
+      <CustomerDetailModal
+        open={openDetail}
+        loading={loadingDetail}
+        data={detailData}
+        onClose={() => setOpenDetail(false)}
+        onReloadCustomerList={fetchMenuList}
       />
     </div>
   );

@@ -6,8 +6,8 @@ import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png"; // ✅ 
 
 const navItems = [
   { label: "Tổng quan", path: "/dashboard" },
-  { 
-    label: "Hàng hóa", 
+  {
+    label: "Hàng hóa",
     path: "/menu",
     submenu: [
       { label: "Danh mục", path: "/menu" },
@@ -15,8 +15,13 @@ const navItems = [
     ],
   },
   { label: "Phòng/Bàn", path: "/rooms" },
-  { label: "Đối tác", path: "/partners" },
-  { label: "Khách hàng", path: "/manage/customers" },
+  {
+    label: "Đối tác",
+    path: "/partners",
+    submenu: [
+      { label: "Khách hàng", path: "/customer" },
+    ],
+  },
 ];
 
 const HeaderManage: React.FC = () => {
