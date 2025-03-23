@@ -18,13 +18,12 @@ const SearchFilter: React.FC<Props> = ({ search, setSearch }) => {
   };
 
   return (
-    // ✅ Wrapper có nền trắng + padding cho đẹp
     <div className="search-filter-wrapper">
       <label className="block font-semibold mb-1">Tìm kiếm</label>
       <Space direction="vertical" className="w-full">
         <Search
           placeholder="Theo mã, tên hàng"
-          enterButton={<SearchOutlined />} // Nút icon search
+          enterButton={<SearchOutlined />} 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onSearch={onSearch}

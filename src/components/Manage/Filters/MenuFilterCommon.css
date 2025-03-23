@@ -1,14 +1,13 @@
 .category-filter-wrapper {
-  background-color: white; /* Nền trắng */
+  background-color: white; 
   padding: 8px 12px;
   padding-bottom: 3px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Bóng nhẹ */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
   font-family: sans-serif;
   margin-top: 16px;
 }
 
-/* Header gồm label và icon toggle */
 .category-filter-header {
   display: flex;
   justify-content: space-between;
@@ -17,11 +16,10 @@
   padding: 4px 0;
 }
 
-/* Vùng bọc icon toggle để click */
 .toggle-icon-wrapper {
-  width: 22px; /* ✅ Thu nhỏ kích thước */
+  width: 22px; 
   height: 22px;
-  border-radius: 50%; /* Bo tròn hình tròn */
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,63 +27,56 @@
   transition: background-color 0.2s ease-in-out;
 }
 
-/* Hover icon nhẹ nhàng */
 .toggle-icon-wrapper:hover {
-  background-color: #f3f4f6; /* Xám nhạt khi hover */
+  background-color: #f3f4f6; 
 }
 
-/* Thu nhỏ icon bên trong */
 .toggle-icon-wrapper svg {
-  font-size: 14px; /* ✅ Thu nhỏ icon */
-  color: #6b7280; /* Màu xám nhạt cho icon */
+  font-size: 14px;
+  color: #6b7280; 
 }
 
-/* Nhóm checkbox theo cột */
 .custom-checkbox-group {
   display: flex;
   padding-left: 8px;
   flex-direction: column;
-  gap: 8px; /* Khoảng cách giữa các checkbox */
+  gap: 8px;
 }
 
-/* Mỗi checkbox item */
 .custom-checkbox-group .ant-checkbox-wrapper {
   display: flex;
   align-items: center;
   font-family: sans-serif;
   font-size: 14px;
-  margin: 0; /* Xóa margin mặc định */
-  color: #374151; /* Màu chữ đậm, dễ đọc */
+  margin: 0; 
+  color: #374151;
 }
 
-/* Giao diện ô vuông checkbox */
 .custom-checkbox-group .ant-checkbox-inner {
-  border-color: #d1d5db; /* Viền mặc định */
+  border-color: #d1d5db;
   border-radius: 4px;
   width: 16px;
   height: 16px;
-  transition: all 0.2s ease-in-out; /* Hiệu ứng mượt */
+  transition: all 0.2s ease-in-out;
 }
 
-/* Hover nhẹ nhàng */
+
 .custom-checkbox-group .ant-checkbox-wrapper:hover .ant-checkbox-inner {
-  border-color: #fbbf24 !important; /* Vàng nhạt */
+  border-color: #fbbf24 !important; 
 }
 
-/* Khi được chọn */
+
 .custom-checkbox-group .ant-checkbox-checked .ant-checkbox-inner {
   border-color: #fbbf24 !important;
   background-color: #fbbf24 !important;
 }
 
-/* Khoảng cách giữa chữ và checkbox */
 .custom-checkbox-group .ant-checkbox + span {
   padding-left: 8px;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* Xóa margin dưới cuối cùng */
 .custom-checkbox-group .ant-checkbox-wrapper:last-child {
   margin-bottom: 0;
 }
@@ -94,7 +85,6 @@
   padding-bottom: 12px;
 }
 
-/* Vùng icon để click */
 .toggle-icon-wrapper {
   width: 22px;
   height: 22px;
@@ -106,14 +96,12 @@
   transition: background-color 0.2s ease-in-out;
 }
 
-/* Hover nhẹ nhàng */
 .toggle-icon-wrapper:hover {
   background-color: #f3f4f6;
 }
 
-/* Icon nhỏ */
 .toggle-icon-wrapper svg {
-  font-size: 14px; /* Thu nhỏ */
+  font-size: 14px; 
   color: #6b7280;
 }
 
@@ -121,33 +109,30 @@
 .custom-select-filter {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #d1d5db; /* Màu viền nhạt */
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
   font-family: sans-serif;
-  color: #374151; /* Màu chữ đậm dễ đọc */
+  color: #374151;
   background-color: white;
   transition: border-color 0.2s ease-in-out;
   outline: none;
   margin-bottom: 8px;
 }
 
-/* Hover và focus */
 .custom-select-filter:hover {
-  border-color: #fbbf24; /* Vàng nhạt */
+  border-color: #fbbf24;
 }
 
 .custom-select-filter:focus {
   border-color: #fbbf24;
-  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2); /* Vàng nhạt xung quanh */
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
 }
 
-/* Thu nhỏ margin */
 .custom-select-filter:last-child {
   margin-bottom: 0;
 }
 
-/* Wrapper chung cho các filter */
 .filter-wrapper {
   background-color: white;
   padding: 8px 12px;
@@ -158,7 +143,6 @@
   margin-top: 16px;
 }
 
-/* Header chung */
 .filter-header {
   display: flex;
   justify-content: space-between;
@@ -167,7 +151,6 @@
   padding: 4px 0;
 }
 
-/* Vùng bọc icon toggle */
 .toggle-icon-wrapper {
   width: 22px;
   height: 22px;
@@ -179,18 +162,15 @@
   transition: background-color 0.2s ease-in-out;
 }
 
-/* Hover icon */
 .toggle-icon-wrapper:hover {
   background-color: #f3f4f6;
 }
 
-/* Icon thu nhỏ */
 .toggle-icon-wrapper svg {
   font-size: 14px;
   color: #6b7280;
 }
 
-/* Checkbox group theo cột */
 .custom-checkbox-group {
   display: flex;
   padding-left: 8px;
@@ -198,7 +178,6 @@
   gap: 8px;
 }
 
-/* Checkbox item */
 .custom-checkbox-group .ant-checkbox-wrapper {
   display: flex;
   align-items: center;
@@ -208,7 +187,6 @@
   color: #374151;
 }
 
-/* Ô vuông checkbox */
 .custom-checkbox-group .ant-checkbox-inner {
   border-color: #d1d5db;
   border-radius: 4px;
@@ -217,29 +195,102 @@
   transition: all 0.2s ease-in-out;
 }
 
-/* Hover checkbox */
 .custom-checkbox-group .ant-checkbox-wrapper:hover .ant-checkbox-inner {
   border-color: #fbbf24 !important;
 }
 
-/* Khi được chọn */
 .custom-checkbox-group .ant-checkbox-checked .ant-checkbox-inner {
   border-color: #fbbf24 !important;
   background-color: #fbbf24 !important;
 }
 
-/* Khoảng cách giữa chữ và ô */
 .custom-checkbox-group .ant-checkbox + span {
   padding-left: 8px;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* Xóa margin cuối cùng */
 .custom-checkbox-group .ant-checkbox-wrapper:last-child {
   margin-bottom: 0;
 }
 
 .custom-checkbox-group:last-child {
   padding-bottom: 12px;
+}
+
+/* === RADIO GROUP STYLE (MenuStatusFilter) === */
+.custom-radio-group {
+  display: flex;
+  padding-left: 8px;
+  flex-direction: column;
+  gap: 8px; 
+}
+
+.custom-radio-group:last-child {
+  padding-bottom: 12px;
+}
+
+/* ===== Custom Radio Group ===== */
+.custom-radio-group {
+  display: flex;
+  padding-left: 8px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Radio item */
+.custom-radio-group .ant-radio-wrapper {
+  display: flex;
+  align-items: center;
+  font-family: sans-serif;
+  font-size: 14px;
+  margin: 0;
+  color: #374151;
+  transition: color 0.2s ease-in-out;
+}
+
+.custom-radio-group .ant-radio-inner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background-color: white;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+}
+
+.custom-radio-group .ant-radio-wrapper:hover .ant-radio-inner {
+  border-color: #fbbf24 !important;
+}
+
+.custom-radio-group .ant-radio-wrapper:hover {
+  color: #fbbf24;
+}
+
+.custom-radio-group .ant-radio-checked .ant-radio-inner {
+  border-color: #fbbf24 !important;
+  background-color: white !important;
+}
+
+
+.custom-radio-group .ant-radio-inner::after {
+  background-color: #fbbf24;
+  transform: translate(-50%, -50%);
+  animation: none !important;
+  transition: none !important;
+}
+
+.custom-radio-group .ant-radio-checked + span {
+  color: #fbbf24;
+}
+
+.custom-radio-group .ant-radio + span {
+  padding-left: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.custom-radio-group .ant-radio-wrapper:last-child {
+  margin-bottom: 0;
 }

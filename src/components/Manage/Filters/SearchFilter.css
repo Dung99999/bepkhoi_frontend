@@ -1,13 +1,11 @@
-/* Wrapper nền trắng, bo góc đẹp, và font sans-serif */
 .search-filter-wrapper {
-  background-color: white; /* Nền trắng */
-  padding: 12px; /* Padding để thoáng chữ */
-  border-radius: 8px; /* Bo góc đẹp */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
-  font-family: sans-serif; /* ✅ Font chữ sans-serif */
+  background-color: white; 
+  padding: 12px; 
+  border-radius: 8px; 
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: sans-serif;
 }
 
-/* Wrapper flex cho input và button */
 .custom-search {
   display: flex;
   align-items: center;
@@ -15,13 +13,12 @@
   margin-top: 12px;
   border-radius: 8px;
   transition: border 0.3s ease, box-shadow 0.3s ease;
-  border: 2px solid #f3f4f6; /* Mặc định viền gray-100 */
+  border: 2px solid #f3f4f6;
 }
 
-/* Khi hover hoặc focus */
 .custom-search:hover,
 .custom-search:focus-within {
-  border-color: #FFE4B5; /* Viền vàng khi hover/focus */
+  border-color: #FFE4B5; 
 }
 
 /* Input */
@@ -33,10 +30,9 @@
   background: white;
   padding: 0 12px;
   font-size: 14px;
-  font-family: sans-serif; /* ✅ Font chữ sans-serif */
+  font-family: sans-serif; 
 }
 
-/* Nút tìm kiếm */
 .custom-search .ant-btn-primary {
   background-color: transparent !important;
   border: none !important;
@@ -48,33 +44,28 @@
   justify-content: center;
   box-shadow: none !important;
   transition: background 0.3s ease;
-  font-family: sans-serif; /* ✅ Font chữ sans-serif */
+  font-family: sans-serif; 
 }
 
-/* Hover nút tìm kiếm */
 .custom-search:hover .ant-btn-primary,
 .custom-search:focus-within .ant-btn-primary {
   background-color: #FFE4B5 !important;
 }
 
-/* Icon căn giữa */
 .custom-search .ant-btn .anticon {
   font-size: 16px;
 }
 
-/* Không border khi focus input */
 .custom-search .ant-input:focus {
   outline: none;
   box-shadow: none !important;
 }
 
-/* Không viền khi hover input */
 .custom-search .ant-input:hover {
   border: none !important;
 }
 
-/* Label cũng dùng sans-serif */
 .search-filter-wrapper label {
   font-family: sans-serif;
-  font-size: 15px; /* ✅ Font chữ sans-serif */
+  font-size: 15px; 
 }
