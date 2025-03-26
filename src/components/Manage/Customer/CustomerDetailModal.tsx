@@ -13,7 +13,6 @@ interface CustomerDetailModalProps {
   loading: boolean;
   data: CustomerItem | null;
   onClose: () => void;
-  onReloadCustomerList: () => void;
 }
 
 const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({ 
@@ -21,7 +20,6 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
     loading, 
     data, 
     onClose,
-    onReloadCustomerList
   }) => {
 
     return (

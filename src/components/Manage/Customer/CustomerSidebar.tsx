@@ -1,20 +1,14 @@
 import React from "react";
-import SearchFilter from "../../Manage/Filters/SearchCustomer";
+import SearchFilter from "../Filters/SearchCustomer";
 
-interface MenuSidebarProps {
+interface SidebarProps {
   search: string;
   setSearch: (value: string) => void;
-  category: string[];
-  setCategory: (value: string[]) => void;
-  status: string; 
-  setStatus: (value: string) => void; 
   showSearch?: boolean;
-  showCategory?: boolean;
-  showStatus?: boolean;
 }
 
 
-const MenuSidebar: React.FC<MenuSidebarProps> = ({
+const CustomerSidebar: React.FC<SidebarProps> = ({
   search,
   setSearch,
   showSearch = true,
@@ -30,4 +24,4 @@ const MenuSidebar: React.FC<MenuSidebarProps> = ({
   );
 };
 
-export default MenuSidebar;
+export default CustomerSidebar;
