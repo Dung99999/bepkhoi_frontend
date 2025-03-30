@@ -7,6 +7,7 @@ interface Product {
   price: number;
   image: string;
   quantity: number;
+  description?: string;
 }
 
 interface CartListProps {
@@ -24,7 +25,7 @@ const CartList: React.FC<CartListProps> = ({ cart, onQuantityChange }) => {
               <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-md" />
               <div className="ml-4">
                 <p className="font-semibold text-lg">{product.name}</p>
-                <p className="text-gray-500">• Trà đào nguyên chất 500ml</p>
+                <p className="text-gray-500">•{product.description}</p>
               </div>
             </div>
             <div className="text-right">

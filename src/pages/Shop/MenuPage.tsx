@@ -16,15 +16,15 @@ interface Product {
 
 // Dữ liệu giả
 const fakeData: Product[] = [
-    { id: 1, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 2, name: "Gà", price: 10000, image: "https://image.plo.vn/w1000/Uploaded/2025/tmuihk/2024_04_19/tac-hai-cua-do-an-vat-toi-suc-khoe-tre-em-7845.png" },
-    { id: 3, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 4, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 5, name: "Trà chanh", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 6, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 7, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 8, name: "Trà chanh", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
-    { id: 9, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg" },
+    { id: 1, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 2, name: "Gà", price: 10000, image: "https://image.plo.vn/w1000/Uploaded/2025/tmuihk/2024_04_19/tac-hai-cua-do-an-vat-toi-suc-khoe-tre-em-7845.png", description: "Trà đào nguyên chất 500ml" },
+    { id: 3, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 4, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 5, name: "Trà chanh", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 6, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 7, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 8, name: "Trà chanh", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
+    { id: 9, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
 ];
 
 const MenuPage: React.FC = () => {

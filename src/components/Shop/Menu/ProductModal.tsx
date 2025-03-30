@@ -136,7 +136,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }
                             </div>
                         </div>
 
-                        {/* Chọn số lượng & Nút mua */}
                         <div className="w-full flex flex-col items-center pb-6">
                             <div className="flex items-center space-x-8 mb-4">
                                 <Button type="default" className="rounded-md px-4 py-2" onClick={decreaseQuantity}>
