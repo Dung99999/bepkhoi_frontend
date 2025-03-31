@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Modal, Button } from "antd";
 import { CheckCircleOutlined, CloseOutlined } from "@ant-design/icons";
+import { ModelModeContext } from "../../../context/ModelModeContext";
 
 interface Product {
     id: number;
@@ -20,6 +21,7 @@ interface ProductModalProps {
 
 const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }) => {
     const [quantity, setQuantity] = useState(1);
+    const modelMode = useContext(ModelModeContext);
 
     const increaseQuantity = () => setQuantity(prev => prev + 1);
     const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
@@ -82,13 +84,17 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }
             footer={null}
             closable={false}
             centered
-            width="100vw"
-            style={{ maxWidth: "100vw", height: "100vh", top: 0, padding: 0 }}
+            width={modelMode === "1" ? "100vw" : "70vw"}
+            style={{
+                height: modelMode === "1" ? "85vh" : "70vh",
+                top: 0,
+                padding: 0,
+            }}
             styles={{
                 body: {
                     padding: 0,
                     margin: 0,
-                    height: "100vh",
+                    height: modelMode === "1" ? "85vh" : "50vh",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
@@ -96,68 +102,132 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }
             }}
         >
             {product && (
-                <div className="w-full h-full flex flex-col bg-white">
-                    <div className="flex items-center justify-between px-4 py-3 border-b">
-                        <h2 className="text-lg font-semibold">{product.name}</h2>
-                        <button onClick={onClose} className="text-xl">
-                            <CloseOutlined />
-                        </button>
-                    </div>
+                modelMode === "1" ? (
+                    <div className="w-full h-full flex flex-col bg-white">
+                        <div className="flex items-center justify-between px-4 py-3 border-b">
+                            <h2 className="text-lg font-semibold">{product.name}</h2>
+                            <button onClick={onClose} className="text-xl">
+                                <CloseOutlined />
+                            </button>
+                        </div>
 
-                    <div className="w-full h-1/2 bg-gray-200">
-                        <img
-                            id="product-image"
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
+                        <div className="w-full h-1/2 bg-gray-200">
+                            <img
+                                id="product-image"
+                                src={product.image}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
 
-                    <div className="flex-1 p-4 flex flex-col justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold">{product.name}</h2>
-                            <p className="text-lg text-gray-700 mt-2">{product.description}</p>
-                            <p className="text-lg font-semibold">Giá: {product.price.toLocaleString()}đ</p>
+                        <div className="flex-1 p-4 flex flex-col justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold">{product.name}</h2>
+                                <p className="text-lg text-gray-700 mt-2">{product.description}</p>
+                                <p className="text-lg font-semibold">Giá: {product.price.toLocaleString()}đ</p>
 
-                            <div className="flex items-center mt-4 space-x-4">
-                                <div className="flex-1">
-                                    <p className="text-xs font-semibold text-gray-600">Đơn vị tính</p>
-                                    <div className="px-3 py-1 mt-1 rounded-md bg-gray-100 text-black text-sm font-medium w-fit">
-                                        {product.unit || "Cốc"}
+                                <div className="flex items-center mt-4 space-x-4">
+                                    <div className="flex-1">
+                                        <p className="text-xs font-semibold text-gray-600">Đơn vị tính</p>
+                                        <div className="px-3 py-1 mt-1 rounded-md bg-gray-100 text-black text-sm font-medium w-fit">
+                                            {product.unit || "Cốc"}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-xs font-semibold text-gray-600">Tình trạng</p>
-                                    <div className="flex items-center px-3 py-1 mt-1 rounded-md bg-gray-100 text-green-700 text-sm font-medium w-fit">
-                                        <CheckCircleOutlined className="mr-1 text-sm" />
-                                        {product.status || "Còn hàng"}
+                                    <div className="flex-1">
+                                        <p className="text-xs font-semibold text-gray-600">Tình trạng</p>
+                                        <div className="flex items-center px-3 py-1 mt-1 rounded-md bg-gray-100 text-green-700 text-sm font-medium w-fit">
+                                            <CheckCircleOutlined className="mr-1 text-sm" />
+                                            {product.status || "Còn hàng"}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="w-full flex flex-col items-center pb-6">
-                            <div className="flex items-center space-x-8 mb-4">
-                                <Button type="default" className="rounded-md px-4 py-2" onClick={decreaseQuantity}>
-                                    -
-                                </Button>
-                                <span className="text-xl font-bold">{quantity}</span>
-                                <Button type="default" className="rounded-md px-4 py-2" onClick={increaseQuantity}>
-                                    +
+                            <div className="w-full flex flex-col items-center pb-6 pt-2">
+                                <div className="flex items-center space-x-8 mb-4">
+                                    <Button type="default" className="rounded-md px-4 py-2" onClick={decreaseQuantity}>
+                                        -
+                                    </Button>
+                                    <span className="text-xl font-bold">{quantity}</span>
+                                    <Button type="default" className="rounded-md px-4 py-2" onClick={increaseQuantity}>
+                                        +
+                                    </Button>
+                                </div>
+
+                                <Button
+                                    type="primary"
+                                    className="w-full max-w-xs bg-yellow-500 text-black rounded-md py-3"
+                                    style={{ fontSize: "18px", fontWeight: "bold" }}
+                                    onClick={addToCart}
+                                >
+                                    Chọn mua
                                 </Button>
                             </div>
-
-                            <Button
-                                type="primary"
-                                className="w-full max-w-xs bg-yellow-500 text-black rounded-md py-3"
-                                style={{ fontSize: "18px", fontWeight: "bold" }}
-                                onClick={addToCart}
-                            >
-                                Chọn mua
-                            </Button>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="new-modal-layout">
+                        <div className="flex items-center justify-between px-4 py-3 border-b">
+                            <h2 className="text-lg font-semibold">{product.name}</h2>
+                            <button onClick={onClose} className="text-xl">
+                                <CloseOutlined />
+                            </button>
+                        </div>
+
+                        <div className="flex w-full h-5/6">
+                            <div className="w-1/2 bg-gray-200">
+                                <img
+                                    id="product-image"
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="w-1/2 p-4 flex flex-col justify-between">
+                                <h2 className="text-2xl font-bold">{product.name}</h2>
+                                <p className="text-lg text-gray-700 mt-2">{product.description}</p>
+                                <p className="text-lg font-semibold">Giá: {product.price.toLocaleString()}đ</p>
+
+                                <div className="flex items-center mt-4 space-x-4">
+                                    <div className="flex-1">
+                                        <p className="text-xs font-semibold text-gray-600">Đơn vị tính</p>
+                                        <div className="px-3 py-1 mt-1 rounded-md bg-gray-100 text-black text-sm font-medium w-fit">
+                                            {product.unit || "Cốc"}
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-xs font-semibold text-gray-600">Tình trạng</p>
+                                        <div className="flex items-center px-3 py-1 mt-1 rounded-md bg-gray-100 text-green-700 text-sm font-medium w-fit">
+                                            <CheckCircleOutlined className="mr-1 text-sm" />
+                                            {product.status || "Còn hàng"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="w-full flex flex-col items-center pb-6 pt-4">
+                                    <div className="flex items-center space-x-8 mb-4">
+                                        <Button type="default" className="rounded-md px-4 py-2" onClick={decreaseQuantity}>
+                                            -
+                                        </Button>
+                                        <span className="text-xl font-bold">{quantity}</span>
+                                        <Button type="default" className="rounded-md px-4 py-2" onClick={increaseQuantity}>
+                                            +
+                                        </Button>
+                                    </div>
+
+                                    <Button
+                                        type="primary"
+                                        className="w-full max-w-xs bg-yellow-500 text-black rounded-md py-3"
+                                        style={{ fontSize: "18px", fontWeight: "bold" }}
+                                        onClick={addToCart}
+                                    >
+                                        Chọn mua
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
             )}
         </Modal>
     );

@@ -15,7 +15,7 @@ const SearchFilter: React.FC<Props> = ({ search, setSearch }) => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         prefix={<SearchOutlined className="text-gray-500 text-lg" />}
-        className="w-full rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+        className="w-full sm:w-64 md:w-72 lg:w-80 xl:w-96 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
       />
     </div>
   );

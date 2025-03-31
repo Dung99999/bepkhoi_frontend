@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { createContext, useState } from "react";
 import HeaderShop from "../components/Shop/HeaderShop";
 import FooterShop from "../components/Shop/FooterShop";
 import { Outlet } from "react-router-dom";
+import { ModelModeContext } from "../context/ModelModeContext";
 
 interface ShopLayoutProps {
   modelMode: string;
@@ -15,9 +16,11 @@ const ShopLayout: React.FC<ShopLayoutProps> = ({ modelMode }) => {
         <HeaderShop setActiveTab={setActiveTab} />
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
-        <Outlet />
-      </div>
+      <ModelModeContext.Provider value={modelMode}>
+        <div className="min-h-screen w-full bg-gray-100 flex flex-col">
+          <Outlet />
+        </div>
+      </ModelModeContext.Provider>
 
       <div className="sticky bottom-0 z-50 w-full">
         <FooterShop activeTab={activeTab} setActiveTab={setActiveTab} />

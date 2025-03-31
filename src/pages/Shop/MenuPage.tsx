@@ -66,8 +66,7 @@ const MenuPage: React.FC = () => {
                 toggleDrawer={toggleDrawer}
             />
 
-            <h1 className="text-lg font-bold">Đồ uống</h1>
-
+            <h1 className="text-lg font-bold pt-4 px-4">Đồ uống</h1>
             <MenuList products={filteredProducts}
                 onProductClick={showModal}
             />
