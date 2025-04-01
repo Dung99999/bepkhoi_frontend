@@ -1,7 +1,12 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { Dropdown } from "antd";
-import { EditOutlined, PhoneOutlined, GlobalOutlined, MessageOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  PhoneOutlined,
+  GlobalOutlined,
+  MessageOutlined,
+} from "@ant-design/icons";
 import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
 
 const navItems = [
@@ -14,6 +19,13 @@ const navItems = [
     ],
   },
   { label: "Phòng/Bàn", path: "/manage/rooms" },
+  {
+    label: "Quản lý hóa đơn",
+    submenu: [
+      { label: "Hóa đơn", path: "/manage/customer" },
+      { label: "Phiếu đặt hàng", path: "/manage/cashier" },
+    ],
+  },
   {
     label: "Đối tác",
     submenu: [
@@ -37,8 +49,12 @@ const HeaderManage: React.FC = () => {
             className="w-20 h-20 object-contain items-center gap-x-4"
           />
           <div className="flex flex-col">
-            <div className="text-2xl font-semibold text-gray-800">Nhà hàng Bếp Khói</div>
-            <div className="text-[15px] italic font-medium text-gray-400">Nâng niu văn hóa ẩm thực Việt</div>
+            <div className="text-2xl font-semibold text-gray-800">
+              Nhà hàng Bếp Khói
+            </div>
+            <div className="text-[15px] italic font-medium text-gray-400">
+              Nâng niu văn hóa ẩm thực Việt
+            </div>
           </div>
         </div>
 
@@ -83,7 +99,9 @@ const HeaderManage: React.FC = () => {
                 to={item.path}
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    isActive ? "bg-[#FFE4B5] text-black" : "hover:bg-[#FFE4B5] hover:text-black"
+                    isActive
+                      ? "bg-[#FFE4B5] text-black"
+                      : "hover:bg-[#FFE4B5] hover:text-black"
                   }`
                 }
               >
