@@ -1,24 +1,24 @@
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../styles/LoginPage/css/main.module.css";
 import loginImage from "../../styles/LoginPage/images/login_image.png";
+import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
 
 interface LoginForm {
   username: string;
-  password: string
+  password: string;
 }
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<LoginForm>({
     username: "",
-    password: ""
+    password: "",
   });
 
   // Xử lý khi người dùng nhập dữ liệu vào form
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type} = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -28,39 +28,36 @@ export default function LoginPage() {
   // Xử lý khi submit form
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const email = formData.username
-    const password = formData.password;
-  
+    const { username, password } = formData;
+
     try {
       const response = await fetch("https://localhost:7257/api/Auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: username, password }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
-        // Nếu response trả về mã lỗi (400, 401)
         console.error("Error:", data.message);
         alert("Đăng nhập thất bại!");
         return;
       }
-  
+
       if (data.message === "not_verify") {
         alert("Tài khoản chưa xác minh!");
         navigate("/verify");
         return;
       }
-  
+
       if (data.message === "succesfull") {
         console.log("Login successful:", data);
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.userId);
         alert("Đăng nhập thành công!");
-        // Chuyển hướng tới site chức năng
         navigate("/manage/menu");
       }
     } catch (error) {
@@ -68,7 +65,7 @@ export default function LoginPage() {
       alert("Lỗi kết nối đến server!");
     }
   };
-  
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -78,62 +75,96 @@ export default function LoginPage() {
 
   return (
     <div className={styles.loginContainer}>
-      {/* Cột bên trái chứa hình ảnh */}
       <div className={styles.loginImageContainer}>
         <img src={loginImage} alt="Login Background" />
       </div>
-
-      {/* Cột bên phải chứa form đăng nhập */}
       <div className={styles.loginFormContainer}>
-        <div className={styles.loginForm}>
-        <h1>Login</h1>
-        <form onSubmit={handleSubmit}>
-          {/* Username */}
-          <div className={styles.formGroup}>
-            <label htmlFor="username">Username</label>
-            <input
-              type="email"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              placeholder="Nhập email của bạn..."
-            />
-          </div>
-
-          {/* Password */}
-          <div className={styles.formGroup}>
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          {/* Remember Me & Forgot Password */}
-          <div className={styles.formOptions}>
-            <label>
-              <input
-                type="checkbox"
-                name="rememberMe"
+        <div className="w-full bg-white rounded-lg shadow-md sm:max-w-md py-6 px-8">
+          <div className="pb-9 flex items-center gap-4">
+            {/* Logo */}
+            <div>
+              <img
+                src={logoBepKhoi}
+                alt="Logo Bếp Khói"
+                className="w-20 h-20"
               />
-              Remember me
-            </label>
-          </div>
-          <div className="forgot">
-              <a href="#">Forgot Password?</a>
-          </div>
+            </div>
 
-          {/* Login Button */}
-          <div className="submit-login" style={{ marginTop: "20px" }}>
-            <button type="submit" className={styles.btnLogin}>Login</button>
+            <div>
+              <h1 className="text-2xl font-bold text-[#d69629] md:text-4xl">
+                Đăng nhập
+              </h1>
+              <p className="mt-2 font-light">Nhà hàng Bếp Khói xin chào!</p>
+            </div>
           </div>
-        </form>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label
+                htmlFor="username"
+                className="block mb-2 text-sm font-medium text-gray-900"
+              >
+                Your email
+              </label>
+              <input
+                type="email"
+                name="username"
+                id="username"
+                value={formData.username}
+                onChange={handleChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg w-full p-2.5"
+                placeholder="name@company.com"
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="password"
+                className="block mb-2 text-sm font-medium text-gray-900"
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg w-full p-2.5"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember"
+                  type="checkbox"
+                  className="w-4 h-4 border border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="remember"
+                  className="ml-2 text-sm text-gray-500"
+                >
+                  Remember me
+                </label>
+              </div>
+              <a
+                href="#"
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </a>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-[#fcc25d] text-blue font-semibold rounded-lg px-5 py-2.5 hover:bg-[#dba342]"
+            >
+              Sign in
+            </button>
+            <p className="text-sm text-gray-500">
+              contact for admin to get account
+            </p>
+          </form>
         </div>
       </div>
     </div>

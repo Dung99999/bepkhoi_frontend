@@ -10,12 +10,12 @@ const navItems = [
     label: "Hàng hóa", 
     path: "/menu",
     submenu: [
-      { label: "Danh mục", path: "/menu" },
-      { label: "Thiết lập giá", path: "/settingPrice" },
+      { label: "Danh mục", path: "/manage/menu" },
+      { label: "Thiết lập giá", path: "/manage/settingPrice" },
     ],
   },
-  { label: "Phòng/Bàn", path: "/rooms" },
-  { label: "Đối tác", path: "/partners" },
+  { label: "Phòng/Bàn", path: "/manage/rooms" },
+  { label: "Đối tác", path: "/manage/partners" },
 ];
 
 const HeaderManage: React.FC = () => {

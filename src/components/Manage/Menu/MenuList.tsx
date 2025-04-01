@@ -133,7 +133,7 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       .finally(() => setLoadingDetail(false));
   }
   
-  // Handle update 
+  // Handle update
   const handleOpenUpdate = (record : MenuItem) => {
     setUpdateData(record);
     setOpenUpdate(true);
@@ -179,7 +179,7 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     },
   ];
 
-  //  Row selection
+  // Row selection
   const rowSelection: TableProps<MenuItem>["rowSelection"] = {
     selectedRowKeys,
     onChange: (newSelectedRowKeys) => setSelectedRowKeys(newSelectedRowKeys),
