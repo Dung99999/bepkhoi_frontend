@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CartAction: React.FC = () => {
     const [activeButton, setActiveButton] = useState<string>("Thông tin đơn hàng");
+    const navigate = useNavigate();
+
     return (
         <div>
             <h1 className="text-2xl font-bold mb-2">Giỏ hàng</h1>
@@ -23,9 +26,11 @@ const CartAction: React.FC = () => {
                 </button>
 
                 <button
-                    className={`text-sm ${activeButton === "+ Thêm món" ? "font-semibold border-b-2 border-black pb-2" : "hover:text-black"
-                        }`}
-                    onClick={() => setActiveButton("+ Thêm món")}
+                    className={`text-sm ${activeButton === "+ Thêm món" ? "font-semibold border-b-2 border-black pb-2" : "hover:text-black"}`}
+                    onClick={() => {
+                        setActiveButton("+ Thêm món");
+                        navigate("/shop/menu");
+                    }}
                 >
                     + Thêm món
                 </button>
