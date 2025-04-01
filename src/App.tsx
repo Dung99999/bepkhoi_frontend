@@ -9,6 +9,14 @@ import shopRoutes from "./Routes/ShopRoutes";
 import ForbiddenPage from "./pages/Error/403";
 import NotFoundPage from "./pages/Error/404";
 import ServerErrorPage from "./pages/Error/500";
+import "./pages/Manage/SettingPricePage.css";
+import POSLayout from "./layouts/POSLayout";
+import posRoutes from "./Routes/POSRoutes";
+// // import POSRoutes from "./Routes/POSRoutes";
+// import { POSTableList } from "./components/POS/POSTableList";
+// import { POSMenuList } from "./components/POS/POSMenuList";
+// import POSOrderSummary from "./components/POS/POSOrderSummary";
+// import { POSPaymentSection } from "./components/POS/POSPaymentSection";
 
 const App: React.FC = () => {
 
@@ -42,7 +50,8 @@ const App: React.FC = () => {
             <Route key={index} path={route.path} element={route.element} />
           ))}
         </Route>
-
+        {/* Group page of POS site */}
+        <Route path="/pos/*" element={<POSLayout />}/>
         <Route path="/shop" element={<ShopLayout modelMode={modelMode} />}>
           <Route index element={<Navigate to="/shop/menu" replace />} />
           {shopRoutes.map((route, index) => (

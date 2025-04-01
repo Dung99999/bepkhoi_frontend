@@ -1,0 +1,57 @@
+.customTabLabel {
+  color: #ecc37a !important;
+  font-weight: bold;
+}
+
+.customTabs :where(.ant-tabs-tab-active) {
+  color: #ffce79 !important;
+}
+
+.ant-tabs-content-holder {
+  flex: 1 !important;
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;
+}
+
+.ant-tabs-tabpane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ant-tabs-tabpane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.customTabs :where(.ant-tabs-nav-add):hover {
+  color: #f4b400 !important;
+}
+
+.tableCustomizeRightSide {
+  background-color: #ffe6bc;
+  font-weight: bold;
+  padding: 5px 8px;
+  border-radius: 10px;
+  margin-right: 20px;
+}
+
+.FoundCustomers input {
+  border-radius: 25px;
+  width: 380px;
+}
+
+.ant-tabs-content-holder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ant-tabs-tabpane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
