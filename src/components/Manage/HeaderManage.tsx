@@ -1,21 +1,27 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Dropdown } from "antd";
 import { EditOutlined, PhoneOutlined, GlobalOutlined, MessageOutlined } from "@ant-design/icons";
-import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png"; // ✅ Đường dẫn đúng tới logo
+import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
 
 const navItems = [
-  { label: "Tổng quan", path: "/dashboard" },
-  { 
-    label: "Hàng hóa", 
-    path: "/menu",
+  { label: "Tổng quan", path: "/manage/dashboard" },
+  {
+    label: "Hàng hóa",
     submenu: [
-      { label: "Danh mục", path: "/menu" },
-      { label: "Thiết lập giá", path: "/settingPrice" },
+      { label: "Danh mục", path: "/manage/menu" },
+      { label: "Thiết lập giá", path: "/manage/settingPrice" },
     ],
   },
-  { label: "Phòng/Bàn", path: "/rooms" },
-  { label: "Đối tác", path: "/partners" },
+  { label: "Phòng/Bàn", path: "/manage/rooms" },
+  {
+    label: "Đối tác",
+    submenu: [
+      { label: "Khách hàng", path: "/manage/customer" },
+      { label: "Nhân viên quầy", path: "/manage/cashier" },
+      { label: "Nhân viên giao hàng", path: "/manage/shipper" },
+    ],
+  },
 ];
 
 const HeaderManage: React.FC = () => {
