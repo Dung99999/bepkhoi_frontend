@@ -9,6 +9,7 @@ export default function VerifyPassword() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpStage, setIsOtpStage] = useState(false); // Trạng thái giữa lần bấm đầu và thứ hai
+  const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state để kiểm soát trạng thái submit
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -19,12 +20,13 @@ export default function VerifyPassword() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (!isOtpStage) {
       // request OTP
       try {
         const response = await fetch(
-          "https://localhost:7257/api/User/send-otp",
+          "https://localhost:7257/api/Passwords/send-otp",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -45,7 +47,7 @@ export default function VerifyPassword() {
     } else {
       // authorize OTP
       try {
-        const response = await fetch("https://localhost:7257/api/User/verify", {
+        const response = await fetch("https://localhost:7257/api/Passwords/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, otp }),
@@ -68,6 +70,7 @@ export default function VerifyPassword() {
         alert("Lỗi kết nối đến server!");
       }
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -140,6 +143,7 @@ export default function VerifyPassword() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Nhập Email của bạn..."
+              disabled={isOtpStage}
               className="p-2 rounded-md mt-2"
             />
           </div>
@@ -162,8 +166,13 @@ export default function VerifyPassword() {
           <button
             type="submit"
             className="bg-blue-500 rounded-md text-gray-50 font-extrabold py-2 mt-1 hover:bg-blue-700 hover:text-gray-200"
+            disabled={isSubmitting}
           >
-            {isOtpStage ? "Xác thực OTP" : "Gửi OTP"}
+            {isSubmitting
+              ? "Đang xử lý..." // Hiển thị loading khi đang xử lý
+              : isOtpStage
+              ? "Xác thực OTP"
+              : "Gửi OTP"}
           </button>
         </form>
       </div>

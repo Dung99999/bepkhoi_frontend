@@ -36,7 +36,7 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: username, password }),
+        body: JSON.stringify({ email: username, password: password }),
       });
 
       const data = await response.json();
@@ -53,7 +53,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.message === "succesfull") {
+      if (data.message === "successful") {
         console.log("Login successful:", data);
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.userId);
@@ -124,7 +124,7 @@ export default function LoginPage() {
                 Password
               </label>
               <input
-                type="password"
+                type="text"
                 name="password"
                 id="password"
                 value={formData.password}
@@ -149,7 +149,7 @@ export default function LoginPage() {
                 </label>
               </div>
               <a
-                href="#"
+                href="http://localhost:3000/verify"
                 className="text-sm font-medium text-blue-600 hover:underline"
               >
                 Forgot password?
