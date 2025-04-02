@@ -36,22 +36,17 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose }) =
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Lỗi khi thêm shipper");
+        throw new Error(errorData.message || "Lỗi khi thêm nhân viên");
       }
-  
-      const result = await response.json();
-      
-      if (result.success) {
-        message.success(result.message || "Shipper đã được thêm thành công!");
-        resetForm();
-        onClose();
-        window.location.reload();
-      } else {
-        message.error(result.message || "Lỗi khi thêm shipper");
-      }
+      const successMessage = await response.text();
+      message.success(successMessage || "Nhân viên đã được thêm thành công!");
+      resetForm();
+      onClose();
+      window.location.reload();
+
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -105,15 +100,15 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose }) =
         </div>
 
         <div className="mt-6 flex justify-end space-x-3">
-          <Button 
-            className="bg-green-600 text-white px-6 py-2 rounded-md" 
+          <Button
+            className="bg-green-600 text-white px-6 py-2 rounded-md"
             onClick={handleSubmit}
             loading={loading}
           >
             Lưu
           </Button>
-          <Button 
-            className="bg-gray-300 px-6 py-2 rounded-md" 
+          <Button
+            className="bg-gray-300 px-6 py-2 rounded-md"
             onClick={() => {
               resetForm();
               onClose();

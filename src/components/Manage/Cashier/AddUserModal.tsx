@@ -41,17 +41,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
         const errorData = await response.json();
         throw new Error(errorData.message || "Lỗi khi thêm nhân viên");
       }
+      const successMessage = await response.text();
+      message.success(successMessage || "Nhân viên đã được thêm thành công!");
+      resetForm();
+      onClose();
+      window.location.reload();
   
-      const result = await response.json();
-      
-      if (result.success) {
-        message.success(result.message || "Nhân viên đã được thêm thành công!");
-        resetForm();
-        onClose();
-        window.location.reload();
-      } else {
-        message.error(result.message || "Lỗi khi thêm nhân viên");
-      }
     } catch (error) {
       console.error("Error:", error);
     } finally {
