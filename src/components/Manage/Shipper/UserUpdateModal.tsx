@@ -56,7 +56,7 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       console.log("Dữ liệu gửi lên API:", formattedData);
 
       const response = await axios.put(
-        `https://localhost:7257/api/Shipper/${formData.userId}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}/Shipper/${formData.userId}`,
         formattedData,
         { headers: { 'Content-Type': 'application/json' } }
       );

@@ -13,29 +13,49 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
     phone: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (key: keyof typeof formData, value: any) => {
     setFormData({ ...formData, [key]: value });
   };
 
+  const resetForm = () => {
+    setFormData({
+      userName: "",
+      email: "",
+      phone: "",
+      password: "",
+    });
+  };
+
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Lỗi khi thêm nhân viên");
+      }
+  
       const result = await response.json();
-
-      if (response.ok) {
-        message.success("Nhân viên đã được thêm thành công!");
+      
+      if (result.success) {
+        message.success(result.message || "Nhân viên đã được thêm thành công!");
+        resetForm();
         onClose();
+        window.location.reload();
       } else {
         message.error(result.message || "Lỗi khi thêm nhân viên");
       }
     } catch (error) {
-      message.error("Lỗi kết nối đến server");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,9 +63,13 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
     <Modal
       title="Thêm Nhân Viên Quầy"
       open={visible}
-      onCancel={onClose}
+      onCancel={() => {
+        resetForm();
+        onClose();
+      }}
       footer={null}
-      width={800}
+      width="30%"
+      destroyOnClose
     >
       <div className="space-y-4">
         <div>
@@ -81,10 +105,21 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
         </div>
 
         <div className="mt-6 flex justify-end space-x-3">
-          <Button className="bg-green-600 text-white px-6 py-2 rounded-md" onClick={handleSubmit}>
+          <Button 
+            className="bg-green-600 text-white px-6 py-2 rounded-md" 
+            onClick={handleSubmit}
+            loading={loading}
+          >
             Lưu
           </Button>
-          <Button className="bg-gray-300 px-6 py-2 rounded-md" onClick={onClose}>
+          <Button 
+            className="bg-gray-300 px-6 py-2 rounded-md" 
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
+            disabled={loading}
+          >
             Bỏ qua
           </Button>
         </div>

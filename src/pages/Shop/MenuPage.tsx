@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MenuList from "../../components/Shop/Menu/MenuList";
 import MenuTop from "../../components/Shop/Menu/MenuTop";
 import ProductModal from "../../components/Shop/Menu/ProductModal";
 import { Drawer } from "antd";
+import axios from "axios";
 
 interface Product {
     id: number;
@@ -12,6 +13,11 @@ interface Product {
     description?: string;
     unit?: string;
     status?: string;
+}
+
+interface Category {
+    productCategoryId: number;
+    productCategoryTitle: string;
 }
 
 // Dữ liệu giả
@@ -33,12 +39,28 @@ const MenuPage: React.FC = () => {
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
+
+    const fetchCategories = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}product-categories/get-all-categories`);
+            setCategories(response.data);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh mục:", error);
+        }
+    };
 
     const handleSearch = (value: string) => {
         const filtered = fakeData.filter((product) =>
             product.name.toLowerCase().includes(value.toLowerCase())
         );
         setFilteredProducts(filtered);
+    };
+
+    const handleCategorySelect = (categoryTitle: string) => {
+        setSelectedCategory(categoryTitle);
+        setDrawerVisible(false);
     };
 
     const toggleDrawer = () => {
@@ -55,6 +77,10 @@ const MenuPage: React.FC = () => {
         setSelectedProduct(null);
     };
 
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
     return (
         <div>
             <MenuTop
@@ -65,8 +91,7 @@ const MenuPage: React.FC = () => {
                 }}
                 toggleDrawer={toggleDrawer}
             />
-
-            <h1 className="text-lg font-bold pt-4 px-4">Đồ uống</h1>
+            <h1 className="text-lg font-bold pt-4 px-4">{selectedCategory}</h1>
             <MenuList products={filteredProducts}
                 onProductClick={showModal}
             />
@@ -78,12 +103,24 @@ const MenuPage: React.FC = () => {
                 open={drawerVisible}
             >
                 <ul>
-                    <li className="p-2 cursor-pointer hover:bg-gray-200 rounded-md">Tất cả</li>
-                    <li className="p-2 cursor-pointer hover:bg-gray-200 rounded-md">Đồ uống</li>
-                    <li className="p-2 cursor-pointer hover:bg-gray-200 rounded-md">Thức ăn</li>
-                    <li className="p-2 cursor-pointer hover:bg-gray-200 rounded-md">Khác</li>
+                    <li
+                        className={`p-2 cursor-pointer hover:bg-gray-200 rounded-md ${selectedCategory === "Tất cả" ? "font-bold" : ""}`}
+                        onClick={() => handleCategorySelect("Tất cả")}
+                    >
+                        Tất cả
+                    </li>
+                    {categories.map((category) => (
+                        <li
+                            key={category.productCategoryId}
+                            className={`p-2 cursor-pointer hover:bg-gray-200 rounded-md ${selectedCategory === category.productCategoryTitle ? "font-bold" : ""}`}
+                            onClick={() => handleCategorySelect(category.productCategoryTitle)}
+                        >
+                            {category.productCategoryTitle}
+                        </li>
+                    ))}
                 </ul>
             </Drawer>
+
             <ProductModal
                 visible={isModalVisible}
                 product={selectedProduct}

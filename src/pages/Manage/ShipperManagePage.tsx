@@ -13,7 +13,7 @@ const ShipperManagePage: React.FC = () => {
 
   const handleExportExcel = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/export`, {
+      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/export`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ const ShipperManagePage: React.FC = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'Customers.xlsx';
+        a.download = 'Shippers.xlsx';
         document.body.appendChild(a);
         a.click();
         a.remove();

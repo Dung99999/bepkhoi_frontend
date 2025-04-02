@@ -38,9 +38,11 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
 
   const fetchMenuList = () => {
     setLoading(true);
-    const apiUrl = search.trim()
-      ? `${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/search?searchTerm=${encodeURIComponent(search.trim())}`
-      : `${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper`;
+    let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/search?searchTerm=${encodeURIComponent(search.trim())}`;
+    if (status === "1" || status === "0") {
+      const statusValue = status === "1" ? "true" : "false";
+      apiUrl += `&status=${statusValue}`;
+    }
 
     fetch(apiUrl)
       .then((response) => response.json())

@@ -38,15 +38,10 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
 
   const fetchMenuList = () => {
     setLoading(true);
-    let apiUrl = "";
-
-    if (search.trim()) {
-      apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/search?searchTerm=${encodeURIComponent(search.trim())}`;
-    } else if (status === "1" || status === "0") {
+    let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/search?searchTerm=${encodeURIComponent(search.trim())}`;
+    if (status === "1" || status === "0") {
       const statusValue = status === "1" ? "true" : "false";
-      apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/status/${statusValue}`;
-    } else {
-      apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers`;
+      apiUrl += `&status=${statusValue}`;
     }
 
     fetch(apiUrl)

@@ -1,55 +1,79 @@
 import React, { useState } from "react";
 import { Modal, Input, Button, message } from "antd";
 
-interface AddUserModalProps {
+interface AddShipperModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
+const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose }) => {
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
     phone: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (key: keyof typeof formData, value: any) => {
     setFormData({ ...formData, [key]: value });
   };
 
+  const resetForm = () => {
+    setFormData({
+      userName: "",
+      email: "",
+      phone: "",
+      password: "",
+    });
+  };
+
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Lỗi khi thêm shipper");
+      }
+  
       const result = await response.json();
-
-      if (response.ok) {
-        message.success("Nhân viên đã được thêm thành công!");
+      
+      if (result.success) {
+        message.success(result.message || "Shipper đã được thêm thành công!");
+        resetForm();
         onClose();
+        window.location.reload();
       } else {
-        message.error(result.message || "Lỗi khi thêm nhân viên");
+        message.error(result.message || "Lỗi khi thêm shipper");
       }
     } catch (error) {
-      message.error("Lỗi kết nối đến server");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Modal
-      title="Thêm Nhân Viên Quầy"
+      title="Thêm Shipper Mới"
       open={visible}
-      onCancel={onClose}
+      onCancel={() => {
+        resetForm();
+        onClose();
+      }}
       footer={null}
-      width={800}
+      width="30%"
+      destroyOnClose
     >
       <div className="space-y-4">
         <div>
-          <label>Tên nhân viên:</label>
+          <label>Tên shipper:</label>
           <Input
             value={formData.userName}
             onChange={(e) => handleChange("userName", e.target.value)}
@@ -81,10 +105,21 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
         </div>
 
         <div className="mt-6 flex justify-end space-x-3">
-          <Button className="bg-green-600 text-white px-6 py-2 rounded-md" onClick={handleSubmit}>
+          <Button 
+            className="bg-green-600 text-white px-6 py-2 rounded-md" 
+            onClick={handleSubmit}
+            loading={loading}
+          >
             Lưu
           </Button>
-          <Button className="bg-gray-300 px-6 py-2 rounded-md" onClick={onClose}>
+          <Button 
+            className="bg-gray-300 px-6 py-2 rounded-md" 
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
+            disabled={loading}
+          >
             Bỏ qua
           </Button>
         </div>
@@ -93,4 +128,4 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose }) => {
   );
 };
 
-export default AddUserModal;
+export default AddShipperModal;
