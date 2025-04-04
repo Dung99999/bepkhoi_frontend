@@ -44,7 +44,7 @@ const MenuPage: React.FC = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}product-categories/get-all-categories`);
+            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`);
             setCategories(response.data);
         } catch (error) {
             console.error("Lỗi khi lấy danh mục:", error);

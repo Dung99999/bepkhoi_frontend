@@ -5,6 +5,8 @@ import SettingPricePage from "../pages/Manage/SettingPricePage";
 import CustomerManagePage from "../pages/Manage/CustomerManagePage";
 import CashierManagePage from "../pages/Manage/CashierManagePage";
 import ShipperManagePage from "../pages/Manage/ShipperManagePage";
+import RoomAreaManagePage from "../pages/Manage/RoomAreaManagePage";
+import RoomsManagePage from "../pages/Manage/RoomsManagePage";
 
 interface RouteItem {
     path?: string; // Có thể là path hoặc index
@@ -21,6 +23,8 @@ const manageRoutes: RouteItem[] = [
     { path: "/manage/customer", element: <CustomerManagePage />, roles: ["admin"] },
     { path: "/manage/cashier", element: <CashierManagePage />, roles: ["admin"] },
     { path: "/manage/shipper", element: <ShipperManagePage />, roles: ["admin"] },
+    { path: "/manage/roomArea", element: <RoomAreaManagePage />, roles: ["admin"] },
+    { path: "/manage/rooms", element: <RoomsManagePage />, roles: ["admin"] },
 ];
 
 export default manageRoutes;

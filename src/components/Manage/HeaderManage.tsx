@@ -18,7 +18,13 @@ const navItems = [
       { label: "Thiết lập giá", path: "/manage/settingPrice" },
     ],
   },
-  { label: "Phòng/Bàn", path: "/manage/rooms" },
+  {
+    label: "Phòng/Bàn", path: "/manage/rooms",
+    submenu: [
+      { label: "Bàn", path: "/manage/rooms" },
+      { label: "Phòng", path: "/manage/roomArea" },
+    ],
+  },
   {
     label: "Quản lý hóa đơn",
     submenu: [
@@ -98,10 +104,9 @@ const HeaderManage: React.FC = () => {
                 key={index}
                 to={item.path}
                 className={({ isActive }) =>
-                  `px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-[#FFE4B5] text-black"
-                      : "hover:bg-[#FFE4B5] hover:text-black"
+                  `px-4 py-2 rounded-lg font-medium transition-all duration-200 ${isActive
+                    ? "bg-[#FFE4B5] text-black"
+                    : "hover:bg-[#FFE4B5] hover:text-black"
                   }`
                 }
               >
