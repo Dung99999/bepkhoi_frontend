@@ -9,7 +9,7 @@ interface RoomProps {
   ordinalNumber: number;
   seatNumber: number;
   roomNote: string;
-  qrCodeUrl: string;
+  qrCodeUrl: string | undefined;
   status: boolean;
   isUse: boolean;
   isDelete: boolean;

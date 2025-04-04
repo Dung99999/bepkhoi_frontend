@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Tag, Empty } from "antd";
+import { Table, Tag, Empty, Button } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 interface RoomProps {
@@ -12,13 +12,13 @@ interface RoomProps {
   status: boolean;
   isUse: boolean;
   isDelete: boolean;
-  qrCodeUrl: string;
+  qrCodeUrl: string | undefined;
 }
 
 interface RoomListProps {
   data: RoomProps[];
   loading: boolean;
-  onRowClick: (record: RoomProps) => void;
+  onRowClick: (record: RoomProps, action?: string) => void;
 }
 
 const RoomList: React.FC<RoomListProps> = ({
@@ -43,7 +43,7 @@ const RoomList: React.FC<RoomListProps> = ({
       title: "Khu vực",
       dataIndex: "roomAreaName",
       key: "roomAreaName",
-  },
+    },
     {
       title: "Số chỗ",
       dataIndex: "seatNumber",
@@ -57,6 +57,22 @@ const RoomList: React.FC<RoomListProps> = ({
         <Tag color={record.isDelete ? "red" : record.status ? "green" : "orange"}>
           {record.isDelete ? "Đã xóa" : record.status ? "Hoạt động" : "Tạm dừng"}
         </Tag>
+      ),
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      width: 150,
+      render: (_, record) => (
+        <Button
+          type="link"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRowClick(record, 'qr');
+          }}
+        >
+          Quản lý QR
+        </Button>
       ),
     },
   ];

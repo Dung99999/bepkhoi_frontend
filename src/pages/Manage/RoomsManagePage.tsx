@@ -6,6 +6,7 @@ import Sidebar from "../../components/Manage/Room/Sidebar";
 import AddRoomModal from "../../components/Manage/Room/AddRoomModal";
 import RoomDetailModal from "../../components/Manage/Room/RoomDetailModal";
 import EditRoomModal from "../../components/Manage/Room/EditRoomModal";
+import QRManageModal from "../../components/Manage/Room/QRManageModal";
 
 interface RoomProps {
     roomId: number;
@@ -14,7 +15,7 @@ interface RoomProps {
     ordinalNumber: number;
     seatNumber: number;
     roomNote: string;
-    qrCodeUrl: string;
+    qrCodeUrl: string | undefined;
     status: boolean;
     isUse: boolean;
     isDelete: boolean;
@@ -39,6 +40,9 @@ const RoomsManagePage: React.FC = () => {
     const [selectedRoom, setSelectedRoom] = useState<RoomProps | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+    const [qrLoading, setQrLoading] = useState(false);
 
     const fetchRooms = async () => {
         setLoading(true);
@@ -124,8 +128,13 @@ const RoomsManagePage: React.FC = () => {
         }
     };
 
-    const handleRowClick = (record: RoomProps) => {
-        fetchRoomDetail(record.roomId);
+    const handleRowClick = (record: RoomProps, action?: string) => {
+        if (action === 'qr') {
+            setSelectedRoom(record);
+            setIsQRModalOpen(true);
+        } else {
+            fetchRoomDetail(record.roomId);
+        }
     };
 
     const handleAddRoom = async (values: {
@@ -243,6 +252,122 @@ const RoomsManagePage: React.FC = () => {
         });
     };
 
+    const handleGenerateQR = async () => {
+        if (!selectedRoom) return;
+
+        setQrLoading(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/generate-qr/${selectedRoom.roomId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "accept": "*/*"
+                    }
+                }
+            );
+
+            if (!response.ok) throw new Error("Tạo QR thất bại");
+
+            const result = await response.json();
+            message.success(result.message || "Tạo QR thành công!");
+
+            const updatedRoom = {
+                ...selectedRoom,
+                qrCodeUrl: result.qrCodeUrl
+            };
+
+            setSelectedRoom(updatedRoom);
+            setRooms(rooms.map(room =>
+                room.roomId === selectedRoom.roomId ? updatedRoom : room
+            ));
+        } catch (error) {
+            message.error("Tạo QR thất bại");
+            console.error("Error:", error);
+        } finally {
+            setQrLoading(false);
+        }
+    };
+
+    const handleDeleteQR = async () => {
+        if (!selectedRoom) return;
+
+        setQrLoading(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/delete-qr/${selectedRoom.roomId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "accept": "*/*"
+                    }
+                }
+            );
+
+            if (!response.ok) throw new Error("Xóa QR thất bại");
+
+            const result = await response.json();
+            message.success(result.message || "Xóa QR thành công!");
+            const updatedRoom = {
+                ...selectedRoom,
+                qrCodeUrl: undefined
+            };
+
+            setSelectedRoom(updatedRoom);
+            setRooms(rooms.map(room =>
+                room.roomId === selectedRoom.roomId ? updatedRoom : room
+            ));
+        } catch (error) {
+            message.error("Xóa QR thất bại");
+            console.error("Error:", error);
+        } finally {
+            setQrLoading(false);
+        }
+    };
+
+    const handleDownloadQR = async () => {
+        if (!selectedRoom?.qrCodeUrl) return;
+      
+        try {
+          const response = await fetch(
+            `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/download-qr/${selectedRoom.roomId}`,
+            {
+              method: "GET",
+              headers: {
+                "accept": "image/*"
+              }
+            }
+          );
+      
+          if (!response.ok) throw new Error("Không thể tải QR code");
+      
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+      
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `QR_${selectedRoom.roomName.replace(/\s+/g, '_')}.png`;
+          document.body.appendChild(link);
+          link.click();
+      
+          setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          }, 100);
+        } catch (error) {
+          console.error("Lỗi khi tải QR:", error);
+          message.error("Tải QR thất bại");
+          if (selectedRoom.qrCodeUrl) {
+            const link = document.createElement('a');
+            link.href = selectedRoom.qrCodeUrl;
+            link.download = `QR_${selectedRoom.roomName.replace(/\s+/g, '_')}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }
+      };
+
     const handleEditRoom = () => {
         if (selectedRoom) {
             setIsDetailModalOpen(false);
@@ -307,6 +432,17 @@ const RoomsManagePage: React.FC = () => {
                         roomAreas={roomAreas}
                         loading={loading}
                         onSubmit={handleUpdateRoom}
+                    />
+
+                    <QRManageModal
+                        visible={isQRModalOpen}
+                        onClose={() => setIsQRModalOpen(false)}
+                        qrCodeUrl={selectedRoom?.qrCodeUrl}
+                        roomName={selectedRoom?.roomName || ''}
+                        onGenerateQR={handleGenerateQR}
+                        onDownloadQR={handleDownloadQR}
+                        onDeleteQR={handleDeleteQR}
+                        loading={qrLoading}
                     />
                 </main>
             </div>
