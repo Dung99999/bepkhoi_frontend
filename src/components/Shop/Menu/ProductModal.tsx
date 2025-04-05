@@ -17,9 +17,10 @@ interface ProductModalProps {
     visible: boolean;
     product: Product | null;
     onClose: () => void;
+    unitTitle: string;
 }
 
-const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }) => {
+const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, unitTitle }) => {
     const [quantity, setQuantity] = useState(1);
     const modelMode = useContext(ModelModeContext);
 
@@ -130,14 +131,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }
                                     <div className="flex-1">
                                         <p className="text-xs font-semibold text-gray-600">Đơn vị tính</p>
                                         <div className="px-3 py-1 mt-1 rounded-md bg-gray-100 text-black text-sm font-medium w-fit">
-                                            {product.unit || "Cốc"}
+                                            {unitTitle}
                                         </div>
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs font-semibold text-gray-600">Tình trạng</p>
                                         <div className="flex items-center px-3 py-1 mt-1 rounded-md bg-gray-100 text-green-700 text-sm font-medium w-fit">
                                             <CheckCircleOutlined className="mr-1 text-sm" />
-                                            {product.status || "Còn hàng"}
+                                            {product.status}
                                         </div>
                                     </div>
                                 </div>
@@ -192,14 +193,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }
                                     <div className="flex-1">
                                         <p className="text-xs font-semibold text-gray-600">Đơn vị tính</p>
                                         <div className="px-3 py-1 mt-1 rounded-md bg-gray-100 text-black text-sm font-medium w-fit">
-                                            {product.unit || "Cốc"}
+                                            {unitTitle}
                                         </div>
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs font-semibold text-gray-600">Tình trạng</p>
                                         <div className="flex items-center px-3 py-1 mt-1 rounded-md bg-gray-100 text-green-700 text-sm font-medium w-fit">
                                             <CheckCircleOutlined className="mr-1 text-sm" />
-                                            {product.status || "Còn hàng"}
+                                            {product.status}
                                         </div>
                                     </div>
                                 </div>

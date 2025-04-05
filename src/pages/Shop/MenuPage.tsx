@@ -20,39 +20,87 @@ interface Category {
     productCategoryTitle: string;
 }
 
-// Dữ liệu giả
-const fakeData: Product[] = [
-    { id: 1, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 2, name: "Gà", price: 10000, image: "https://image.plo.vn/w1000/Uploaded/2025/tmuihk/2024_04_19/tac-hai-cua-do-an-vat-toi-suc-khoe-tre-em-7845.png", description: "Trà đào nguyên chất 500ml" },
-    { id: 3, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 4, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 5, name: "Trà chanh", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 6, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 7, name: "Trà đào", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 8, name: "Trà chanh", price: 10000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-    { id: 9, name: "Trà hoa cúc", price: 15000, image: "https://images.immediate.co.uk/production/volatile/sites/30/2021/11/Summer-cup-mocktail-5c22b8e.jpg", description: "Trà đào nguyên chất 500ml" },
-];
+interface Unit {
+    unitId: number;
+    unitTitle: string;
+}
 
 const MenuPage: React.FC = () => {
     const [search, setSearch] = useState("");
-    const [filteredProducts, setFilteredProducts] = useState(fakeData);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
+    const [loading, setLoading] = useState(true);
+
+    const fetchUnits = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}api/units/get-all-units`);
+            setUnits(response.data);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách đơn vị tính:", error);
+        }
+    };
+
+    const fetchProducts = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/get-all-menu-qr`);
+
+            const mappedProducts = response.data.map((item: any) => {
+                // Lưu unitId dưới dạng string trong trường unit
+                return {
+                    id: item.productId,
+                    name: item.productName,
+                    price: item.sellPrice,
+                    image: item.productImageUrls?.[0] || '',
+                    description: item.description || 'Không có mô tả',
+                    unit: item.unitId?.toString(), // Lưu unitId dưới dạng string
+                    status: item.isAvailable ? 'Còn hàng' : 'Hết hàng'
+                };
+            });
+
+            setProducts(mappedProducts);
+            setFilteredProducts(mappedProducts);
+            setLoading(false);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+            setLoading(false);
+        }
+    };
 
     const fetchCategories = async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`);
             setCategories(response.data);
         } catch (error) {
-            console.error("Lỗi khi lấy danh mục:", error);
+            console.error("Lỗi khi lấy danh mục sản phẩm:", error);
         }
     };
 
+    const fetchAllData = async () => {
+        setLoading(true);
+        try {
+            await fetchUnits();
+            await fetchCategories();
+            await fetchProducts();
+        } catch (error) {
+            console.error("Lỗi khi tải dữ liệu:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getUnitTitle = (unitId: number): string => {
+        const unit = units.find(u => u.unitId === unitId);
+        return unit ? unit.unitTitle : 'Không xác định';
+    };
+
     const handleSearch = (value: string) => {
-        const filtered = fakeData.filter((product) =>
+        const filtered = products.filter((product) =>
             product.name.toLowerCase().includes(value.toLowerCase())
         );
         setFilteredProducts(filtered);
@@ -78,8 +126,12 @@ const MenuPage: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchCategories();
+        fetchAllData();
     }, []);
+
+    if (loading) {
+        return <div>Đang tải dữ liệu...</div>;
+    }
 
     return (
         <div>
@@ -92,7 +144,8 @@ const MenuPage: React.FC = () => {
                 toggleDrawer={toggleDrawer}
             />
             <h1 className="text-lg font-bold pt-4 px-4">{selectedCategory}</h1>
-            <MenuList products={filteredProducts}
+            <MenuList
+                products={filteredProducts}
                 onProductClick={showModal}
             />
 
@@ -124,9 +177,9 @@ const MenuPage: React.FC = () => {
             <ProductModal
                 visible={isModalVisible}
                 product={selectedProduct}
+                unitTitle={selectedProduct ? getUnitTitle(parseInt(selectedProduct.unit || '0')) : ''}
                 onClose={closeModal}
             />
-
         </div>
     );
 };
