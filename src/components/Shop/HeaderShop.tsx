@@ -13,8 +13,8 @@ const HeaderShop: React.FC<HeaderShopProps> = ({ setActiveTab }) => {
 
   useEffect(() => {
     const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      setCartCount(cart.length); // Chỉ đếm số lượng sản phẩm duy nhất
+      const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
+      setCartCount(cart.length);
     };
 
     updateCartCount();

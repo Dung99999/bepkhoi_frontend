@@ -28,14 +28,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose }
 
     const addToCart = () => {
         if (!product) return;
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
         const existingIndex = cart.findIndex((item: Product) => item.id === product.id);
         if (existingIndex !== -1) {
             cart[existingIndex].quantity += quantity;
         } else {
             cart.push({ ...product, quantity });
         }
-        localStorage.setItem("cart", JSON.stringify(cart));
+        sessionStorage.setItem("cart", JSON.stringify(cart));
         setQuantity(1);
         animateToCart();
         setTimeout(onClose, 500);

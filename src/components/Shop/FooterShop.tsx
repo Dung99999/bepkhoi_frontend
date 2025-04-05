@@ -13,7 +13,7 @@ const FooterShop: React.FC<FooterShopProps> = ({ activeTab, setActiveTab }) => {
 
   useEffect(() => {
     const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
       setCartCount(cart.length);
     };
 

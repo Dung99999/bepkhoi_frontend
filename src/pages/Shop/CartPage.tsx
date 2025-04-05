@@ -15,25 +15,28 @@ const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Product[]>([]);
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const storedCart = JSON.parse(sessionStorage.getItem("cart") || "[]");
     setCart(storedCart);
   }, []);
 
   const updateCart = (updatedCart: Product[]) => {
     setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    sessionStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const handleQuantityChange = (id: number, type: "increase" | "decrease") => {
-    const updatedCart = cart.map((item) => {
-      if (item.id === id) {
-        const updatedQuantity = type === "increase" ? item.quantity + 1 : Math.max(item.quantity - 1, 1);
-        return { ...item, quantity: updatedQuantity };
-      }
-      return item;
-    });
+    const updatedCart = cart
+      .map((item) => {
+        if (item.id === id) {
+          const updatedQuantity = type === "increase" ? item.quantity + 1 : item.quantity - 1;
+          return { ...item, quantity: updatedQuantity };
+        }
+        return item;
+      })
+      .filter((item) => item.quantity > 0);
     updateCart(updatedCart);
   };
+
 
   const calculateTotal = () => cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const discount = 2000;
@@ -41,7 +44,10 @@ const CartPage: React.FC = () => {
 
   return (
     <div>
-      <CartAction />
+      <div className="bg-white p-4 shadow-sm">
+        <CartAction activeButton="Thông tin đơn hàng" />
+      </div>
+
       {cart.length === 0 ? (
         <p className="text-center text-gray-500 mt-4">Giỏ hàng của bạn đang trống</p>
       ) : (
