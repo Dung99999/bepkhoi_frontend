@@ -6,6 +6,9 @@ const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface Props {
   selectedTable: number | null;
+  selectedOrder: number | null;
+  isReloadAfterAddProduct: boolean;
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;  
 }
 const ITEMS_PER_PAGE = 8;
 interface categoryOption {
@@ -144,7 +147,32 @@ async function fetchCategoryFilter(selectedCategory: number | null, choosedIsAva
   }
 }
 
-const POSMenuList: React.FC<Props> = ({ selectedTable }) => {
+export async function fetchAddProductToOrder(orderId: number, productId: number): Promise<{ message: string; data: any }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}api/orders/add-product-to-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        accept: '*/*',
+      },
+      body: JSON.stringify({ orderId, productId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add product to order');
+    }
+
+    const result = await response.json();
+    return result; 
+  } catch (error: any) {
+    console.error('Error adding product to order:', error.message);
+    throw error;
+  }
+}
+
+
+const POSMenuList: React.FC<Props> = ({ selectedTable , selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [categoryOptionList, setCategoryOptionList] = useState<categoryOption[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -152,7 +180,6 @@ const POSMenuList: React.FC<Props> = ({ selectedTable }) => {
   const [selectedProduct, setSelectedProduct] = useState<menuItem|null>(null);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = menu.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  const [selectedOrders, setSelectedOrders] = useState<{ id: number; name: string; quantity: number; price: number }[]>([]);
   const [choosedIsAvailable, setChoosedIsAvailable] = useState<boolean | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const isAvailableFilterList: isAvailableOption[] =
@@ -182,8 +209,17 @@ const POSMenuList: React.FC<Props> = ({ selectedTable }) => {
   useEffect(() => {
     getCategoryFilter();
   }, [selectedCategory, choosedIsAvailable]);    
-  const handleSelectItem = (item: menuItem) => {
+  const handleSelectItem = async (item: menuItem) => {
     setSelectedProduct(item);
+    if (selectedOrder != null) {
+      try {
+        const result = await fetchAddProductToOrder(selectedOrder, item.productId);
+        setIsReloadAfterAddProduct(true);
+        console.log("Product added:", result.message);
+      } catch (error: any) {
+        console.error("Failed to add product:", error.message);
+      }
+    }
   };
 
   return (

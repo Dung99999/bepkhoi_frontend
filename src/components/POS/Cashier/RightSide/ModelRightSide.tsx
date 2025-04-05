@@ -11,6 +11,10 @@ interface props{
   selectedTable: number | null;
   selectedShipper: number | null;
   orderType: number | null;
+  setSelectedOrder: (orderId: number | null) => void;
+  selectedOrder : number | null;
+  isReloadAfterAddProduct: boolean;
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;  
 }
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 interface OrderModel {
@@ -25,17 +29,6 @@ interface OrderModel {
   amountDue: number;
   orderStatusId: number;
   orderNote: string | null;
-  orderDetails: OrderDetailModel[];
-}
-interface OrderDetailModel {
-  orderDetailId: number;
-  orderId: number;
-  status: boolean | null;
-  productId: number;
-  productName: string;
-  quantity: number;
-  price: number;
-  productNote: string | null;
 }
 
 interface CreateNewOrder{
@@ -139,7 +132,7 @@ const fetchRemoveOrder = async (orderId: number): Promise<void> => {
     }
     // Nếu thành công, lấy kết quả và hiển thị thông báo
     const result = await response.json();
-    alert(result.Message); // Hiển thị thông báo thành công
+    alert(result.message); // Hiển thị thông báo thành công
   } catch (error) {
     // Nếu có lỗi, hiển thị thông báo lỗi
     console.log(`${error}`)
@@ -147,7 +140,7 @@ const fetchRemoveOrder = async (orderId: number): Promise<void> => {
 };
 
 
-const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, orderType }) => {
+const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, orderType, selectedOrder, setSelectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct }) => {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const openCustomerModal = () => {
     console.log("Setting isCustomerModalOpen to true");
@@ -158,7 +151,6 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
   const[order, setOrder] = useState<OrderModel[]>([]);
   const [activeKey, setActiveKey] = useState("");
   const [isReload, setIsReload] = useState<boolean>(false);
-  const [selectedOrder, setSelectedOrder] = useState<number|null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null); //luu customer_id của selectedOrder
 
   const onChange = (newActiveKey: string) => {
@@ -200,7 +192,8 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       await fetchRemoveOrder(orderIdToRemove);
       setTabs((prevTabs) => prevTabs.filter((tab) => tab.value !== targetKey));
       if (activeKey === targetKey) {
-        setActiveKey(tabs[0]?.value || "");  
+        setActiveKey("");  
+        setSelectedOrder(null);
       }
       const updatedOrders = await fetchOrders(selectedTable, selectedShipper, orderType);
       if (updatedOrders.length === 0) {
@@ -236,6 +229,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
         setTabs([]);
         console.log("Không có đơn hàng nào phù hợp.");
         setOrder([])
+        setSelectedOrder(null)
         return;
       }
       // Nếu có đơn hàng thì map sang tab
@@ -250,6 +244,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
     } catch (error) {
       console.log("Failed to get orders:", error);
       setOrder([])
+      setSelectedOrder(null)
     }
   }
   async function ReloadAfterCreateOrder() {
@@ -345,7 +340,11 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
                 />
               </div>
               <div className="flex-1 overflow-y-auto min-h-[100px]">
-                <POSListOfOrder orderDetails={order.find(o => o.orderId.toString() === tab.value)?.orderDetails || []}/>
+                <POSListOfOrder 
+                selectedOrder={selectedOrder}
+                isReloadAfterAddProduct={isReloadAfterAddProduct}
+                setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
+                />
               </div>
             </div>
           ),

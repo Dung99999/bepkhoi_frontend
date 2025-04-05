@@ -7,11 +7,19 @@ import { PlusSquareOutlined } from "@ant-design/icons";
 interface ModelLeftSideProps {
   selectedTable: number | null;
   setSelectedTable: (tableId: number | null) => void;
+  selectedOrder: number | null;
+  setSelectedOrder: (orderId: number | null) => void;
+  isReloadAfterAddProduct: boolean;
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;  
 }
 
 const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
   selectedTable,
   setSelectedTable,
+  selectedOrder,
+  setSelectedOrder,
+  isReloadAfterAddProduct,
+  setIsReloadAfterAddProduct
 }) => {
   const [activeTab, setActiveTab] = useState<"room" | "menu">("room");
 
@@ -62,7 +70,12 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
             setActiveTab={setActiveTab}
           />
         ) : (
-          <POSMenuList selectedTable={selectedTable} />
+          <POSMenuList 
+          selectedTable={selectedTable} 
+          selectedOrder={selectedOrder}
+          isReloadAfterAddProduct={isReloadAfterAddProduct}
+          setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
+          />
         )}
       </div>
     </div>
