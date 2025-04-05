@@ -6,13 +6,10 @@ import ModelRightSide from "../components/POS/Cashier/RightSide/ModelRightSide";
 const POSLayout: React.FC = () => {
     const location = useLocation();
     const [selectedTable, setSelectedTable] = useState<number | null>(null);
-    const [selectedTables, setSelectedTables] = useState<number[]>([]);
-    const [ordersFromParent, setOrdersFromParent] = useState<any[]>([]);
+    const [selectedShipper, setSelectedShipper] = useState<number | null>(null);
+    const [orderType, setOrderType] = useState<number | null>(3);    
 
     const handleSelectTable = (tableId: number | null) => {
-        if(tableId !== null){
-            setSelectedTables((prev) => [...new Set([...prev, tableId])]);
-        }
         setSelectedTable(tableId);
     }
 
@@ -25,11 +22,10 @@ const POSLayout: React.FC = () => {
                         <ModelLeftSide 
                             selectedTable={selectedTable} 
                             setSelectedTable={handleSelectTable} 
-                            selectedTables={selectedTables}
                         />
                     </div>
                     <div className="w-1/2">
-                        <ModelRightSide selectedTable={selectedTable} selectedOrders={ordersFromParent}/>
+                        <ModelRightSide selectedTable={selectedTable} selectedShipper={selectedShipper} orderType={orderType}/>
                     </div>
                 </div>
             ) : (

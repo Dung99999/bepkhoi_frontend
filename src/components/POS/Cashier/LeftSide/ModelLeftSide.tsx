@@ -7,7 +7,6 @@ import { PlusSquareOutlined } from "@ant-design/icons";
 interface ModelLeftSideProps {
   selectedTable: number | null;
   setSelectedTable: (tableId: number | null) => void;
-  selectedTables: number[];
 }
 
 const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
@@ -16,7 +15,7 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<"room" | "menu">("room");
 
-  // When loading page, default select is table 1
+  // When loading page
   useEffect(() => {
     setSelectedTable(1);
   }, []);
@@ -58,8 +57,7 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
           <POSRoomTableList
             selectedTable={selectedTable}
             setSelectedTable={(tableId) => {
-              setSelectedTable(selectedTable === tableId ? null : tableId);
-              if (selectedTable === tableId) setActiveTab("menu");
+              setSelectedTable(tableId);
             }}
             setActiveTab={setActiveTab}
           />

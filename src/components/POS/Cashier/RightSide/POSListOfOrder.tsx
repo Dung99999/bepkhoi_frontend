@@ -2,6 +2,19 @@ import React, { useState } from "react";
 import { Button, Modal, Input } from "antd";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 
+interface props{
+  orderDetails : OrderDetailModel[];
+}
+interface OrderDetailModel {
+  orderDetailId: number;
+  orderId: number;
+  status: boolean | null;
+  productId: number;
+  productName: string;
+  quantity: number;
+  price: number;
+  productNote: string | null;
+}
 interface OrderItem {
   id: number;
   name: string;
@@ -10,35 +23,29 @@ interface OrderItem {
   note?: string;
 }
 
-const mockOrders: OrderItem[] = [
-  { id: 1, name: "MILANO", quantity: 1, price: 30000 },
-  { id: 2, name: "APEROL SPRITZ", quantity: 2, price: 30000 },
-  { id: 3, name: "CAPPUCCINO", quantity: 1, price: 40000 },
-];
-
-const POSListOfOrder: React.FC = () => {
-  const [selectedOrders, setSelectedOrders] = useState<OrderItem[]>(mockOrders);
+const POSListOfOrder: React.FC<props> = ({orderDetails}) => {
+  const [selectedOrders, setSelectedOrders] = useState<OrderDetailModel[]>(orderDetails);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState<OrderItem | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<OrderDetailModel | null>(null);
 
   const updateQuantity = (id: number, amount: number) => {
     setSelectedOrders((prevOrders) =>
       prevOrders.map((item) =>
-        item.id === id
+        item.orderDetailId === id
           ? { ...item, quantity: Math.max(1, item.quantity + amount) }
           : item
       )
     );
   };
 
-  const openNoteModal = (order: OrderItem) => {
+  const openNoteModal = (order: OrderDetailModel) => {
     setCurrentOrder(order);
     setIsModalOpen(true);
   };
 
   const handleNoteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (currentOrder) {
-      setCurrentOrder({ ...currentOrder, note: e.target.value });
+      setCurrentOrder({ ...currentOrder, productNote: e.target.value });
     }
   };
 
@@ -46,8 +53,8 @@ const POSListOfOrder: React.FC = () => {
     if (currentOrder) {
       setSelectedOrders((prevOrders) =>
         prevOrders.map((item) =>
-          item.id === currentOrder.id
-            ? { ...item, note: currentOrder.note }
+          item.orderDetailId === currentOrder.orderId
+            ? { ...item, note: currentOrder.productNote }
             : item
         )
       );
@@ -57,25 +64,26 @@ const POSListOfOrder: React.FC = () => {
 
   return (
     <div className="p-3 rounded-md">
+      <div className="max-h-[40vh] overflow-y-auto">
       <ul className="space-y-2">
         {selectedOrders.map((item, index) => (
-          <li key={item.id} className="bg-white p-2 rounded-md shadow">
+          <li key={item.orderDetailId} className="bg-white p-2 rounded-md shadow">
             <div className="flex justify-between items-center">
               <span className="font-semibold w-1/3">
-                {index + 1}. {item.name}
+                {index + 1}. {item.productName}
               </span>
               <div className="flex items-center space-x-2 w-1/3 justify-center">
                 <div className="border-2" style={{ borderRadius: "15px" }}>
                   <Button
                     type="text"
                     icon={<MinusOutlined />}
-                    onClick={() => updateQuantity(item.id, -1)}
+                    onClick={() => updateQuantity(item.orderDetailId, -1)}
                   />
                   <span className="text-lg font-semibold">{item.quantity}</span>
                   <Button
                     type="text"
                     icon={<PlusOutlined />}
-                    onClick={() => updateQuantity(item.id, 1)}
+                    onClick={() => updateQuantity(item.orderDetailId, 1)}
                   />
                 </div>
               </div>
@@ -92,11 +100,12 @@ const POSListOfOrder: React.FC = () => {
               className="text-sm text-gray-500 mt-1 cursor-pointer"
               onClick={() => openNoteModal(item)}
             >
-              {item.note ? `Ghi chú: ${item.note}` : "Ghi chú/ món thêm"}
+              {item.productNote ? `Ghi chú: ${item.productNote}` : "Ghi chú/ món thêm"}
             </div>
           </li>
         ))}
       </ul>
+      </div>
 
       {/* Modal nhập ghi chú */}
       <Modal
@@ -107,7 +116,7 @@ const POSListOfOrder: React.FC = () => {
       >
         <Input
           placeholder="Nhập ghi chú"
-          value={currentOrder?.note || ""}
+          value={currentOrder?.productNote || ""}
           onChange={handleNoteChange}
         />
       </Modal>
