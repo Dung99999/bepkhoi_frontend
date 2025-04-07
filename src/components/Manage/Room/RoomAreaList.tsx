@@ -59,6 +59,10 @@ const RoomAreaList: React.FC<RoomAreaListProps> = ({
         loading={loading}
         columns={columns}
         dataSource={data}
+        pagination={{
+          pageSize: 10,
+          total: data.length,
+        }}
         locale={{
           emptyText: (
             <Empty

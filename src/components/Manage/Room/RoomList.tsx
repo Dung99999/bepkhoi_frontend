@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Table, Tag, Empty, Button } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
@@ -84,6 +84,10 @@ const RoomList: React.FC<RoomListProps> = ({
         loading={loading}
         columns={columns}
         dataSource={data}
+        pagination={{
+          pageSize: 10,
+          total: data.length,
+        }}
         locale={{
           emptyText: (
             <Empty

@@ -7,9 +7,11 @@ import CashierManagePage from "../pages/Manage/CashierManagePage";
 import ShipperManagePage from "../pages/Manage/ShipperManagePage";
 import RoomAreaManagePage from "../pages/Manage/RoomAreaManagePage";
 import RoomsManagePage from "../pages/Manage/RoomsManagePage";
+import OrderManagePage from "../pages/Manage/OrderManagePage";
+import InvoiceManagePage from "../pages/Manage/InvoiceManagePage";
 
 interface RouteItem {
-    path?: string; // Có thể là path hoặc index
+    path?: string;
     index?: boolean;
     element: React.ReactNode;
     roles: string[];
@@ -25,6 +27,8 @@ const manageRoutes: RouteItem[] = [
     { path: "/manage/shipper", element: <ShipperManagePage />, roles: ["admin"] },
     { path: "/manage/roomArea", element: <RoomAreaManagePage />, roles: ["admin"] },
     { path: "/manage/rooms", element: <RoomsManagePage />, roles: ["admin"] },
+    { path: "/manage/order", element: <OrderManagePage />, roles: ["admin"] },
+    { path: "/manage/invoice", element: <InvoiceManagePage />, roles: ["admin"] },
 ];
 
 export default manageRoutes;

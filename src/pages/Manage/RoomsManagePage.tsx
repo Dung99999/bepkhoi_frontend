@@ -47,10 +47,10 @@ const RoomsManagePage: React.FC = () => {
     const fetchRooms = async () => {
         setLoading(true);
         try {
-            let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/get-all`;
+            let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/get-all?limit=100000`;
 
             if (search) {
-                apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/search-by-name?name=${encodeURIComponent(search)}`;
+                apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/search-by-name?limit=1000&name=${encodeURIComponent(search)}`;
             }
 
             const response = await fetch(apiUrl);
@@ -68,7 +68,7 @@ const RoomsManagePage: React.FC = () => {
 
             const roomsWithAreaNames = resultData.map((room: RoomProps) => ({
                 ...room,
-                roomAreaName: roomAreas.find(area => area.roomAreaId === room.roomAreaId)?.roomAreaName || 'Khu vựa đã bị xóa'
+                roomAreaName: roomAreas.find(area => area.roomAreaId === room.roomAreaId)?.roomAreaName || 'Khu vực đã bị xóa'
             }));
 
             setRooms(roomsWithAreaNames);
@@ -83,7 +83,7 @@ const RoomsManagePage: React.FC = () => {
 
     const fetchRoomAreas = async () => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all`);
+            const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all?limit=1000`);
             if (!response.ok) throw new Error('Failed to fetch room areas');
             const data = await response.json();
             setRoomAreas(data);
