@@ -8,6 +8,8 @@ import {
 import { Input, Modal } from "antd";
 import React, { useState } from "react";
 import DrawerPaymentFinal from "./DrawerPaymentFinal";
+import ModalSplitOrder from "./ModalSplitOrders";
+// import SplitOrderModal from "./SplitOrderModal";
 
 const POSPayment: React.FC = () => {
   const totalPrice = 140000;
@@ -17,6 +19,7 @@ const POSPayment: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
+  const [splitNote, setSplitNote] = useState("");
   const [isDrawerPaymentVisible, setIsDrawerPaymentVisible] = useState(false);
 
   const showDrawerPayment = () => setIsDrawerPaymentVisible(true);
@@ -146,21 +149,16 @@ const POSPayment: React.FC = () => {
       </Modal>
 
       {/* Modal split */}
-      <Modal
-        title="Tách đơn"
+      <ModalSplitOrder
         open={isModalSplitOrderOpen}
         onCancel={() => setIsModalSplitOrderOpen(false)}
-        onOk={() => {
-          console.log("Ghi chú đơn hàng:", note);
+        onOk={(note) => {
+          console.log("Tách đơn ghi chú:", note);
           setIsModalSplitOrderOpen(false);
         }}
-      >
-        <Input.TextArea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Nhập ghi chú..."
-        />
-      </Modal>
+        note={splitNote}
+        setNote={setSplitNote}
+      />
     </div>
   );
 };
