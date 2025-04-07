@@ -30,7 +30,7 @@ const RoomAreaManagePage: React.FC = () => {
     const fetchRoomAreas = async () => {
         setLoading(true);
         try {
-            let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all`;
+            let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all?limit=1000`;
 
             if (search) {
                 apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/search-by-name-id?name=${encodeURIComponent(search)}`;

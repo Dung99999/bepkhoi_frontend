@@ -28,8 +28,8 @@ const navItems = [
   {
     label: "Quản lý hóa đơn",
     submenu: [
-      { label: "Hóa đơn", path: "/manage/customer" },
-      { label: "Phiếu đặt hàng", path: "/manage/cashier" },
+      { label: "Hóa đơn", path: "/manage/invoice" },
+      { label: "Phiếu đặt hàng", path: "/manage/order" },
     ],
   },
   {
@@ -43,7 +43,6 @@ const navItems = [
 ];
 
 const HeaderManage: React.FC = () => {
-  // const location = useLocation();
 
   return (
     <header className="bg-white shadow-md font-sans">
@@ -81,7 +80,6 @@ const HeaderManage: React.FC = () => {
       </div>
 
       <div className="flex justify-between items-center px-[8.33%] h-[50px] bg-[#FFEBCD] border-t">
-        {/* Nav Items */}
         <nav className="flex space-x-4">
           {navItems.map((item, index) =>
             item.submenu ? (
