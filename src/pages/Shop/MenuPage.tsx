@@ -64,7 +64,7 @@ const MenuPage: React.FC = () => {
                 id: item.productId,
                 name: item.productName,
                 price: item.sellPrice,
-                image: item.productImages?.[0] || '',
+                image: item.productImages?.[0]?.imageUrl || '',
                 description: item.description || 'Không có mô tả',
                 unit: item.unitId?.toString(),
                 status: item.isAvailable ? 'Còn hàng' : 'Hết hàng',
