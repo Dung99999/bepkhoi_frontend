@@ -46,9 +46,9 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
   ];
 
   // When loading page
-  useEffect(() => {
-    setSelectedTable(1);
-  }, []);
+  // useEffect(() => {
+  //   setSelectedTable(1);
+  // }, []);
 
   return (
     <div className="p-3 bg-[#FFFFFF] rounded-lg h-[calc(100vh-2rem)] flex flex-col">

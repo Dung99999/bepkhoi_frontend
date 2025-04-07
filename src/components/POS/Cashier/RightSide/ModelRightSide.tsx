@@ -295,6 +295,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       ReloadAfterCreateOrder();
     }
   }, [isReload]);
+
   useEffect(() => {
     switch (orderType) {
       case 1:
