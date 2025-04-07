@@ -23,7 +23,7 @@ const ShopLayout: React.FC<ShopLayoutProps> = ({ modelMode }) => {
       </ModelModeContext.Provider>
 
       <div className="sticky bottom-0 z-50 w-full">
-        <FooterShop activeTab={activeTab} setActiveTab={setActiveTab} />
+        <FooterShop />
       </div>
     </div>
   );
