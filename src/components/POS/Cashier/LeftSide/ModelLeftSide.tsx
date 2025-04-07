@@ -24,9 +24,9 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
   const [activeTab, setActiveTab] = useState<"room" | "menu">("room");
 
   // When loading page
-  useEffect(() => {
-    setSelectedTable(1);
-  }, []);
+  // useEffect(() => {
+  //   setSelectedTable(1);
+  // }, []);
 
   return (
     <div className="p-3 bg-[#FFFFFF] rounded-lg h-[calc(100vh-2rem)] flex flex-col">
@@ -64,9 +64,7 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
         {activeTab === "room" ? (
           <POSRoomTableList
             selectedTable={selectedTable}
-            setSelectedTable={(tableId) => {
-              setSelectedTable(tableId);
-            }}
+            setSelectedTable={setSelectedTable}
             setActiveTab={setActiveTab}
           />
         ) : (

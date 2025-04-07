@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 interface props {
   selectedOrder: number | null
   isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;  
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;
 }
 interface OrderDetailModel {
   orderDetailId: number;
@@ -18,8 +18,14 @@ interface OrderDetailModel {
   price: number;
   productNote: string | null;
 }
+interface UpdateOrderDetailQuantityRequest {
+  orderId: number;
+  orderDetailId: number;
+  isAdd: boolean | null;
+  quantity: number | null;
+}
 
-async function fetchOrderDetail(orderId: number|null): Promise<OrderDetailModel[]> {
+async function fetchOrderDetail(orderId: number | null): Promise<OrderDetailModel[]> {
   const apiUrl = `${API_BASE_URL}api/orders/get-order-details-by-order-id?orderId=${orderId}`; // URL endpoint cho API
 
   try {
@@ -61,6 +67,32 @@ async function fetchOrderDetail(orderId: number|null): Promise<OrderDetailModel[
   }
 }
 
+async function updateOrderDetailQuantity(request: UpdateOrderDetailQuantityRequest): Promise<OrderDetailModel | null> {
+  const apiUrl = `${API_BASE_URL}api/orders/update-order-detail-quantity`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error:', errorData.message);
+      return null;
+    }
+
+    const result = await response.json();
+    return result.data as OrderDetailModel;
+  } catch (error) {
+    console.error('Error update order details:', error);
+    return null;
+  }
+}
+
 const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct }) => {
   const [selectedOrders, setSelectedOrders] = useState<OrderDetailModel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,26 +110,43 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
 
   const fetchData = async () => {
     const orderDetails = await fetchOrderDetail(selectedOrder);
-    setSelectedOrders(orderDetails); 
+    setSelectedOrders(orderDetails);
   };
 
   const fetchDataAfterAddProduct = async () => {
     const orderDetails = await fetchOrderDetail(selectedOrder);
-    setSelectedOrders(orderDetails); 
+    setSelectedOrders(orderDetails);
     setIsReloadAfterAddProduct(false);
+  };
+
+  const handleUpdateOrderDetailAddMinus = async (isAdd: boolean, orderDetailId: number) => {
+    if (selectedOrder !== null) {
+      const request: UpdateOrderDetailQuantityRequest = {
+        orderId: selectedOrder,
+        orderDetailId: orderDetailId,
+        isAdd: isAdd,
+        quantity: null,
+      };
+      const updatedOrderDetail = await updateOrderDetailQuantity(request);
+      if (updatedOrderDetail) {
+        fetchData();
+      } else {
+        console.error('Failed to update order detail');
+      }
+    }
   };
 
   useEffect(() => {
     if (selectedOrder !== null) {
       fetchData();
     }
-  }, [selectedOrder]); 
+  }, [selectedOrder]);
 
   useEffect(() => {
     if (selectedOrder !== null && isReloadAfterAddProduct == true) {
       fetchDataAfterAddProduct();
     }
-  }, [isReloadAfterAddProduct]); 
+  }, [isReloadAfterAddProduct]);
 
   const openNoteModal = (order: OrderDetailModel) => {
     setCurrentOrder(order);
@@ -138,13 +187,13 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
                     <Button
                       type="text"
                       icon={<MinusOutlined />}
-                      onClick={() => updateQuantity(item.orderDetailId, -1)}
+                      onClick={() => handleUpdateOrderDetailAddMinus(false, item.orderDetailId)}
                     />
                     <span className="text-lg font-semibold">{item.quantity}</span>
                     <Button
                       type="text"
                       icon={<PlusOutlined />}
-                      onClick={() => updateQuantity(item.orderDetailId, 1)}
+                      onClick={() => handleUpdateOrderDetailAddMinus(true, item.orderDetailId)}
                     />
                   </div>
                 </div>
