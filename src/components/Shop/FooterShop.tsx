@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { HomeFilled, ShoppingCartOutlined, AppstoreOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { AppstoreOutlined, HomeFilled, ShoppingCartOutlined } from "@ant-design/icons";
+import React from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-interface FooterShopProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
-
-const FooterShop: React.FC<FooterShopProps> = ({ activeTab, setActiveTab }) => {
-  const [cartCount, setCartCount] = useState(0);
+const FooterShop: React.FC = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -26,9 +23,28 @@ const FooterShop: React.FC<FooterShopProps> = ({ activeTab, setActiveTab }) => {
   }, []);
 
   const handleClick = (tab: string) => {
-    setActiveTab(tab);
-    navigate(tab === "home" ? "/shop/menu" : tab === "cart" ? "/shop/cart" : "/shop/others");
+    const tabRoutes: Record<string, string> = {
+      home: "/shop/menu",
+      cart: "/shop/cart",
+      others: "/shop/others",
+    };
+
+    navigate(tabRoutes[tab] || "/shop/menu");
   };
+
+  const getActiveTab = (): string => {
+    const path = location.pathname;
+
+    if (["/shop/cart", "/shop/status", "/shop/payment"].some(p => path.startsWith(p))) {
+      return "cart";
+    }
+    if (["/shop/menu", "/shop/category"].some(p => path.startsWith(p))) {
+      return "home";
+    }
+    return "others";
+  };
+
+  const activeTab = getActiveTab();
 
   return (
     <footer className="bg-[#FCE9D2] py-3 px-6 flex justify-around items-center shadow-t-md">
