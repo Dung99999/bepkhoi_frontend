@@ -8,6 +8,8 @@ const POSLayout: React.FC = () => {
     const [selectedTable, setSelectedTable] = useState<number | null>(null);
     const [selectedShipper, setSelectedShipper] = useState<number | null>(null);
     const [orderType, setOrderType] = useState<number | null>(3);    
+    const [selectedOrder, setSelectedOrder] = useState<number|null>(null);
+    const [isReloadAfterAddProduct, setIsReloadAfterAddProduct] = useState(false);
 
     const handleSelectTable = (tableId: number | null) => {
         setSelectedTable(tableId);
@@ -16,16 +18,27 @@ const POSLayout: React.FC = () => {
     return (
         <div className="min-h-screen w-full bg-[#faedd7] flex">
             {location.pathname === "/pos/cashier" ? (
-
                 <div className="flex w-full gap-2.5 p-4">
                     <div className="w-1/2">
                         <ModelLeftSide 
                             selectedTable={selectedTable} 
-                            setSelectedTable={handleSelectTable} 
+                            setSelectedTable={handleSelectTable}
+                            selectedOrder={selectedOrder}
+                            setSelectedOrder={setSelectedOrder} 
+                            isReloadAfterAddProduct={isReloadAfterAddProduct}
+                            setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
                         />
                     </div>
                     <div className="w-1/2">
-                        <ModelRightSide selectedTable={selectedTable} selectedShipper={selectedShipper} orderType={orderType}/>
+                        <ModelRightSide 
+                        selectedTable={selectedTable} 
+                        selectedShipper={selectedShipper} 
+                        orderType={orderType} 
+                        selectedOrder={selectedOrder} 
+                        setSelectedOrder={setSelectedOrder}
+                        isReloadAfterAddProduct={isReloadAfterAddProduct}
+                        setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
+                        />
                     </div>
                 </div>
             ) : (
