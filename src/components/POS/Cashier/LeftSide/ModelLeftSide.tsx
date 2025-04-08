@@ -2,12 +2,27 @@ import React, { useEffect, useState } from "react";
 import POSRoomTableList from "./POSRoomTableList";
 import POSMenuList from "./POSMenuList";
 import POSSearchBarLeftSide from "./POSSearchBarLeftSide";
+import POSShipperList from "./POSShipperList";
 
 interface ModelLeftSideProps {
   selectedTable: number | null;
   setSelectedTable: (tableId: number | null) => void;
   selectedOrder: number | null;
   setSelectedOrder: (orderId: number | null) => void;
+  isReloadAfterAddProduct: boolean;
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;
+}
+
+interface Order {
+  orderId: number;
+  customerName: string;
+  address: string;
+  status: "Đang giao" | "Đã giao";
+}
+
+interface Props {
+  selectedTable: number | null;
+  selectedOrder: number | null;
   isReloadAfterAddProduct: boolean;
   setIsReloadAfterAddProduct: (isReload: boolean) => void;
 }
@@ -44,6 +59,11 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
       status: "Đang giao",
     },
   ];
+
+  // State và hàm cho POSShipperList
+  const [selectedShipper, setSelectedShipper] = useState<number | null>(null);
+  const [isReloadAfterAssignShipper, setIsReloadAfterAssignShipper] =
+    useState<boolean>(false);
 
   // When loading page
   // useEffect(() => {
@@ -111,32 +131,13 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
         )}
 
         {activeTab === "shiper" && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Danh sách giao đi</h3>
-            {fakeShippingData.map((order) => (
-              <div
-                key={order.orderId}
-                className="p-4 border border-gray-300 rounded-lg shadow-sm hover:shadow-md transition"
-              >
-                <div className="flex justify-between">
-                  <span className="font-semibold">{`Đơn hàng #${order.orderId}`}</span>
-                  <span
-                    className={`px-3 py-1 text-sm rounded-full ${
-                      order.status === "Đang giao"
-                        ? "bg-yellow-300 text-yellow-800"
-                        : "bg-green-300 text-green-800"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <p>{`Khách hàng: ${order.customerName}`}</p>
-                  <p>{`Địa chỉ: ${order.address}`}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <POSShipperList
+            selectedShipper={selectedShipper}
+            setSelectedShipper={setSelectedShipper}
+            isReloadAfterAssignShipper={isReloadAfterAssignShipper}
+            setIsReloadAfterAssignShipper={setIsReloadAfterAssignShipper}
+            selectedOrderForAssign={selectedOrder}
+          />
         )}
       </div>
     </div>
