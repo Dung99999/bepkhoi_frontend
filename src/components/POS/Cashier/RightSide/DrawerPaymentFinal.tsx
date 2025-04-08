@@ -14,10 +14,12 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { CheckboxGroupProps } from "antd/es/checkbox";
+const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface DrawerPaymentFinalProps {
   isVisible: boolean;
   onClose: () => void;
+  selectedOrder: number | null;
 }
 
 const orders = [
@@ -78,9 +80,31 @@ const items: MenuProps["items"] = bankItems.map((bank) => ({
   key: bank.key,
 }));
 
+async function fetchVnPayUrl(orderId: number): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}api/Invoice/vnpay-url?Id=${orderId}`, {
+      method: 'GET',
+      redirect: 'follow', // Để trình duyệt tự động redirect tới URL thanh toán
+    });
+
+    if (response.redirected) {
+      // Nếu server trả về redirect, chuyển hướng trình duyệt
+      window.location.href = `${API_BASE_URL}api/Invoice/vnpay-url?Id=${orderId}`;
+    } else if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error('Lỗi khi tạo URL thanh toán:', errorMessage);
+      alert(errorMessage);
+    }
+  } catch (error) {
+    console.error('Lỗi kết nối đến server:', error);
+    alert('Không thể kết nối đến server.');
+  }
+}
+
 const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   isVisible,
   onClose,
+  selectedOrder
 }) => {
   const [selectedBank, setSelectedBank] = useState(bankItems[0]);
   const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
@@ -102,6 +126,17 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
       message.info(`Bạn đã chọn: ${bank.label}`);
     }
   };
+
+  const handleCheckout = async () => {
+    const orderId = 1; 
+    try {
+      await fetchVnPayUrl(orderId);
+    } catch (error) {
+      console.error("Lỗi khi xử lý thanh toán:", error);
+      alert("Có lỗi xảy ra khi thanh toán.");
+    }
+  };
+
 
   return (
     <div className="rounded-lg">
@@ -243,6 +278,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
               <button
                 className="px-5 bg-green-500 text-white py-3 rounded-lg
                font-semibold hover:bg-green-600"
+               onClick={handleCheckout}
               >
                 $ Thanh toán
               </button>

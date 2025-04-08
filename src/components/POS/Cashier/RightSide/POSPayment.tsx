@@ -15,6 +15,12 @@ const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface Props {
   selectedOrder: number | null;
+  isReloadAfterAddProduct: boolean;
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;
+  isReloadAfterUpdateQuantity: boolean;
+  setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
+  isReloadAfterConfirm: boolean;
+  setIsReloadAfterConfirm: (isReload: boolean) => void;
 }
 
 interface AddNoteRequest {
@@ -129,7 +135,7 @@ const fetchGeneralData = async (orderId: number): Promise<OrderGeneralDataPosDto
   }
 };
 
-const POSPayment: React.FC<Props> = ({ selectedOrder }) => {
+const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm }) => {
   const [isModalNoteOrderOpen, setIsNoteOrderModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -151,6 +157,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder }) => {
     const confirmed = await confirmOrderPos(selectedOrder);
     if (confirmed) {
       message.success("Đơn hàng đã được xác nhận!");
+      setIsReloadAfterConfirm(true);
     } else {
       message.error("Xác nhận đơn hàng thất bại.");
     }
@@ -166,6 +173,27 @@ const POSPayment: React.FC<Props> = ({ selectedOrder }) => {
   useEffect(() => {
     getOrderGeneralData();
   }, [selectedOrder]);
+
+  useEffect(() => {
+    if(isReloadAfterAddProduct == true){
+      getOrderGeneralData();
+      setIsReloadAfterAddProduct(false);
+    }
+  }, [isReloadAfterAddProduct]);
+
+  useEffect(() => {
+    if(isReloadAfterUpdateQuantity == true){
+      getOrderGeneralData();
+      setIsReloadAfterUpdateQuantity(false);
+    }
+  }, [isReloadAfterUpdateQuantity]);
+
+  useEffect(() => {
+    if(isReloadAfterConfirm == true){
+      getOrderGeneralData();
+      setIsReloadAfterConfirm(false);
+    }
+  }, [isReloadAfterConfirm]);
   
   useEffect(() => {
     if (orderData?.orderNote && orderData.orderNote.trim() !== "") {
@@ -277,6 +305,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder }) => {
       <DrawerPaymentFinal
         isVisible={isDrawerPaymentVisible}
         onClose={onClosePaymentDrawer}
+        selectedOrder={selectedOrder}
       />
 
       {/* Modal Note */}
@@ -302,7 +331,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder }) => {
           }
           const success = await fetchAddNoteToOrder({
             orderId: selectedOrder,
-            orderNote: note,
+            orderNote: note.trim(),
           });
           if (success) {
             console.log("Đã thêm ghi chú cho đơn hàng:", selectedOrder);

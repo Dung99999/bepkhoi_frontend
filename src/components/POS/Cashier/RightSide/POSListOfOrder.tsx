@@ -7,6 +7,10 @@ interface props {
   selectedOrder: number | null
   isReloadAfterAddProduct: boolean;
   setIsReloadAfterAddProduct: (isReload: boolean) => void;
+  isReloadAfterUpdateQuantity: boolean;
+  setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
+  isReloadAfterConfirm: boolean;
+  setIsReloadAfterConfirm: (isReload: boolean) => void;
 }
 interface OrderDetailModel {
   orderDetailId: number;
@@ -101,7 +105,6 @@ async function updateOrderDetailQuantity(request: UpdateOrderDetailQuantityReque
 
 async function addNoteToOrderDetail(request: AddNoteToOrderDetailRequest): Promise<boolean> {
   const apiUrl = `${API_BASE_URL}api/order-detail/add-note-to-order-detail`;
-
   try {
     const response = await fetch(apiUrl, {
       method: 'PUT',
@@ -133,7 +136,7 @@ async function addNoteToOrderDetail(request: AddNoteToOrderDetailRequest): Promi
 }
 
 
-const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct }) => {
+const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterConfirm , setIsReloadAfterConfirm }) => {
   const [selectedOrders, setSelectedOrders] = useState<OrderDetailModel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentOrderDetail, setCurrentOrderDetail] = useState<OrderDetailModel | null>(null);
@@ -153,12 +156,6 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
     setSelectedOrders(orderDetails);
   };
 
-  const fetchDataAfterAddProduct = async () => {
-    const orderDetails = await fetchOrderDetail(selectedOrder);
-    setSelectedOrders(orderDetails);
-    setIsReloadAfterAddProduct(false);
-  };
-
   const handleUpdateOrderDetailAddMinus = async (isAdd: boolean, orderDetailId: number) => {
     if (selectedOrder !== null) {
       const request: UpdateOrderDetailQuantityRequest = {
@@ -170,6 +167,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
       const updatedOrderDetail = await updateOrderDetailQuantity(request);
       if (updatedOrderDetail) {
         fetchData();
+        setIsReloadAfterUpdateQuantity(true);
       } else {
         console.error('Failed to update order detail');
       }
@@ -184,10 +182,17 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
 
   useEffect(() => {
     if (selectedOrder !== null && isReloadAfterAddProduct == true) {
-      fetchDataAfterAddProduct();
+      fetchData();
+      setIsReloadAfterAddProduct(false);
     }
   }, [isReloadAfterAddProduct]);
 
+  useEffect(() => {
+    if (selectedOrder !== null && isReloadAfterConfirm == true) {
+      fetchData();
+      setIsReloadAfterConfirm(false);
+    }
+  }, [isReloadAfterConfirm]);
   const openNoteModal = (orderDetail: OrderDetailModel) => {
     setCurrentOrderDetail({...orderDetail});
     setIsModalOpen(true);
@@ -230,12 +235,14 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
                     <Button
                       type="text"
                       icon={<MinusOutlined />}
+                      disabled={item.status==true}
                       onClick={() => handleUpdateOrderDetailAddMinus(false, item.orderDetailId)}
                     />
                     <span className="text-lg font-semibold">{item.quantity}</span>
                     <Button
                       type="text"
                       icon={<PlusOutlined />}
+                      disabled={item.status==true}
                       onClick={() => handleUpdateOrderDetailAddMinus(true, item.orderDetailId)}
                     />
                   </div>

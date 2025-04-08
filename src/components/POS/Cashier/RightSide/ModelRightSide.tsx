@@ -154,6 +154,8 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
   const [activeKey, setActiveKey] = useState("");
   const [isReload, setIsReload] = useState<boolean>(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null); 
+  const [isReloadAfterUpdateQuantity, setIsReloadAfterUpdateQuantity] = useState<boolean>(false);
+  const [isReloadAfterConfirm, setIsReloadAfterConfirm] = useState<boolean>(false);
 
   const onChange = (newActiveKey: string) => {
     setActiveKey(newActiveKey);
@@ -347,6 +349,10 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
                 selectedOrder={selectedOrder}
                 isReloadAfterAddProduct={isReloadAfterAddProduct}
                 setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
+                isReloadAfterUpdateQuantity={isReloadAfterUpdateQuantity}
+                setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
+                isReloadAfterConfirm={isReloadAfterConfirm}
+                setIsReloadAfterConfirm={setIsReloadAfterConfirm}
                 />
               </div>
             </div>
@@ -356,6 +362,12 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       <div className="flex-none border-none min-w-full rounded-mdflex-grow-0">
         <POSPayment 
         selectedOrder={selectedOrder}
+        isReloadAfterAddProduct={isReloadAfterAddProduct}
+        setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
+        isReloadAfterUpdateQuantity={isReloadAfterUpdateQuantity}
+        setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
+        isReloadAfterConfirm={isReloadAfterConfirm}
+        setIsReloadAfterConfirm={setIsReloadAfterConfirm}
         />
       </div>
 
