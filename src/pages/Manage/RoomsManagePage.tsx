@@ -199,7 +199,6 @@ const RoomsManagePage: React.FC = () => {
                     },
                     body: JSON.stringify({
                         ...values,
-                        qrCodeUrl: selectedRoom.qrCodeUrl,
                         isUse: selectedRoom.isUse,
                         isDelete: false
                     }),
