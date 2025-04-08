@@ -11,6 +11,10 @@ interface ModelLeftSideProps {
   setSelectedOrder: (orderId: number | null) => void;
   isReloadAfterAddProduct: boolean;
   setIsReloadAfterAddProduct: (isReload: boolean) => void;
+  selectedShipper: number | null;
+  setSelectedShipper: (shipperId: number | null) => void;
+  orderType: number | null;
+  setOrderType: (shipperId: number | null) => void;
 }
 
 interface Order {
@@ -34,54 +38,43 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
   setSelectedOrder,
   isReloadAfterAddProduct,
   setIsReloadAfterAddProduct,
+  selectedShipper,
+  setSelectedShipper,
+  orderType,
+  setOrderType
 }) => {
-  const [activeTab, setActiveTab] = useState<"room" | "menu" | "shiper">(
-    "room"
-  );
-
-  const fakeShippingData = [
-    {
-      orderId: 1,
-      customerName: "Nguyễn Văn A",
-      address: "123 Đường ABC",
-      status: "Đang giao",
-    },
-    {
-      orderId: 2,
-      customerName: "Trần Thị B",
-      address: "456 Đường XYZ",
-      status: "Đã giao",
-    },
-    {
-      orderId: 3,
-      customerName: "Lê Minh C",
-      address: "789 Đường MNO",
-      status: "Đang giao",
-    },
-  ];
-
-  // State và hàm cho POSShipperList
-  const [selectedShipper, setSelectedShipper] = useState<number | null>(null);
-  const [isReloadAfterAssignShipper, setIsReloadAfterAssignShipper] =
-    useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"room" | "menu" | "shiper">("room");
 
   // When loading page
   // useEffect(() => {
   //   setSelectedTable(1);
   // }, []);
+  function handleChangeTab(tab: "room" | "menu" | "shiper") {
+    setActiveTab(tab);
+  }
 
   return (
     <div className="p-3 bg-[#FFFFFF] rounded-lg h-[calc(100vh-2rem)] flex flex-col">
       {/* Tabs & Search */}
       <div className="flex items-center border-b border-gray-300 pb-2">
         <div className="flex space-x-[1vw]">
+        <button
+            className={` py-[1vw] font-semibold transition ${
+              activeTab === "shiper"
+                ? "bg-[#FFFFFF] text-[#ffbe4f] border-b-2 border-[#ffbe4f]"
+                : "text-gray-700"
+            }`}
+            onClick={() => {handleChangeTab("shiper")}}
+          >
+            Giao đi
+          </button>
           <button
             className={` font-semibold transition ${
               activeTab === "room"
                 ? "bg-[#FFFFFF] text-[#ffbe4f] border-b-2 border-[#ffbe4f]"
                 : "text-gray-700"
             }`}
-            onClick={() => setActiveTab("room")}
+            onClick={() => {handleChangeTab("room")}}
           >
             Phòng bàn
           </button>
@@ -91,19 +84,9 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
                 ? "bg-[#FFFFFF] text-[#ffbe4f] border-b-2 border-[#ffbe4f]"
                 : "text-gray-700"
             }`}
-            onClick={() => setActiveTab("menu")}
+            onClick={() => {handleChangeTab("menu")}}
           >
             Thực đơn
-          </button>
-          <button
-            className={` py-[1vw] font-semibold transition ${
-              activeTab === "shiper"
-                ? "bg-[#FFFFFF] text-[#ffbe4f] border-b-2 border-[#ffbe4f]"
-                : "text-gray-700"
-            }`}
-            onClick={() => setActiveTab("shiper")}
-          >
-            Giao đi
           </button>
         </div>
 
@@ -113,11 +96,25 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
       </div>
 
       <div className="mt-4 flex-1 overflow-hidden">
+      {activeTab === "shiper" && (
+          <POSShipperList
+            selectedShipper={selectedShipper}
+            setSelectedShipper={setSelectedShipper}
+            selectedTable={selectedTable}
+            setSelectedTable={setSelectedTable}
+            orderType={orderType}
+            setOrderType={setOrderType}
+          />
+        )}
         {activeTab === "room" && (
           <POSRoomTableList
             selectedTable={selectedTable}
             setSelectedTable={setSelectedTable}
             setActiveTab={setActiveTab}
+            selectedShipper={selectedShipper}
+            setSelectedShipper={setSelectedShipper}
+            orderType={orderType}
+            setOrderType={setOrderType}
           />
         )}
 
@@ -127,16 +124,6 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
             selectedOrder={selectedOrder}
             isReloadAfterAddProduct={isReloadAfterAddProduct}
             setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
-          />
-        )}
-
-        {activeTab === "shiper" && (
-          <POSShipperList
-            selectedShipper={selectedShipper}
-            setSelectedShipper={setSelectedShipper}
-            isReloadAfterAssignShipper={isReloadAfterAssignShipper}
-            setIsReloadAfterAssignShipper={setIsReloadAfterAssignShipper}
-            selectedOrderForAssign={selectedOrder}
           />
         )}
       </div>

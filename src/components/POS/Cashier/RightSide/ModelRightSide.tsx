@@ -15,6 +15,7 @@ interface props{
   selectedOrder : number | null;
   isReloadAfterAddProduct: boolean;
   setIsReloadAfterAddProduct: (isReload: boolean) => void;  
+  
 }
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 interface OrderModel {
@@ -342,6 +343,8 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
                   onCreateCustomer={openCustomerModal}
                   onCustomerSelect={setSelectedCustomerId}
                   selectedOrder={selectedOrder}
+                  orderType={orderType}
+                  selectedShipper={selectedShipper}
                 />
               </div>
               <div className="flex-1 overflow-y-auto min-h-[100px]">
@@ -368,6 +371,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
         setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
         isReloadAfterConfirm={isReloadAfterConfirm}
         setIsReloadAfterConfirm={setIsReloadAfterConfirm}
+        order={order}
         />
       </div>
 

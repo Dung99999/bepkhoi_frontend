@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Input, Button, Modal } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ModalCreateCustomer from "./ModalCreateCustomer";
@@ -6,21 +6,23 @@ const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface Props {
   selectedTable: number | null;
+  selectedShipper: number | null;
+  orderType: number | null;
   onCreateCustomer: () => void;
-  onCustomerSelect: (customerId: number|null) => void;
+  onCustomerSelect: (customerId: number | null) => void;
   selectedOrder: number | null;
 }
 
-interface CustomerModel{
-  customerId : number;
+interface CustomerModel {
+  customerId: number;
   customerName: string;
   phone: string;
   totalAmountSpent: number;
 }
-interface FetchCustomerById{
-  customerId : number;
+interface FetchCustomerById {
+  customerId: number;
   customerName: string;
-  phone: string 
+  phone: string
 }
 async function fetchCustomerList(): Promise<CustomerModel[]> {
   try {
@@ -39,7 +41,7 @@ async function fetchCustomerList(): Promise<CustomerModel[]> {
 async function fetchCustomerByOrderId(orderId: number): Promise<FetchCustomerById | null> {
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/get-customer-of-order/${orderId}`);
-    
+
     if (!response.ok) {
       throw new Error("Failed to fetch customer");
     }
@@ -86,7 +88,7 @@ async function assignCustomerToOrder(orderId: number, customerId: number): Promi
   }
 }
 
-const fetchDeleteCustomerFromOrder = async (orderId:number) => {
+const fetchDeleteCustomerFromOrder = async (orderId: number) => {
   try {
     // Gửi yêu cầu POST đến API để xóa CustomerId từ Order
     const response = await fetch(`${API_BASE_URL}api/orders/remove-customer/${orderId}`, {
@@ -123,6 +125,8 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
   onCreateCustomer,
   onCustomerSelect,
   selectedOrder,
+  orderType,
+  selectedShipper
 }) => {
   const [searchValue, setSearchValue] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState<CustomerModel[]>([]);
@@ -137,7 +141,7 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
   };
   useEffect(() => {
     loadCustomers();
-  },[]);
+  }, []);
   useEffect(() => {
     const loadCustomerByOrder = async () => {
       if (selectedOrder !== null) {
@@ -197,7 +201,7 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
     setSearchValue(`${customer.customerName} - ${customer.phone}`);
     setShowDropdown(false);
     setIsLockSearch(true);
-  
+
     // Gọi API gán khách vào đơn
     if (selectedOrder !== null) {
       const success = await assignCustomerToOrder(selectedOrder, customer.customerId);
@@ -213,15 +217,15 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
     }
   };
   const handleClearCustomer = async () => {
-  // Gọi API để xóa khách hàng khỏi đơn hàng
-  if (selectedOrder !== null) {
-    const success = await fetchDeleteCustomerFromOrder(selectedOrder);
-    if (success) {
-      console.log(`Customer has been removed from order ${selectedOrder}`);
-    } else {
-      console.warn("Failed to remove customer from order.");
+    // Gọi API để xóa khách hàng khỏi đơn hàng
+    if (selectedOrder !== null) {
+      const success = await fetchDeleteCustomerFromOrder(selectedOrder);
+      if (success) {
+        console.log(`Customer has been removed from order ${selectedOrder}`);
+      } else {
+        console.warn("Failed to remove customer from order.");
+      }
     }
-  }    
     setSearchValue("");  // Xóa ô tìm kiếm
     onCustomerSelect(null);  // Xóa ID khách hàng đã chọn
     setIsLockSearch(false);  // Mở lại ô tìm kiếm và chuyển suffix thành PlusOutlined
@@ -230,7 +234,9 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
   return (
     <div className="flex items-center rounded-md w-full h-12 mt-0 relative">
       <div className="w-1/6 text-lg font-semibold rounded-full flex items-center justify-center bg-[#ffe6bc]">
-        Bàn: {selectedTable !== null ? selectedTable : "~"}
+        {selectedTable === null && selectedShipper === null && "Mang về"}
+        {selectedTable === null && selectedShipper !== null && `Nhân viên ${selectedShipper}`}
+        {selectedTable !== null && selectedShipper === null && `Bàn ${selectedTable}`}
       </div>
 
       <div className="w-5/6 p-2 rounded-md h-full relative">
