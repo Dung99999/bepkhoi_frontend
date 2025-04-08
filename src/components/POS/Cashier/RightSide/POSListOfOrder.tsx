@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Input } from "antd";
-import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface props {
@@ -23,6 +23,12 @@ interface UpdateOrderDetailQuantityRequest {
   orderDetailId: number;
   isAdd: boolean | null;
   quantity: number | null;
+}
+
+interface AddNoteToOrderDetailRequest {
+  orderId: number;
+  orderDetailId: number;
+  note: string;
 }
 
 async function fetchOrderDetail(orderId: number | null): Promise<OrderDetailModel[]> {
@@ -93,10 +99,44 @@ async function updateOrderDetailQuantity(request: UpdateOrderDetailQuantityReque
   }
 }
 
+async function addNoteToOrderDetail(request: AddNoteToOrderDetailRequest): Promise<boolean> {
+  const apiUrl = `${API_BASE_URL}api/order-detail/add-note-to-order-detail`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data.message); // Optional: log success
+      return true;
+    } else if (response.status === 400) {
+      const errorData = await response.json();
+      console.error('Bad Request:', errorData.message);
+    } else if (response.status === 404) {
+      const errorData = await response.json();
+      console.warn('Not Found:', errorData.message);
+    } else {
+      const errorData = await response.json();
+      console.error('Server Error:', errorData.message);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error calling add-note-to-order-detail:', error);
+    return false;
+  }
+}
+
+
 const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct }) => {
   const [selectedOrders, setSelectedOrders] = useState<OrderDetailModel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState<OrderDetailModel | null>(null);
+  const [currentOrderDetail, setCurrentOrderDetail] = useState<OrderDetailModel | null>(null);
 
   const updateQuantity = (id: number, amount: number) => {
     setSelectedOrders((prevOrders) =>
@@ -148,26 +188,29 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
     }
   }, [isReloadAfterAddProduct]);
 
-  const openNoteModal = (order: OrderDetailModel) => {
-    setCurrentOrder(order);
+  const openNoteModal = (orderDetail: OrderDetailModel) => {
+    setCurrentOrderDetail({...orderDetail});
     setIsModalOpen(true);
   };
 
   const handleNoteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (currentOrder) {
-      setCurrentOrder({ ...currentOrder, productNote: e.target.value });
+    if (currentOrderDetail) {
+      setCurrentOrderDetail({ ...currentOrderDetail, productNote: e.target.value });
     }
   };
 
-  const saveNote = () => {
-    if (currentOrder) {
-      setSelectedOrders((prevOrders) =>
-        prevOrders.map((item) =>
-          item.orderDetailId === currentOrder.orderId
-            ? { ...item, note: currentOrder.productNote }
-            : item
-        )
-      );
+  const saveNote = async () => {
+    if (currentOrderDetail && selectedOrder !== null) {
+      const request: AddNoteToOrderDetailRequest = {
+        orderId: selectedOrder,
+        orderDetailId: currentOrderDetail.orderDetailId,
+        note: currentOrderDetail.productNote || "",
+      };
+  
+      const success = await addNoteToOrderDetail(request);
+      if (success) {
+        fetchData();
+      }
     }
     setIsModalOpen(false);
   };
@@ -179,7 +222,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
           {selectedOrders.map((item, index) => (
             <li key={item.orderDetailId} className="bg-white p-2 rounded-md shadow">
               <div className="flex justify-between items-center">
-                <span className="font-semibold w-1/3">
+                <span className={`font-semibold w-1/3 ${item.status?"text-green-500":""}`}>
                   {index + 1}. {item.productName}
                 </span>
                 <div className="flex items-center space-x-2 w-1/3 justify-center">
@@ -205,12 +248,20 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
                     {(item.price * item.quantity).toLocaleString()}đ
                   </span>
                 </div>
+                <DeleteFilled className="ml-3 text-lg text-red-500"
+                  onClick={() => {
+
+                  }}
+                />
               </div>
               <div
-                className="text-sm text-gray-500 mt-1 cursor-pointer"
-                onClick={() => openNoteModal(item)}
+                className={`text-sm mt-1 ${item.status ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 cursor-pointer'}`}
+                onClick={() => {
+                  if (!item.status) openNoteModal(item);
+                }}
               >
-                {item.productNote ? `Ghi chú: ${item.productNote}` : "Ghi chú/ món thêm"}
+                {item.productNote ?
+                 `${item.productNote}` : "Ghi chú/ món thêm"}
               </div>
             </li>
           ))}
@@ -223,10 +274,21 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
         open={isModalOpen}
         onOk={saveNote}
         onCancel={() => setIsModalOpen(false)}
+        okButtonProps={{
+          className: `
+            text-black 
+            border 
+            border-gray-300 
+            bg-white 
+            hover:bg-[#4096ff] 
+            hover:text-white 
+            hover:border-[#4096ff]
+          `
+        }}
       >
         <Input
           placeholder="Nhập ghi chú"
-          value={currentOrder?.productNote || ""}
+          value={currentOrderDetail?.productNote || ""}
           onChange={handleNoteChange}
         />
       </Modal>

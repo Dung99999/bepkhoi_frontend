@@ -45,6 +45,8 @@ interface Tab{
   label : string;
   value : string;
 }
+
+
 async function fetchOrders(roomId: number | null, shipperId: number | null, orderTypeId: number | null): Promise<OrderModel[]> {
   try {
     // Tạo chuỗi query string từ các tham số
@@ -151,7 +153,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
   const[order, setOrder] = useState<OrderModel[]>([]);
   const [activeKey, setActiveKey] = useState("");
   const [isReload, setIsReload] = useState<boolean>(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null); //luu customer_id của selectedOrder
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null); 
 
   const onChange = (newActiveKey: string) => {
     setActiveKey(newActiveKey);
@@ -240,7 +242,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       setTabs(generatedTabs);
       setActiveKey(generatedTabs[0].value);
       setSelectedOrder(Number(generatedTabs[0].value))
-      setOrder(orders); // lưu toàn bộ danh sách order
+      setOrder(orders); 
     } catch (error) {
       console.log("Failed to get orders:", error);
       setOrder([])
@@ -352,7 +354,9 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
         }))}
       />
       <div className="flex-none border-none min-w-full rounded-mdflex-grow-0">
-        <POSPayment />
+        <POSPayment 
+        selectedOrder={selectedOrder}
+        />
       </div>
 
       <ModalCreateCustomer
