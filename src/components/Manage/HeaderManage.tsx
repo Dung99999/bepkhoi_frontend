@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import {
   EditOutlined,
   PhoneOutlined,
   GlobalOutlined,
   MessageOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
+import UserUpdateModal from "./UserUpdateModal";
 
 const navItems = [
   { label: "Tổng quan", path: "/manage/dashboard" },
@@ -43,6 +45,19 @@ const navItems = [
 ];
 
 const HeaderManage: React.FC = () => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleReloadUser = () => {
+    console.log("Tải lại thông tin sau khi cập nhật...");
+  };
 
   return (
     <header className="bg-white shadow-md font-sans">
@@ -76,6 +91,13 @@ const HeaderManage: React.FC = () => {
             <PhoneOutlined />
             <span className="font-medium text-yellow-500">0975307087</span>
           </div>
+          <button
+            onClick={handleOpenModal}
+            className="hover:text-yellow-500 transition text-[18px]"
+            title="Thông tin cá nhân"
+          >
+            <UserOutlined />
+          </button>
         </div>
       </div>
 
@@ -121,6 +143,12 @@ const HeaderManage: React.FC = () => {
           <EditOutlined />
         </button>
       </div>
+
+      <UserUpdateModal
+        open={isModalVisible}
+        onClose={handleCloseModal}
+        onReload={handleReloadUser}
+      />
     </header>
   );
 };
