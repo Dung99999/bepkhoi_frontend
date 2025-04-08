@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import OrderList from "../../components/Manage/Order/OrderList";
 import OrderDetail from "../../components/Manage/Order/OrderDetail";
+import Sidebar from "../../components/Manage/Order/SideBar";
 
 interface Customer {
     customerId: number;
@@ -33,11 +34,19 @@ const OrderManagePage: React.FC = () => {
     const [orderDetails, setOrderDetails] = useState<OrderDetailItem[]>([]);
     const [detailLoading, setDetailLoading] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [dateFrom, setDateFrom] = useState<string | null>(null);
+    const [dateTo, setDateTo] = useState<string | null>(null);
 
-    const fetchOrders = async () => {
+
+    const fetchOrders = async (fromDate?: string, toDate?: string) => {
         setLoading(true);
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/get-all-orders`);
+            const baseUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders`;
+            const url = fromDate && toDate
+                ? `${baseUrl}/filter-by-date?fromDate=${fromDate}&toDate=${toDate}`
+                : `${baseUrl}/get-all-orders`;
+
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const data = await response.json();
@@ -98,35 +107,45 @@ const OrderManagePage: React.FC = () => {
 
     useEffect(() => {
         if (customers.length > 0) {
-            fetchOrders();
+            if (dateFrom && dateTo) {
+                fetchOrders(dateFrom, dateTo);
+            } else {
+                fetchOrders();
+            }
         }
-    }, [customers]);
+    }, [customers, dateFrom, dateTo]);
 
     return (
-        <div className="flex w-full h-full px-[8.33%] font-sans">
-            <div className="flex-1 p-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-3xl font-bold">Quản lý đơn hàng</h1>
-                </div>
-
-                <OrderList
-                    data={orders}
-                    loading={loading}
-                    onRowClick={handleRowClick}
+        <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">
+            <div className="flex flex-1 p-4 gap-[7px]">
+                <Sidebar
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    setDateFrom={setDateFrom}
+                    setDateTo={setDateTo}
                 />
-
-                <OrderDetail
-                    visible={isDetailModalOpen}
-                    orderId={selectedOrder?.orderId}
-                    customerName={selectedOrder?.customerName}
-                    createdTime={selectedOrder?.createdTime}
-                    amountDue={selectedOrder?.amountDue}
-                    orderNote={selectedOrder?.orderNote}
-                    items={orderDetails}
-                    loading={detailLoading}
-                    onClose={() => setIsDetailModalOpen(false)}
-                />
+                <main className="flex-1 overflow-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-3xl font-bold">Quản lý đơn hàng</h1>
+                    </div>
+                    <OrderList
+                        data={orders}
+                        loading={loading}
+                        onRowClick={handleRowClick}
+                    />
+                </main>
             </div>
+            <OrderDetail
+                visible={isDetailModalOpen}
+                orderId={selectedOrder?.orderId}
+                customerName={selectedOrder?.customerName}
+                createdTime={selectedOrder?.createdTime}
+                amountDue={selectedOrder?.amountDue}
+                orderNote={selectedOrder?.orderNote}
+                items={orderDetails}
+                loading={detailLoading}
+                onClose={() => setIsDetailModalOpen(false)}
+            />
         </div>
     );
 };

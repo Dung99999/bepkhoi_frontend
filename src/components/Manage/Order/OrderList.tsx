@@ -82,7 +82,7 @@ const OrderList: React.FC<OrderListProps> = ({ data, loading, onRowClick }) => {
                     style: { cursor: 'pointer' }
                 })}
                 className="custom-table"
-                scroll={{ x: 1200 }}
+                scroll={{ x: "70%" }}
             />
         </div>
     );
