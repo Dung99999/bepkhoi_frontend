@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Modal, Input } from "antd";
+import { Button, Modal, Input, message } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
@@ -135,11 +135,80 @@ async function addNoteToOrderDetail(request: AddNoteToOrderDetailRequest): Promi
   }
 }
 
+async function fetchDeleteUnconfirmOrderDetail(orderId: number, orderDetailId: number): Promise<boolean> {
+  if (!orderId || !orderDetailId || orderId <= 0 || orderDetailId <= 0) {
+    console.error("Invalid parameters: orderId and orderDetailId must be positive integers.");
+    return false;
+  }
+  const url = `${API_BASE_URL}api/orders/delete-order-detail?orderId=${orderId}&orderDetailId=${orderDetailId}`;
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log(result.message || "Deleted successfully.");
+      return true;
+    }
+    console.error(`[${response.status}] ${result.message}`);
+    if (result.error) console.error(result.error);
+    return false;
+  } catch (error) {
+    console.error("API call failed:", error);
+    return false;
+  }
+}
+
+async function fetchDeleteConfirmOrderDetail(
+  orderId: number,
+  orderDetailId: number,
+  cashierId: number,
+  reason: string
+): Promise<boolean> {
+  // Validate input
+  if (!orderId || !orderDetailId || !cashierId || !reason.trim()) {
+    console.error("Invalid parameters: All fields must be provided and valid.");
+    return false;
+  }
+  const queryParams = new URLSearchParams({
+    orderId: orderId.toString(),
+    orderDetailId: orderDetailId.toString(),
+    cashierId: cashierId.toString(),
+    reason: reason.trim(),
+  });
+  try {
+    const response = await fetch(`${API_BASE_URL}api/orders/delete-confirmed-order-detail?${queryParams.toString()}`, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    const result = await response.json();
+    if (response.ok) {
+      console.log(result.message || "Deleted confirmed order detail successfully.");
+      return true;
+    } else {
+      console.error(`[${response.status}] ${result.message || "Unknown error occurred."}`);
+      return false;
+    }
+  } catch (error: any) {
+    console.error("Network or server error while deleting confirmed order detail:", error);
+    return false;
+  }
+}
+
 
 const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterConfirm , setIsReloadAfterConfirm }) => {
   const [selectedOrders, setSelectedOrders] = useState<OrderDetailModel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentOrderDetail, setCurrentOrderDetail] = useState<OrderDetailModel | null>(null);
+  const [isModalDeleteOrderdetailOpen, setIsModalDeleteOrderdetailOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deletingOrderDetailId, setDeletingOrderDetailId] = useState<number | null>(null);
 
   const updateQuantity = (id: number, amount: number) => {
     setSelectedOrders((prevOrders) =>
@@ -220,6 +289,59 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
     setIsModalOpen(false);
   };
 
+  const deleteOrderDetail = async (isConfirmed: boolean, orderDetailId:number|null) => {
+    if (!selectedOrder || !orderDetailId){
+      console.log(`xóa: OrderId = ${selectedOrder}, OrderDetailId = ${deletingOrderDetailId}`)
+      message.warning("Chưa chọn hóa đơn hoặc sản phẩm để xóa");
+      setDeletingOrderDetailId(null);
+      return;
+    }
+    if (isConfirmed) {
+      const success = await fetchDeleteConfirmOrderDetail(
+        selectedOrder,
+        orderDetailId,
+        2, 
+        deleteReason.trim()
+      );
+      if (success) {
+        fetchData();
+        setIsModalDeleteOrderdetailOpen(false);
+        message.success("Xóa món thành công");
+        setDeletingOrderDetailId(null);
+      }
+    } else {
+      const success = await fetchDeleteUnconfirmOrderDetail(
+        selectedOrder,
+        orderDetailId
+      );
+      if (success) {
+        fetchData();
+        message.success("Xóa món thành công");
+        setDeletingOrderDetailId(null);
+      }
+    }
+  };
+  const handleClickDeleteOrderDetail = (orderDetail: OrderDetailModel) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xoá sản phẩm này?",
+      content: orderDetail.productName,
+      okText: "Xoá",
+      cancelText: "Huỷ",
+      okButtonProps: { danger: true },
+      onOk: () => {
+        if (orderDetail.status) {
+          // Lưu lại id để dùng sau trong Modal
+          setDeletingOrderDetailId(orderDetail.orderDetailId);
+          setDeleteReason("");
+          setIsModalDeleteOrderdetailOpen(true);
+        } else {
+          // Gọi xoá trực tiếp nếu chưa xác nhận
+          deleteOrderDetail(false, orderDetail.orderDetailId);
+        }
+      },
+    });
+  };
+
   return (
     <div className="p-3 rounded-md">
       <div className="max-h-[40vh] overflow-y-auto">
@@ -256,9 +378,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
                   </span>
                 </div>
                 <DeleteFilled className="ml-3 text-lg text-red-500"
-                  onClick={() => {
-
-                  }}
+                  onClick={() => handleClickDeleteOrderDetail(item)}
                 />
               </div>
               <div
@@ -280,7 +400,10 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
         title="Ghi chú"
         open={isModalOpen}
         onOk={saveNote}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setCurrentOrderDetail(null);
+        }}
         okButtonProps={{
           className: `
             text-black 
@@ -299,6 +422,39 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
           onChange={handleNoteChange}
         />
       </Modal>
+      <Modal
+        title="Huỷ món đã xác nhận"
+        open={isModalDeleteOrderdetailOpen}
+        onOk={async () => {
+          if(deleteReason.trim()!=null && deleteReason.trim()!=""){
+            if (deletingOrderDetailId === null) {
+              // Đợi 2 giây và kiểm tra lại
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+              if (deletingOrderDetailId === null) {
+                message.error("Không tìm thấy sản phẩm để huỷy.");
+                return;
+              }
+            }
+            deleteOrderDetail(true, deletingOrderDetailId)
+          }else{
+            message.warning("Lý do hủy món không được bỏ trống")
+          }
+        }
+        }
+        onCancel={() =>{
+          setDeletingOrderDetailId(null)
+          setIsModalDeleteOrderdetailOpen(false)
+        }}
+        okButtonProps={{
+          className: `text-white bg-red-500 hover:bg-red-600`
+        }}
+      >
+        <Input.TextArea
+          placeholder="Nhập lý do huỷ món"
+          value={deleteReason}
+          onChange={(e) => setDeleteReason(e.target.value)}
+        />
+      </Modal>      
     </div>
   );
 };

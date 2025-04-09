@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Tabs } from "antd";
+import { Tabs, Modal, message } from "antd";
 import POSTableAndCustomerBar from "./POSTableAndCustomerBar";
 import POSListOfOrder from "./POSListOfOrder";
 import POSPayment from "./POSPayment";
@@ -135,7 +135,6 @@ const fetchRemoveOrder = async (orderId: number): Promise<void> => {
     }
     // Nếu thành công, lấy kết quả và hiển thị thông báo
     const result = await response.json();
-    alert(result.message); // Hiển thị thông báo thành công
   } catch (error) {
     // Nếu có lỗi, hiển thị thông báo lỗi
     console.log(`${error}`)
@@ -191,30 +190,69 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
   };
   
 
-  const removeTab = async (targetKey: TargetKey) => {
-    try {
-      const orderIdToRemove = Number(targetKey);  
-      await fetchRemoveOrder(orderIdToRemove);
-      setTabs((prevTabs) => prevTabs.filter((tab) => tab.value !== targetKey));
-      if (activeKey === targetKey) {
-        setActiveKey("");  
-        setSelectedOrder(null);
-      }
-      const updatedOrders = await fetchOrders(selectedTable, selectedShipper, orderType);
-      if (updatedOrders.length === 0) {
-        setTabs([]);  
-        setOrder([]);  
-      } else {
-        const updatedTabs: Tab[] = updatedOrders.map((order) => ({
-          label: `Đơn ${order.orderId}`,
-          value: order.orderId.toString(),
-        }));
-        setTabs(updatedTabs);
-        setOrder(updatedOrders);
-      }
-    } catch (error) {
-      console.error("Error removing tab:", error);
-    }
+  // const removeTab = async (targetKey: TargetKey) => {
+  //   try {
+  //     const orderIdToRemove = Number(targetKey);  
+  //     await fetchRemoveOrder(orderIdToRemove);
+  //     setTabs((prevTabs) => prevTabs.filter((tab) => tab.value !== targetKey));
+  //     if (activeKey === targetKey) {
+  //       setActiveKey("");  
+  //       setSelectedOrder(null);
+  //     }
+  //     const updatedOrders = await fetchOrders(selectedTable, selectedShipper, orderType);
+  //     if (updatedOrders.length === 0) {
+  //       setTabs([]);  
+  //       setOrder([]);  
+  //     } else {
+  //       const updatedTabs: Tab[] = updatedOrders.map((order) => ({
+  //         label: `Đơn ${order.orderId}`,
+  //         value: order.orderId.toString(),
+  //       }));
+  //       setTabs(updatedTabs);
+  //       setOrder(updatedOrders);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error removing tab:", error);
+  //   }
+  // };
+
+  const removeTab = (targetKey: TargetKey) => {
+    Modal.confirm({
+      title: "Xác nhận xoá đơn hàng?",
+      content: "Bạn có chắc muốn xoá đơn này không? Hành động này không thể hoàn tác.",
+      okText: "Xoá",
+      cancelText: "Hủy",
+      okType: "danger",
+      async onOk() {
+        try {
+          const orderIdToRemove = Number(targetKey);  
+          await fetchRemoveOrder(orderIdToRemove);
+          message.success("Xoá đơn hàng thành công");
+  
+          setTabs((prevTabs) => prevTabs.filter((tab) => tab.value !== targetKey));
+          if (activeKey === targetKey) {
+            setActiveKey("");  
+            setSelectedOrder(null);
+          }
+  
+          const updatedOrders = await fetchOrders(selectedTable, selectedShipper, orderType);
+          if (updatedOrders.length === 0) {
+            setTabs([]);  
+            setOrder([]);  
+          } else {
+            const updatedTabs: Tab[] = updatedOrders.map((order) => ({
+              label: `Đơn ${order.orderId}`,
+              value: order.orderId.toString(),
+            }));
+            setTabs(updatedTabs);
+            setOrder(updatedOrders);
+          }
+        } catch (error) {
+          console.error("Error removing tab:", error);
+          message.error("Lỗi xoá đơn hàng");
+        }
+      },
+    });
   };
   
   
@@ -338,13 +376,13 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
             <div className="flex flex-col gap-1 h-full">
               <div className="flex-none">
                 <POSTableAndCustomerBar
-                  key={selectedOrder}
                   selectedTable={selectedTable}
                   onCreateCustomer={openCustomerModal}
                   onCustomerSelect={setSelectedCustomerId}
                   selectedOrder={selectedOrder}
                   orderType={orderType}
                   selectedShipper={selectedShipper}
+                  currentTab={tab.value}
                 />
               </div>
               <div className="flex-1 overflow-y-auto min-h-[100px]">

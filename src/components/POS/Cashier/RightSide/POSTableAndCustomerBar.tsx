@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Input, Button, Modal } from "antd";
+import { Input, Button, Modal, message } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ModalCreateCustomer from "./ModalCreateCustomer";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
@@ -11,6 +11,7 @@ interface Props {
   onCreateCustomer: () => void;
   onCustomerSelect: (customerId: number | null) => void;
   selectedOrder: number | null;
+  currentTab: string | null;
 }
 
 interface CustomerModel {
@@ -41,13 +42,10 @@ async function fetchCustomerList(): Promise<CustomerModel[]> {
 async function fetchCustomerByOrderId(orderId: number): Promise<FetchCustomerById | null> {
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/get-customer-of-order/${orderId}`);
-
     if (!response.ok) {
       throw new Error("Failed to fetch customer");
     }
-
     const result = await response.json();
-
     if (result.success && result.data) {
       return result.data as FetchCustomerById;
     } else {
@@ -103,12 +101,10 @@ const fetchDeleteCustomerFromOrder = async (orderId: number) => {
     // Kiểm tra nếu response từ API là thành công
     if (response.ok) {
       const data = await response.json();
-      alert(data.message);  // Thông báo thành công
       return true;
     } else {
-      // Nếu thất bại, lấy thông báo lỗi từ API và hiển thị
       const errorData = await response.json();
-      alert(errorData.Message || 'Something went wrong!');
+      console.error("Fail to deleting customer from order:", errorData)
       return false;
     }
   } catch (error) {
@@ -126,7 +122,8 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
   onCustomerSelect,
   selectedOrder,
   orderType,
-  selectedShipper
+  selectedShipper,
+  currentTab
 }) => {
   const [searchValue, setSearchValue] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState<CustomerModel[]>([]);
@@ -163,7 +160,9 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
         onCustomerSelect(null);
       }
     };
-    loadCustomerByOrder();
+    if(selectedOrder == Number(currentTab)){
+      loadCustomerByOrder();
+    }
   }, [selectedOrder]);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -191,12 +190,6 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
     }
   };
 
-  // const handleSelectCustomer = (customer: CustomerModel) => {
-  //   setSearchValue(`${customer.customerName} - ${customer.phone}`);
-  //   setShowDropdown(false);
-  //   onCustomerSelect(customer.customerId);
-  //   setIsLockSearch(true);
-  // };
   const handleSelectCustomer = async (customer: CustomerModel) => {
     setSearchValue(`${customer.customerName} - ${customer.phone}`);
     setShowDropdown(false);
@@ -207,13 +200,15 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
       const success = await assignCustomerToOrder(selectedOrder, customer.customerId);
       if (success) {
         console.log(`Customer ${customer.customerId} assigned to order ${selectedOrder}`);
-        onCustomerSelect(customer.customerId); // thông báo ra ngoài
+        onCustomerSelect(customer.customerId); 
+        message.success("Thêm khách hàng thành công");
       } else {
         console.warn("Không thể gán khách hàng vào đơn.");
-        // Bạn có thể show notification ở đây nếu muốn
+        message.error("Thêm khách hàng thất bại, vui lòng thử lại")
       }
     } else {
       console.warn("Không có selectedOrder để gán khách hàng.");
+      message.error("Thêm khách hàng thất bại, vui lòng thử lại")
     }
   };
   const handleClearCustomer = async () => {
@@ -222,13 +217,15 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
       const success = await fetchDeleteCustomerFromOrder(selectedOrder);
       if (success) {
         console.log(`Customer has been removed from order ${selectedOrder}`);
+        message.success("Đã loại bỏ khách hàng khỏi đơn")
       } else {
         console.warn("Failed to remove customer from order.");
+        message.success("Loại bỏ khách hàng khỏi đơn thất bại, vui lòng thử lại")
       }
     }
-    setSearchValue("");  // Xóa ô tìm kiếm
-    onCustomerSelect(null);  // Xóa ID khách hàng đã chọn
-    setIsLockSearch(false);  // Mở lại ô tìm kiếm và chuyển suffix thành PlusOutlined
+    setSearchValue("");  
+    onCustomerSelect(null);  
+    setIsLockSearch(false);  
   };
 
   return (
