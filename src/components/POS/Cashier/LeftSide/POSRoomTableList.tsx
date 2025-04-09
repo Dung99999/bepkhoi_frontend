@@ -25,6 +25,10 @@ interface Props {
   setActiveTab: (tab: "room" | "menu") => void;
   selectedTable: number | null;
   setSelectedTable: (tableId: number | null) => void;
+  selectedShipper: number | null;
+  setSelectedShipper: (shipperId: number | null) => void;
+  orderType: number | null;
+  setOrderType: (shipperId: number | null) => void;
 }
 async function fetchRoomAreas(): Promise<roomAreaOption[]> {
   try {
@@ -141,6 +145,10 @@ const POSRoomTableList: React.FC<Props> = ({
   setActiveTab,
   selectedTable,
   setSelectedTable,
+  selectedShipper,
+  setSelectedShipper,
+  orderType,
+  setOrderType,
 }) => {
   const [roomAreaOptionList, setRoomAreaOptionList] = useState<roomAreaOption[]>([]);
   const [choosedArea, setChoosedArea] = useState<number | null>(null);
@@ -208,6 +216,8 @@ const POSRoomTableList: React.FC<Props> = ({
             onMouseLeave={() => setHoveredId(null)}
             onClick={() => {
               setSelectedTable(room.roomId);
+              setSelectedShipper(null)
+              setOrderType(3); 
             }}
           >
             <img

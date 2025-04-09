@@ -20,6 +20,21 @@ interface DrawerPaymentFinalProps {
   isVisible: boolean;
   onClose: () => void;
   selectedOrder: number | null;
+  order: OrderModel[];
+}
+
+interface OrderModel {
+  orderId: number;
+  customerId: number | null;
+  shipperId: number | null;
+  deliveryInformationId: number | null;
+  orderTypeId: number;
+  roomId: number | null;
+  createdTime: string;  // Dạng ISO 8601 string
+  totalQuantity: number;
+  amountDue: number;
+  orderStatusId: number;
+  orderNote: string | null;
 }
 
 const orders = [
@@ -84,13 +99,12 @@ async function fetchVnPayUrl(orderId: number): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}api/Invoice/vnpay-url?Id=${orderId}`, {
       method: 'GET',
-      redirect: 'follow', // Để trình duyệt tự động redirect tới URL thanh toán
     });
 
-    if (response.redirected) {
-      // Nếu server trả về redirect, chuyển hướng trình duyệt
-      window.location.href = `${API_BASE_URL}api/Invoice/vnpay-url?Id=${orderId}`;
-    } else if (!response.ok) {
+    if (response.ok) {
+      const paymentUrl = await response.text(); // vì API trả về chuỗi URL
+      window.location.href = paymentUrl; // tự redirect tới trang thanh toán
+    } else {
       const errorMessage = await response.text();
       console.error('Lỗi khi tạo URL thanh toán:', errorMessage);
       alert(errorMessage);
@@ -104,7 +118,8 @@ async function fetchVnPayUrl(orderId: number): Promise<void> {
 const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   isVisible,
   onClose,
-  selectedOrder
+  selectedOrder,
+  order 
 }) => {
   const [selectedBank, setSelectedBank] = useState(bankItems[0]);
   const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");

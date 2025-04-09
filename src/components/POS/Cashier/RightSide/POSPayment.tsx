@@ -21,6 +21,7 @@ interface Props {
   setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
   isReloadAfterConfirm: boolean;
   setIsReloadAfterConfirm: (isReload: boolean) => void;
+  order: OrderModel[];
 }
 
 interface AddNoteRequest {
@@ -34,6 +35,20 @@ interface OrderGeneralDataPosDto {
   totalQuantity: number;
   amountDue: number;
   hasUnconfirmProducts: boolean;
+}
+
+interface OrderModel {
+  orderId: number;
+  customerId: number | null;
+  shipperId: number | null;
+  deliveryInformationId: number | null;
+  orderTypeId: number;
+  roomId: number | null;
+  createdTime: string;  // Dạng ISO 8601 string
+  totalQuantity: number;
+  amountDue: number;
+  orderStatusId: number;
+  orderNote: string | null;
 }
 
 async function fetchAddNoteToOrder(request: AddNoteRequest): Promise<boolean> {
@@ -135,7 +150,7 @@ const fetchGeneralData = async (orderId: number): Promise<OrderGeneralDataPosDto
   }
 };
 
-const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm }) => {
+const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm , order}) => {
   const [isModalNoteOrderOpen, setIsNoteOrderModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -237,7 +252,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
             className="text-gray-600 font-semibold cursor-not-allowed p-1"
             title="bạn không có quyền chỉnh sửa"
           >
-            Tùng-admin
+            Phạm Sơn Tùng
           </p>
 
           {/* editButton */}
@@ -306,6 +321,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
         isVisible={isDrawerPaymentVisible}
         onClose={onClosePaymentDrawer}
         selectedOrder={selectedOrder}
+        order={order}
       />
 
       {/* Modal Note */}
