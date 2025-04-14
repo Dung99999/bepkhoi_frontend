@@ -8,7 +8,7 @@ import {
 import { Empty, Input, Modal, message } from "antd";
 import React, { useState, useEffect } from "react";
 import DrawerPaymentFinal from "./DrawerPaymentFinal";
-import ModalSplitOrder from "./ModalSplitOrders";
+import ModalSplitOrder from "./ModalSplitAndCombineOrders";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 
@@ -154,7 +154,6 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
   const [isModalNoteOrderOpen, setIsNoteOrderModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
-  const [splitNote, setSplitNote] = useState("");
   const [isDrawerPaymentVisible, setIsDrawerPaymentVisible] = useState(false);
   const [orderData, setOrderData] = useState<OrderGeneralDataPosDto | null>(null);
 
@@ -270,12 +269,12 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
 
           {/* split order button */}
           <button
-            className={`px-3 py-1 rounded-full flex items-center ${(selectedOrder!=null&&orderData?.hasUnconfirmProducts)
+            className={`px-3 py-1 rounded-full flex items-center ${(selectedOrder!=null&&orderData?.totalQuantity!=0)
                 ? "bg-white text-gray-700 cursor-pointer hover:bg-gray-200"
                 : "text-gray-400 cursor-not-allowed"
               }`}
             onClick={() => setIsModalSplitOrderOpen(true)}
-            disabled={!((selectedOrder!=null&&orderData?.hasUnconfirmProducts))}
+            disabled={!((selectedOrder!=null&&orderData?.totalQuantity!=0))}
           >
             <SplitCellsOutlined />
             <span className="pl-2">Tách Đơn/Ghép Đơn</span>
@@ -304,7 +303,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
             disabled={!((selectedOrder!=null&&orderData?.hasUnconfirmProducts))}
         >
           <BellOutlined />
-          <span className="">Thông báo (F10)</span>
+          <span className="">Xác nhận đơn</span>
         </button>
         <button
           className="flex-1 flex w-full items-center gap-2 px-4 ml-2 py-2
@@ -313,7 +312,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
           onClick={showDrawerPayment}
         >
           <DollarOutlined />
-          <span className="">Thanh toán (F9)</span>
+          <span className="">Thanh toán</span>
         </button>
       </div>
       {/* Drawer Thanh toán */}
@@ -368,12 +367,12 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
       <ModalSplitOrder
         open={isModalSplitOrderOpen}
         onCancel={() => setIsModalSplitOrderOpen(false)}
-        onOk={(note) => {
-          console.log("Tách đơn ghi chú:", note);
+        onOk={() => {
           setIsModalSplitOrderOpen(false);
         }}
-        note={splitNote}
-        setNote={setSplitNote}
+        selectedOrder={selectedOrder}
+        setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
+        setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
       />
     </div>
   );

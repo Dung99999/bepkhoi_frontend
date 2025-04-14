@@ -43,17 +43,17 @@ async function fetchCustomerByOrderId(orderId: number): Promise<FetchCustomerByI
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/get-customer-of-order/${orderId}`);
     if (!response.ok) {
-      throw new Error("Failed to fetch customer");
+      console.log("Disconnect Sever...", response.json);
     }
     const result = await response.json();
     if (result.success && result.data) {
       return result.data as FetchCustomerById;
     } else {
-      console.warn("Customer not found or API returned false.");
+      console.log("Customer not found or API returned false.");
       return null;
     }
   } catch (error) {
-    console.error("Error fetching customer by order ID:", error);
+    console.error("Unexpected error has been occur:", error);
     return null;
   }
 }

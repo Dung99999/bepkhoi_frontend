@@ -210,16 +210,6 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
   const [deleteReason, setDeleteReason] = useState("");
   const [deletingOrderDetailId, setDeletingOrderDetailId] = useState<number | null>(null);
 
-  const updateQuantity = (id: number, amount: number) => {
-    setSelectedOrders((prevOrders) =>
-      prevOrders.map((item) =>
-        item.orderDetailId === id
-          ? { ...item, quantity: Math.max(1, item.quantity + amount) }
-          : item
-      )
-    );
-  };
-
   const fetchData = async () => {
     const orderDetails = await fetchOrderDetail(selectedOrder);
     setSelectedOrders(orderDetails);
@@ -308,6 +298,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
         setIsModalDeleteOrderdetailOpen(false);
         message.success("Xóa món thành công");
         setDeletingOrderDetailId(null);
+        setIsReloadAfterUpdateQuantity(true);
       }
     } else {
       const success = await fetchDeleteUnconfirmOrderDetail(
@@ -318,6 +309,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
         fetchData();
         message.success("Xóa món thành công");
         setDeletingOrderDetailId(null);
+        setIsReloadAfterUpdateQuantity(true);
       }
     }
   };
