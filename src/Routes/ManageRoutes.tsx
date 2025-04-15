@@ -9,6 +9,7 @@ import RoomAreaManagePage from "../pages/Manage/RoomAreaManagePage";
 import RoomsManagePage from "../pages/Manage/RoomsManagePage";
 import OrderManagePage from "../pages/Manage/OrderManagePage";
 import InvoiceManagePage from "../pages/Manage/InvoiceManagePage";
+import DashboardManagePage from "../pages/Manage/DashboardManagePage";
 
 interface RouteItem {
     path?: string;
@@ -21,6 +22,11 @@ const manageRoutes: RouteItem[] = [
     { index: true, element: <Navigate to="menu" replace />, roles: ["admin", "employee"] },
     { path: "/manage", element: <Navigate to="/manage/menu" replace />, roles: ["admin", "employee"] }, 
     { path: "/manage/menu", element: <MenuPage />, roles: ["admin"] },
+    {
+        path: "/manage/dashboard",
+        element: <DashboardManagePage />,
+        roles: ["admin"],
+      },
     { path: "/manage/settingPrice", element: <SettingPricePage />, roles: ["admin"] },
     { path: "/manage/customer", element: <CustomerManagePage />, roles: ["admin"] },
     { path: "/manage/cashier", element: <CashierManagePage />, roles: ["admin"] },

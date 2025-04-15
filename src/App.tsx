@@ -15,6 +15,8 @@ import GuessPage from "./pages/Shop/GuessPage";
 import ShopNavi from "./pages/Shop/ShopNavi";
 import ShopMenuRedirect from "./pages/Shop/ShopMenuRedirect";
 import posRoutes from "./Routes/POSRoutes";
+import landingRoutes from "./Routes/LandingRoutes";
+import LandingPageLayout from "./layouts/LandingPageLayout";
 // // import POSRoutes from "./Routes/POSRoutes";
 // import { POSTableList } from "./components/POS/POSTableList";
 // import { POSMenuList } from "./components/POS/POSMenuList";
@@ -75,6 +77,16 @@ const App: React.FC = () => {
           {shopRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
           ))}
+        </Route>
+
+        <Route path="/" element={<LandingPageLayout />}>
+          {landingRoutes.map((route, index) =>
+            route.index ? (
+              <Route key={index} index element={route.element} />
+            ) : (
+              <Route key={index} path={route.path} element={route.element} />
+            )
+          )}
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

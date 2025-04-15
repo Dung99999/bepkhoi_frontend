@@ -140,7 +140,7 @@ const HeaderManage: React.FC = () => {
           className="bg-white p-2 rounded-md hover:bg-gray-100 transition"
           title="Chỉnh sửa"
         >
-          <EditOutlined />
+          <a href="/pos/cashier" className=""><EditOutlined /></a>
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Input, Button, message, DatePicker, Spin } from "antd";
-import { SaveOutlined, CloseOutlined } from "@ant-design/icons";
+import { SaveOutlined, CloseOutlined, KeyOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
 
@@ -26,6 +27,7 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
   const [formData, setFormData] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const userId = localStorage.getItem("userId");
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     if (open && userId) {
@@ -106,7 +108,18 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
           </div>
 
           <div className="flex justify-end gap-4 mt-6">
-            <Button type="primary" icon={<SaveOutlined />} onClick={handleSubmit}>
+            <Button
+              type="primary"
+              className="bg-blue-300 hover:bg-gray-500"
+              icon={<KeyOutlined />}
+              onClick={() => {
+                localStorage.clear(); // Xóa toàn bộ localStorage
+                navigate("/login"); // Redirect sang /login
+              }}
+            >
+              Đăng Xuất
+            </Button>
+            <Button type="primary" className="bg-blue-400" icon={<SaveOutlined />} onClick={handleSubmit}>
               Lưu
             </Button>
             <Button icon={<CloseOutlined />} onClick={onClose}>
