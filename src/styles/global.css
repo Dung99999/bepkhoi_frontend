@@ -1,0 +1,15 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optional: Add smooth scrolling for specific elements */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  transition: all 0.3s ease-in-out;
+}

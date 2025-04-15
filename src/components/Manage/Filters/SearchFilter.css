@@ -1,0 +1,71 @@
+.search-filter-wrapper {
+  background-color: white; 
+  padding: 12px; 
+  border-radius: 8px; 
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: sans-serif;
+}
+
+.custom-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 12px;
+  border-radius: 8px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid #f3f4f6;
+}
+
+.custom-search:hover,
+.custom-search:focus-within {
+  border-color: #FFE4B5; 
+}
+
+/* Input */
+.custom-search .ant-input {
+  border: none !important;
+  height: 40px;
+  box-shadow: none !important;
+  border-radius: 8px 0 0 8px !important;
+  background: white;
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: sans-serif; 
+}
+
+.custom-search .ant-btn-primary {
+  background-color: transparent !important;
+  border: none !important;
+  color: black !important;
+  border-radius: 0 8px 8px 0 !important;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  transition: background 0.3s ease;
+  font-family: sans-serif; 
+}
+
+.custom-search:hover .ant-btn-primary,
+.custom-search:focus-within .ant-btn-primary {
+  background-color: #FFE4B5 !important;
+}
+
+.custom-search .ant-btn .anticon {
+  font-size: 16px;
+}
+
+.custom-search .ant-input:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+
+.custom-search .ant-input:hover {
+  border: none !important;
+}
+
+.search-filter-wrapper label {
+  font-family: sans-serif;
+  font-size: 15px; 
+}

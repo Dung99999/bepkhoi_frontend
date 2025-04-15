@@ -1,0 +1,22 @@
+.button-up-of-list .ant-btn {
+  background-color: #00B63E !important;
+  color: #FFF !important;
+  font-weight: 600;
+  border: 1px solid transparent !important;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.button-up-of-list .ant-btn:hover {
+  background-color: #009632 !important;
+  border-color: #009632 !important;
+  color: #FFF !important;
+}
+
+.icon-of-menu-list-button {
+  margin-right: 4px;
+  font-size: 16px;
+}

@@ -1,0 +1,5 @@
+.menu-list-wrapper {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-bottom: 10px;
+}

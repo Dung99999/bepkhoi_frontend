@@ -1,0 +1,68 @@
+.custom-table .ant-table-thead>tr>th {
+  background-color: #fff1d6 !important;
+  color: #333;
+  font-weight: bold;
+}
+
+.custom-table .ant-table-tbody>tr.ant-table-row-selected>td {
+  background-color: #fffcf899 !important;
+}
+
+.custom-table .ant-table-tbody>tr:hover>td {
+  background-color: #fff7eb99 !important;
+}
+
+.custom-table-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #fcdca6 !important;
+  border-color: #FFE4B5 !important;
+}
+
+.custom-table-wrapper .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.custom-table-wrapper .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #FFD39B !important;
+}
+
+.custom-table .ant-table {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.custom-table .ant-pagination-item-active {
+  background-color: #ffffff !important;
+  border-color: #FFD39B !important;
+}
+
+.custom-table .ant-pagination-item-active a {
+  color: #333 !important;
+  font-weight: bold;
+}
+
+.custom-table .ant-pagination-item a:hover {
+  color: #FF8C00 !important;
+}
+
+.custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
+.custom-table .ant-pagination-next:hover .ant-pagination-item-link,
+.custom-table .ant-pagination-prev:focus-visible .ant-pagination-item-link,
+.custom-table .ant-pagination-next:focus-visible .ant-pagination-item-link {
+  color: #FF8C00 !important;
+  border-color: #FFD39B !important;
+}
+
+.custom-table .ant-table-tbody>tr>td,
+.custom-table .ant-table-thead>tr>th {
+  padding: 12px 14px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.custom-table .ant-table-tbody>tr>td:nth-child(2),
+.custom-table .ant-table-thead>tr>th:nth-child(2) {
+  text-align: left;
+}
+
+.custom-table .ant-tag {
+  font-weight: bold;
+  border-radius: 4px;
+}

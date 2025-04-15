@@ -1,0 +1,403 @@
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  Input,
+  InputNumber,
+  Select,
+  Switch,
+  Button,
+  message,
+  Upload,
+} from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import * as signalR from "@microsoft/signalr";
+
+const { Option } = Select;
+
+interface ProductCategory {
+  productCategoryId: number;
+  productCategoryTitle: string;
+}
+
+interface Unit {
+  unitId: number;
+  unitTitle: string;
+}
+
+interface AddMenuModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>(
+    []
+  );
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [formData, setFormData] = useState({
+    productName: "",
+    productCategoryId: null as number | null,
+    costPrice: null as number | null,
+    sellPrice: null as number | null,
+    salePrice: null as number | null,
+    productVat: 10,
+    description: "",
+    unitId: null as number | null,
+    isAvailable: true,
+    status: true,
+    isDelete: false,
+  });
+
+  const [errors, setErrors] = useState({
+    productName: false,
+    productCategoryId: false,
+    costPrice: false,
+    sellPrice: false,
+    salePrice: false,
+    unitId: false,
+  });
+
+  const [hubConnection, setHubConnection] =
+    useState<signalR.HubConnection | null>(null);
+
+  // const token = localStorage.getItem("jwtToken");
+
+  useEffect(() => {
+    //  construct when connect to signalR
+    if (visible) {
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:7257/menuHub", {
+          withCredentials: true,
+          // accessTokenFactory: () => token || "7cec85d7bea7798e",
+        })
+        .configureLogging(signalR.LogLevel.Debug)
+        .withAutomaticReconnect()
+        .build();
+
+      //  Listen on notification ReceuiveMenuAdded
+      connection.on("ReceiveMenuAdded", (notification) => {
+        message.success(
+          `món ăn mới được thêm: ${notification.data.productName}`
+        );
+        console.log("Thông báo SignalR:", notification);
+      });
+
+      connection.onreconnecting((error) => {
+        console.warn("Đang thử kết nối lại SignalR:", error);
+        message.warning("Đang thử kết nối lại SignalR...");
+      });
+
+      connection.onreconnected(() => {
+        console.log("Kết nối SignalR được khôi phục");
+        message.success("Đã khôi phục kết nối SignalR");
+      });
+
+      //  Start connection
+      connection
+        .start()
+        .then(() => {
+          console.log("Connected to SignalR");
+          setHubConnection(connection);
+        })
+        .catch((error) => {
+          console.error("Error connecting to SignalR:", error);
+          message.error("Can't connect SignalR");
+        });
+
+      // Cleanup: Disconnect when modal close
+      return () => {
+        connection
+          .stop()
+          .then(() => console.log("SignalR disconnected"))
+          .catch((err) => console.error("Error stopping SignalR:", err));
+        setHubConnection(null);
+      };
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    fetchProductCategories();
+    fetchUnits();
+  }, []);
+
+  useEffect(() => {
+    // Set default values for unitId and productCategoryId
+    if (units.length > 0 && !formData.unitId) {
+      const defaultUnit = units.find((unit) => unit.unitTitle === "cái");
+      if (defaultUnit) {
+        setFormData((prev) => ({ ...prev, unitId: defaultUnit.unitId }));
+      }
+    }
+    if (productCategories.length > 0 && !formData.productCategoryId) {
+      const defaultCategory = productCategories.find(
+        (category) => category.productCategoryTitle === "Món khai vị"
+      );
+      if (defaultCategory) {
+        setFormData((prev) => ({
+          ...prev,
+          productCategoryId: defaultCategory.productCategoryId,
+        }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units, productCategories]);
+
+  const fetchProductCategories = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:7257/api/product-categories/get-all-categories"
+      );
+      const data = await response.json();
+      setProductCategories(data);
+    } catch (error) {
+      message.error("Không thể tải danh mục hàng hóa");
+    }
+  };
+
+  const fetchUnits = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:7257/api/units/get-all-units"
+      );
+      const data = await response.json();
+      setUnits(data);
+    } catch (error) {
+      message.error("Không thể tải danh sách đơn vị");
+    }
+  };
+
+  const handleChange = (key: keyof typeof formData, value: any) => {
+    setFormData({ ...formData, [key]: value });
+    setErrors({ ...errors, [key]: false }); // Clear error on change
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      productName: !formData.productName,
+      productCategoryId: !formData.productCategoryId,
+      costPrice: !formData.costPrice || formData.costPrice <= 0,
+      sellPrice:
+        !formData.sellPrice ||
+        (formData.costPrice !== null &&
+          formData.sellPrice !== null &&
+          formData.sellPrice < formData.costPrice)
+          ? true
+          : false,
+      salePrice:
+        formData.salePrice !== null &&
+        formData.costPrice !== null &&
+        formData.sellPrice !== null &&
+        (formData.salePrice > formData.costPrice ||
+          formData.salePrice < formData.sellPrice)
+          ? true
+          : false,
+      unitId: !formData.unitId,
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some((error) => error)) {
+      if (newErrors.costPrice) message.error("Giá nhập gốc phải lớn hơn 0");
+      if (newErrors.sellPrice)
+        message.error("Giá bán phải lớn hơn hoặc bằng giá nhập gốc");
+      if (newErrors.salePrice)
+        message.error(
+          "Giá khuyến mãi phải nằm trong khoảng giá gốc và giá nhập gốc"
+        );
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      const response = await fetch("https://localhost:7257/api/Menu/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        message.success("Món ăn đã được thêm thành công!");
+        onClose();
+      } else {
+        message.error(result.message || "Lỗi khi thêm món ăn");
+      }
+    } catch (error) {
+      message.error("Lỗi kết nối đến server");
+    }
+  };
+
+  return (
+    <Modal
+      title="Thêm hàng hóa"
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      width={800}
+      className="p-4"
+    >
+      <div className="grid grid-cols-2 gap-6">
+        {/* Column 1 */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">
+              <span className="text-red-500 mr-[0.2vw]">*</span>Mã hàng hóa:
+            </label>
+            <span className="text-gray-500">Mã hàng tự động</span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">
+              <span className="text-red-500 mr-[0.2vw]">*</span>Tên hàng:
+            </label>
+            <Input
+              className={`flex-1 ${errors.productName ? "border-red-500" : ""}`}
+              value={formData.productName}
+              onChange={(e) => handleChange("productName", e.target.value)}
+            />
+            {errors.productName && (
+              <span className="text-red-500">Bắt buộc</span>
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">
+              <span className="text-red-500 mr-[0.2vw]">*</span>Giá nhập gốc:
+            </label>
+            <InputNumber
+              className={`flex-1 ${errors.costPrice ? "border-red-500" : ""}`}
+              min={1}
+              value={formData.costPrice}
+              onChange={(value) => handleChange("costPrice", value)}
+            />
+            {errors.costPrice && <span className="text-red-500">Bắt buộc</span>}
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">
+              <span className="text-red-500 mr-[0.2vw]">*</span>Giá bán:
+            </label>
+            <InputNumber
+              className={`flex-1 ${errors.sellPrice ? "border-red-500" : ""}`}
+              min={1}
+              value={formData.sellPrice}
+              onChange={(value) => handleChange("sellPrice", value)}
+            />
+            {errors.sellPrice && <span className="text-red-500">Bắt buộc</span>}
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">Giá khuyến mãi:</label>
+            <InputNumber
+              className={`flex-1 ${errors.salePrice ? "border-red-500" : ""}`}
+              min={1}
+              value={formData.salePrice}
+              onChange={(value) => handleChange("salePrice", value)}
+            />
+            {errors.salePrice && (
+              <span className="text-red-500">Không hợp lệ</span>
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">Loại hàng:</label>
+            <Select
+              className={`flex-1 ${
+                errors.productCategoryId ? "border-red-500" : ""
+              }`}
+              value={formData.productCategoryId}
+              onChange={(value) => handleChange("productCategoryId", value)}
+            >
+              {productCategories.map((category) => (
+                <Option
+                  key={category.productCategoryId}
+                  value={category.productCategoryId}
+                >
+                  {category.productCategoryTitle}
+                </Option>
+              ))}
+            </Select>
+            {errors.productCategoryId && (
+              <span className="text-red-500">Bắt buộc</span>
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">Thêm ảnh:</label>
+            <Upload>
+              <Button icon={<UploadOutlined />}>Upload</Button>
+            </Upload>
+          </div>
+        </div>
+
+        {/* Column 2 */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">
+              <span className="text-red-500 mr-[0.2vw]">*</span>Thuế VAT:
+            </label>
+            <InputNumber
+              className="flex-1"
+              min={0}
+              max={100}
+              value={formData.productVat}
+              onChange={(value) => handleChange("productVat", value)}
+            />
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">Mô tả:</label>
+            <Input
+              className="flex-1"
+              value={formData.description}
+              onChange={(e) => handleChange("description", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">
+              <span className="text-red-500 mr-[0.2vw]">*</span>Đơn vị:
+            </label>
+            <Select
+              className={`flex-1 ${errors.unitId ? "border-red-500" : ""}`}
+              value={formData.unitId}
+              onChange={(value) => handleChange("unitId", value)}
+            >
+              {units.map((unit) => (
+                <Option key={unit.unitId} value={unit.unitId}>
+                  {unit.unitTitle}
+                </Option>
+              ))}
+            </Select>
+            {errors.unitId && <span className="text-red-500">Bắt buộc</span>}
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">Còn hàng:</label>
+            <Switch
+              checked={formData.isAvailable}
+              onChange={(checked) => handleChange("isAvailable", checked)}
+            />
+          </div>
+          <div className="flex items-center space-x-3">
+            <label className="w-32 font-medium">Hiển thị:</label>
+            <Switch
+              checked={formData.status}
+              onChange={(checked) => handleChange("status", checked)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="mt-6 flex justify-end space-x-3">
+        <Button
+          className="bg-green-600 text-white px-6 py-2 rounded-md"
+          onClick={handleSubmit}
+        >
+          Lưu
+        </Button>
+        <Button className="bg-gray-300 px-6 py-2 rounded-md" onClick={onClose}>
+          Bỏ qua
+        </Button>
+      </div>
+    </Modal>
+  );
+};
+
+export default AddMenuModal;
