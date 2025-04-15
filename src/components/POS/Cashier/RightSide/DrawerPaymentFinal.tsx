@@ -102,7 +102,7 @@ interface InvoiceDetailForPaymentDto {
 async function fetchCreateInvoiceForPayment(
   invoiceInfo: InvoiceForPaymentDto,
   invoiceDetails: InvoiceDetailForPaymentDto[]
-): Promise<{ success: boolean; message: string; error?: any }> {
+): Promise<{ success: boolean; message: string; invoiceId?: number; error?: any }> {
   try {
     const response = await fetch(`${API_BASE_URL}api/Invoice/create-invoice-for-payment`, {
       method: "POST",
@@ -114,13 +114,28 @@ async function fetchCreateInvoiceForPayment(
         invoiceDetails,
       }),
     });
+
     const data = await response.json();
+
     if (!response.ok) {
-      return { success: false, message: data.message || "Lỗi không xác định", error: data.error };
+      return {
+        success: false,
+        message: data.message || "Đã xảy ra lỗi trong quá trình tạo hóa đơn.",
+        error: data.error || null,
+      };
     }
-    return { success: true, message: data.message };
-  } catch (error) {
-    return { success: false, message: "Lỗi khi gọi API", error };
+
+    return {
+      success: true,
+      message: data.message || "Tạo hóa đơn thành công.",
+      invoiceId: data.invoiceId, // 👈 lấy invoiceId ở đây
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: "Lỗi khi kết nối đến máy chủ.",
+      error: error.message || error,
+    };
   }
 }
 const fetchOrderPayment = async (orderId: number): Promise<OrderPaymentDto | null> => {
@@ -165,17 +180,10 @@ const timeExport = new Date().toLocaleDateString("vi-VN", {
   year: "numeric",
 });
 
-// Payment Method
-const plainOptions: CheckboxGroupProps<string>["options"] = [
-  "Tiền mặt",
-  "Chuyển khoản",
-];
-
 const paymentOptions = [
   { label: "Tiền mặt", value: 1 },
   { label: "Chuyển khoản", value: 2 },
 ];
-
 
 const bankItems: { label: string; key: string; img: string }[] = [
   {
@@ -218,6 +226,40 @@ async function fetchVnPayUrl(orderId: number): Promise<void> {
   } catch (error) {
     console.error('Lỗi kết nối đến server:', error);
     alert('Không thể kết nối đến server.');
+  }
+}
+
+async function printInvoicePdf(invoiceId: number) {
+  try {
+    const response = await fetch(`${API_BASE_URL}api/invoice/${invoiceId}/print-pdf`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/pdf'
+      }
+    });
+
+    if (!response.ok) throw new Error("Không thể tải hóa đơn");
+
+    const blob = await response.blob(); // PDF blob
+    const blobUrl = URL.createObjectURL(blob); // tạo URL tạm
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none'; // ẩn iframe
+    iframe.src = blobUrl;
+
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(blobUrl);
+      }, 100000);
+    };
+  } catch (err) {
+    console.error("Lỗi khi in hóa đơn:", err);
   }
 }
 
@@ -265,6 +307,8 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
     if (isVisible) {
       if (selectedOrder != null) {
         getOrderPayment(selectedOrder);
+        setOtherPayment(0);
+        setDiscount(0);
       }
     }
   }, [isVisible]);
@@ -341,6 +385,10 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
       message.success("Thanh toán thành công!");
       setIsReloadAfterPayment(true);
       onClose(); 
+      if(result.invoiceId){
+        console.log(result.invoiceId);
+        printInvoicePdf(result.invoiceId);
+      }
     } else {
       message.error(`Thanh toán thất bại: ${result.message}`);
       console.error("Chi tiết lỗi:", result.error);
@@ -348,13 +396,63 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   };
 
   const handleCheckoutVnpay = async () => {
-    const orderId = 1;
-    try {
-      await fetchVnPayUrl(orderId);
-    } catch (error) {
-      console.error("Lỗi khi xử lý thanh toán:", error);
-      alert("Có lỗi xảy ra khi thanh toán.");
+    if (!orderPaymentInfo) {
+      message.error("Không có thông tin đơn hàng.");
+      return;
     }
+    const invoiceInfo: InvoiceForPaymentDto = {
+      paymentMethodId: 1, // Tiền mặt
+      orderId: orderPaymentInfo.orderId,
+      orderTypeId: orderPaymentInfo.orderTypeId,
+      cashierId: 2, 
+      shipperId: orderPaymentInfo.shipperId ?? undefined,
+      customerId: orderPaymentInfo.customerId ?? undefined,
+      roomId: orderPaymentInfo.roomId ?? undefined,
+      checkInTime: orderPaymentInfo.createdTime,
+      checkOutTime: new Date().toISOString(),
+      totalQuantity: orderPaymentInfo.totalQuantity,
+      subtotal: orderPaymentInfo.amountDue,
+      otherPayment: otherPayment,
+      invoiceDiscount: discount,
+      totalVat: totalVat,
+      amountDue: finalAmount ?? 0,
+      invoiceNote: orderPaymentInfo.orderNote ?? "",
+      status: false,
+    };
+    const invoiceDetails: InvoiceDetailForPaymentDto[] = orderPaymentInfo.orderDetails.map(detail => ({
+      productId: detail.productId,
+      productName: detail.productName,
+      quantity: detail.quantity,
+      price: detail.price,
+      productVat: detail.productVat,
+      productNote: detail.productNote ?? "",
+    }));
+    const result = await fetchCreateInvoiceForPayment(invoiceInfo, invoiceDetails);
+    if (result.success) {
+      setIsReloadAfterPayment(true);
+      onClose(); 
+      if(result.invoiceId){
+        try {
+          await fetchVnPayUrl(result.invoiceId);
+          setIsReloadAfterPayment(true);
+          onClose(); 
+        } catch (error) {
+          console.error("Lỗi khi xử lý thanh toán vnpay:", error);
+        }
+        printInvoicePdf(result.invoiceId);
+      }
+    } else {
+      message.error(`Thanh toán thất bại: ${result.message}`);
+      console.error("Chi tiết lỗi:", result.error);
+    }
+    /////////////////////
+    // const orderId = 1;
+    // try {
+    //   await fetchVnPayUrl(orderId);
+    // } catch (error) {
+    //   console.error("Lỗi khi xử lý thanh toán:", error);
+    //   alert("Có lỗi xảy ra khi thanh toán.");
+    // }
   };
 
   return (
@@ -398,6 +496,9 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
                       <td className="p-2">{order.price.toLocaleString()}đ</td>
                       <td className="p-2 font-semibold">
                         {(order.price * order.quantity).toLocaleString()}đ
+                      </td>
+                      <td className="p-2 font-semibold">
+                        {order.productNote}
                       </td>
                     </tr>
                   ))}
@@ -538,6 +639,9 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
                 onClick={() => {
                   if(paymentMethod==1){
                     handleCheckoutCash();
+                  }
+                  if(paymentMethod==2){
+                    handleCheckoutVnpay();
                   }
                 }}
               >
