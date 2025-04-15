@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   Dropdown,
@@ -21,6 +21,8 @@ interface DrawerPaymentFinalProps {
   onClose: () => void;
   selectedOrder: number | null;
   order: OrderModel[];
+  isReloadAfterPayment: boolean;
+  setIsReloadAfterPayment: (isReload: boolean) => void;
 }
 
 interface OrderModel {
@@ -30,23 +32,130 @@ interface OrderModel {
   deliveryInformationId: number | null;
   orderTypeId: number;
   roomId: number | null;
-  createdTime: string;  // Dạng ISO 8601 string
+  createdTime: string;
   totalQuantity: number;
   amountDue: number;
   orderStatusId: number;
   orderNote: string | null;
 }
 
-const orders = [
-  { id: 1, name: "GIN FIZZ", quantity: 1, price: 30000, total: 30000 },
-  { id: 2, name: "MOJITO", quantity: 2, price: 35000, total: 70000 },
-  { id: 3, name: "WHISKEY SOUR", quantity: 1, price: 40000, total: 40000 },
-];
+interface CustomerPaymentDto {
+  customerId: number;
+  phone: string;
+  customerName: string;
+}
 
-const totalOfPayment = () => {
-  return orders
-    .reduce((sum, order) => sum + order.total, 0)
-    .toLocaleString("vi-VN");
+interface OrderDetailPaymentDto {
+  orderDetailId: number;
+  orderId: number;
+  status: boolean | null;
+  productId: number;
+  productName: string;
+  quantity: number;
+  price: number;
+  productNote: string | null;
+  productVat: number;
+}
+
+interface OrderPaymentDto {
+  orderId: number;
+  customerId: number | null;
+  shipperId: number | null;
+  deliveryInformationId: number | null;
+  orderTypeId: number;
+  roomId: number | null;
+  createdTime: string;
+  totalQuantity: number;
+  amountDue: number;
+  orderStatusId: number;
+  orderNote: string | null;
+  customer: CustomerPaymentDto | null;
+  orderDetails: OrderDetailPaymentDto[];
+}
+interface InvoiceForPaymentDto {
+  paymentMethodId: number;
+  orderId: number;
+  orderTypeId: number;
+  cashierId: number;
+  shipperId?: number;
+  customerId?: number;
+  roomId?: number;
+  checkInTime: string; // ISO format string (e.g., "2025-04-13T15:00:00")
+  checkOutTime: string;
+  totalQuantity: number;
+  subtotal: number;
+  otherPayment?: number;
+  invoiceDiscount?: number;
+  totalVat?: number;
+  amountDue: number;
+  status?: boolean;
+  invoiceNote?: string;
+}
+interface InvoiceDetailForPaymentDto {
+  productId: number;
+  productName: string;
+  quantity: number;
+  price: number;
+  productVat?: number;
+  productNote?: string;
+}
+async function fetchCreateInvoiceForPayment(
+  invoiceInfo: InvoiceForPaymentDto,
+  invoiceDetails: InvoiceDetailForPaymentDto[]
+): Promise<{ success: boolean; message: string; error?: any }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}api/Invoice/create-invoice-for-payment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        invoiceInfo,
+        invoiceDetails,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, message: data.message || "Lỗi không xác định", error: data.error };
+    }
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, message: "Lỗi khi gọi API", error };
+  }
+}
+const fetchOrderPayment = async (orderId: number): Promise<OrderPaymentDto | null> => {
+  if (!orderId || isNaN(orderId) || orderId <= 0) {
+    console.log('Invalid orderId provided.');
+    return null;
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}api/orders/Get-order-payment-information/${orderId}`);
+    if (!response.ok) {
+      switch (response.status) {
+        case 400:
+          console.log('Bad request: The provided orderId may be invalid.');
+          break;
+        case 404:
+          console.log('Order not found.');
+          break;
+        case 500:
+          console.log('Server error occurred while fetching order.');
+          break;
+        default:
+          console.log(`Unexpected API error: ${response.status}`);
+      }
+      return null;
+    }
+    const data: OrderPaymentDto = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      console.log('Network error. Please check your internet connection.');
+    } else {
+      console.log(`Unexpected error: ${(error as Error).message}`);
+    }
+    return null;
+  }
 };
 
 const timeExport = new Date().toLocaleDateString("vi-VN", {
@@ -62,15 +171,11 @@ const plainOptions: CheckboxGroupProps<string>["options"] = [
   "Chuyển khoản",
 ];
 
-const options: CheckboxGroupProps<string>["options"] = [
-  { label: "Tiền mặt", value: "Tiền mặt" },
-  { label: "Chuyển khoản", value: "Chuyển khoản" },
+const paymentOptions = [
+  { label: "Tiền mặt", value: 1 },
+  { label: "Chuyển khoản", value: 2 },
 ];
 
-const optionsWithDisabled: CheckboxGroupProps<string>["options"] = [
-  { label: "Tiền mặt", value: "Tiền mặt" },
-  { label: "Chuyển khoản", value: "Chuyển khoản" },
-];
 
 const bankItems: { label: string; key: string; img: string }[] = [
   {
@@ -103,7 +208,8 @@ async function fetchVnPayUrl(orderId: number): Promise<void> {
 
     if (response.ok) {
       const paymentUrl = await response.text(); // vì API trả về chuỗi URL
-      window.location.href = paymentUrl; // tự redirect tới trang thanh toán
+      // window.location.href = paymentUrl; 
+      window.open(paymentUrl, "_blank");
     } else {
       const errorMessage = await response.text();
       console.error('Lỗi khi tạo URL thanh toán:', errorMessage);
@@ -119,20 +225,66 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   isVisible,
   onClose,
   selectedOrder,
-  order 
+  isReloadAfterPayment,
+  setIsReloadAfterPayment,
+  order
 }) => {
   const [selectedBank, setSelectedBank] = useState(bankItems[0]);
-  const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
-  const onChangePaymentMethod = ({ target: { value } }: RadioChangeEvent) => {
-    console.log("radio1 checked", value);
-    setPaymentMethod(value);
-  };
-  const [paymentAmount, setPaymentAmount] = useState(totalOfPayment());
+  const [paymentMethod, setPaymentMethod] = useState<number>(1);
+  const [orderPaymentInfo, setOrderPaymentInfo] = useState<OrderPaymentDto | null>(null);
+  const [totalVat, setTotalVat] = useState<number>();
+  const [otherPayment, setOtherPayment] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
+  const [finalAmount, setFinalAmount] = useState<number>();
+  const [customerPayAmount, setCustomerPayAmount] = useState<number>(0);
 
-  const handleFinalPaymentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    setPaymentAmount(value);
+  const getOrderPayment = async (orderId: number) => {
+    const result = await fetchOrderPayment(orderId);
+    if (result === null) {
+      message.error("Truy xuất thông tin đơn đặt hàng thất bại");
+      setOrderPaymentInfo(null);
+      setTotalVat(0);
+      setFinalAmount(0);
+      return;
+    }
+    setOrderPaymentInfo(result);
+    if (!result?.orderDetails) {
+      setTotalVat(0);
+      setFinalAmount(0);
+    } else {
+      let vatCalculate = result.orderDetails.reduce((total, item) => {
+        const vatAmount = item.price * item.quantity * (item.productVat / 100);
+        return total + vatAmount;
+      }, 0);
+      setTotalVat(vatCalculate);
+      setFinalAmount(result.amountDue + vatCalculate);
+    }
+    return;
   };
+  useEffect(() => {
+    if (isVisible) {
+      if (selectedOrder != null) {
+        getOrderPayment(selectedOrder);
+      }
+    }
+  }, [isVisible]);
+  useEffect(() => {
+    if(orderPaymentInfo != null){
+      const safeNumber = (value: any): number => {
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+      };
+      const totalVatSafe = safeNumber(totalVat);
+      const otherPaymentSafe = safeNumber(otherPayment);
+      const discountSafe = safeNumber(discount);
+      setFinalAmount(
+        orderPaymentInfo.amountDue +
+          totalVatSafe +
+          otherPaymentSafe -
+          discountSafe
+      );
+    }
+  }, [otherPayment, discount]);
 
   const onClick: MenuProps["onClick"] = ({ key }) => {
     const bank = bankItems.find((b) => b.key === key);
@@ -143,7 +295,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   };
 
   const handleCheckout = async () => {
-    const orderId = 1; 
+    const orderId = 1;
     try {
       await fetchVnPayUrl(orderId);
     } catch (error) {
@@ -152,11 +304,63 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
     }
   };
 
+  const handleCheckoutCash = async () => {
+    if (!orderPaymentInfo) {
+      message.error("Không có thông tin đơn hàng.");
+      return;
+    }
+    const invoiceInfo: InvoiceForPaymentDto = {
+      paymentMethodId: 1, // Tiền mặt
+      orderId: orderPaymentInfo.orderId,
+      orderTypeId: orderPaymentInfo.orderTypeId,
+      cashierId: 2, 
+      shipperId: orderPaymentInfo.shipperId ?? undefined,
+      customerId: orderPaymentInfo.customerId ?? undefined,
+      roomId: orderPaymentInfo.roomId ?? undefined,
+      checkInTime: orderPaymentInfo.createdTime,
+      checkOutTime: new Date().toISOString(),
+      totalQuantity: orderPaymentInfo.totalQuantity,
+      subtotal: orderPaymentInfo.amountDue,
+      otherPayment: otherPayment,
+      invoiceDiscount: discount,
+      totalVat: totalVat,
+      amountDue: finalAmount ?? 0,
+      invoiceNote: orderPaymentInfo.orderNote ?? "",
+      status: true,
+    };
+    const invoiceDetails: InvoiceDetailForPaymentDto[] = orderPaymentInfo.orderDetails.map(detail => ({
+      productId: detail.productId,
+      productName: detail.productName,
+      quantity: detail.quantity,
+      price: detail.price,
+      productVat: detail.productVat,
+      productNote: detail.productNote ?? "",
+    }));
+    const result = await fetchCreateInvoiceForPayment(invoiceInfo, invoiceDetails);
+    if (result.success) {
+      message.success("Thanh toán thành công!");
+      setIsReloadAfterPayment(true);
+      onClose(); 
+    } else {
+      message.error(`Thanh toán thất bại: ${result.message}`);
+      console.error("Chi tiết lỗi:", result.error);
+    }
+  };
+
+  const handleCheckoutVnpay = async () => {
+    const orderId = 1;
+    try {
+      await fetchVnPayUrl(orderId);
+    } catch (error) {
+      console.error("Lỗi khi xử lý thanh toán:", error);
+      alert("Có lỗi xảy ra khi thanh toán.");
+    }
+  };
 
   return (
     <div className="rounded-lg">
       <Drawer
-        title="Phiếu thanh toán 2-2 - bàn 10/ lầu 1"
+        title="Phiếu thanh toán"
         placement="right"
         width="60%"
         onClose={onClose}
@@ -169,7 +373,9 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
             <div className="flex pb-3 flex-row justify-between">
               <div className="justify-start flex">
                 <UserOutlined />
-                <p className="ml-2">Anh Tùng</p>
+                <p className="ml-2">
+                  {orderPaymentInfo?.customer?.customerName || "Khách lẻ"}
+                </p>
               </div>
               <div className="flex-1"></div>
               <div className="justify-end border border-green-400 px-3 rounded-full text-green-600 font-medium">
@@ -184,14 +390,14 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
               {/* List of order */}
               <table className="w-full mt-2">
                 <tbody>
-                  {orders.map((order, index) => (
-                    <tr key={order.id} className="border-b-2">
+                  {orderPaymentInfo?.orderDetails?.map((order, index) => (
+                    <tr key={order.orderDetailId} className="border-b-2">
                       <td className="p-2 font-semibold">{index + 1}</td>
-                      <td className="p-2 font-semibold">{order.name}</td>
+                      <td className="p-2 font-semibold">{order.productName}</td>
                       <td className="p-2">{order.quantity}</td>
                       <td className="p-2">{order.price.toLocaleString()}đ</td>
                       <td className="p-2 font-semibold">
-                        {order.total.toLocaleString()}đ
+                        {(order.price * order.quantity).toLocaleString()}đ
                       </td>
                     </tr>
                   ))}
@@ -213,52 +419,88 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
                 <div className="flex flex-row pb-2">
                   <p className="justify-start font-medium">Tổng tiền hàng</p>
                   <div className="flex-1"></div>
-                  <p className="justify-end font-medium">{totalOfPayment()}</p>
+                  <p className="justify-end font-medium">{orderPaymentInfo?.amountDue.toLocaleString()}</p>
+                </div>
+                <div className="flex flex-row pt-2 pb-2">
+                  <p className="justify-start font-medium">Chi phí khác</p>
+                  <div className="flex-1"></div>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={otherPayment}
+                    className="border-b border-gray-400 focus:outline-none text-right"
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (val >= 0) setOtherPayment(val); 
+                    }}
+                  />
                 </div>
                 {/* discount payment */}
                 <div className="flex flex-row pt-2 pb-2">
                   <p className="justify-start font-medium">Giảm giá</p>
                   <div className="flex-1"></div>
-                  <p className="justify-end font-medium">20,000</p>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={discount}
+                    className="border-b border-gray-400 focus:outline-none text-right"
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (val >= 0) setDiscount(val); 
+                    }}
+                  />
+                </div>
+                <div className="flex flex-row pt-2 pb-2">
+                  <p className="justify-start font-medium">VAT</p>
+                  <div className="flex-1"></div>
+                  <p className="justify-end font-medium">{totalVat?.toLocaleString()}</p>
                 </div>
                 {/* customer payment */}
                 <div className="flex flex-row pt-2 pb-2">
                   <p className="justify-start font-bold">Khách cần trả</p>
                   <div className="flex-1"></div>
-                  <p className="justify-end font-medium">{120000}</p>
+                  <p className="justify-end font-medium">{finalAmount?.toLocaleString()}</p>
                 </div>
                 {/* final payment */}
                 <div className="flex flex-row pt-2 pb-2">
                   <p className="justify-start font-medium">Khách thanh toán</p>
                   <div className="flex-1"></div>
                   <input
-                    type="text"
+                    type="number"
                     inputMode="numeric"
-                    placeholder={`${totalOfPayment()}`}
-                    className="border-b border-gray-400 focus:outline-none px-2 py-1 text-right"
-                    value={paymentAmount}
-                    onChange={handleFinalPaymentChange}
+                    defaultValue={0}
+                    className="border-b border-gray-400 focus:outline-none text-right"
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (val >= 0) setCustomerPayAmount(val); 
+                    }}
                   />
                 </div>
               </div>
               {/* Payment method */}
-              <div>
-                <Radio.Group
+              <div className="mt-5">
+                {/* <Radio.Group
                   options={plainOptions}
                   onChange={onChangePaymentMethod}
                   value={paymentMethod}
+                /> */}
+                <Radio.Group
+                  options={paymentOptions}
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(Number(e.target.value))}
                 />
               </div>
-              <div className="mt-3 py-3 rounded-lg">
-                {paymentMethod === "Tiền mặt" && (
-                  <div className=" text-gray-800 p-2 rounded">
+              <div className="mt-1 py-3 rounded-lg">
+                {paymentMethod === 1 && (
+                  <div className=" text-gray-800 rounded font-medium">
                     <p>
-                      Khách cần thanh toán: <strong>{paymentAmount} đ</strong>
+                      Tiền thừa trả khách: {(customerPayAmount - (finalAmount ?? 0)).toLocaleString()} đ
                     </p>
                   </div>
                 )}
 
-                {paymentMethod === "Chuyển khoản" && (
+                {paymentMethod === 2 && (
                   <div>
                     <Dropdown menu={{ items, onClick }}>
                       <div className="cursor-pointer w-full flex items-center justify-between border border-gray-300 rounded-md px-2 py-1">
@@ -293,7 +535,11 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
               <button
                 className="px-5 bg-green-500 text-white py-3 rounded-lg
                font-semibold hover:bg-green-600"
-               onClick={handleCheckout}
+                onClick={() => {
+                  if(paymentMethod==1){
+                    handleCheckoutCash();
+                  }
+                }}
               >
                 $ Thanh toán
               </button>

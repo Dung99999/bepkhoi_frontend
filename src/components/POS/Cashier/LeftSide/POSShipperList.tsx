@@ -124,8 +124,8 @@ const POSShipperList: React.FC<Props> = ({
         <div
           key="takeaway"
           className={`rounded-lg overflow-hidden pt-1 flex flex-col w-full h-[11vw] items-center transition-colors duration-200 shadow-md
-      ${selectedShipper === -1 ? "bg-blue-300" : hoveredId === -1 ? "bg-[#FAEDD7]" : "bg-[#fffbf5]"}`}
-          onMouseEnter={() => setHoveredId(-1)}
+      ${(selectedShipper === null && selectedTable === null) ? "bg-blue-300" : hoveredId === 0 ? "bg-[#FAEDD7]" : "bg-[#fffbf5]"}`}
+          onMouseEnter={() => setHoveredId(0)}
           onMouseLeave={() => setHoveredId(null)}
           onClick={() => {
             setSelectedShipper(null); 

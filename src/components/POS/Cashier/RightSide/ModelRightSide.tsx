@@ -156,6 +156,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null); 
   const [isReloadAfterUpdateQuantity, setIsReloadAfterUpdateQuantity] = useState<boolean>(false);
   const [isReloadAfterConfirm, setIsReloadAfterConfirm] = useState<boolean>(false);
+  const [isReloadAfterPayment, setIsReloadAfterPayment] = useState<boolean>(false);
 
   const onChange = (newActiveKey: string) => {
     setActiveKey(newActiveKey);
@@ -358,6 +359,29 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
         break;
     }
   }, []);
+
+  useEffect(() => {
+    if(isReloadAfterPayment){
+      switch (orderType) {
+        case 1:
+          getOrder();
+          break;
+        case 2:
+          if (selectedShipper !== null) {
+            getOrder();
+          }
+          break;  
+        case 3:
+          if (selectedTable !== null) {
+            getOrder();
+          }
+          break;
+        default:
+          break;
+      }
+      setIsReloadAfterPayment(false);
+    }
+  }, [isReloadAfterPayment]);
   
   return (
     <div className="p-3 bg-[#FFFFFF] w-full rounded-lg h-[calc(100vh-2rem)] flex flex-col">
@@ -409,6 +433,8 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
         setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
         isReloadAfterConfirm={isReloadAfterConfirm}
         setIsReloadAfterConfirm={setIsReloadAfterConfirm}
+        isReloadAfterPayment={isReloadAfterPayment}
+        setIsReloadAfterPayment={setIsReloadAfterPayment}
         order={order}
         />
       </div>
