@@ -387,33 +387,15 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
   const [splitToRoomList, setSplitToRoomList] = useState<SplitToRoomOption[]>()
   const [splitToShipperList, setSplitToShipperList] = useState<SplitToShipperOption[]>([]);
   const [splitToOrder, setSplitToOrder] = useState<number>(0);
-  const [splitToRoom, setSplitToRoom] = useState<number>();
-  const [splitToShipper, setSplitToShipper] = useState<number>();
-  const [orderType, setOrderType] = useState<number>();
+  const [splitToRoom, setSplitToRoom] = useState<number|null>(null);
+  const [splitToShipper, setSplitToShipper] = useState<number|null>(null);
+  const [orderType, setOrderType] = useState<number|undefined>(undefined);
   const [orderDetails, setOrderDetails] = useState<(OrderDetailModel & { splitQty: number })[]>([]);
   //Combine state
   const [combineOptionList, setCombineOptionList] = useState<CombineOption[]>([]);
   const [combineOptionValue, setCombineOptionValue] = useState<string|null>(null);
   const [combineOrderList, setCombineOrderList] = useState<OrderModel[]>([]);
   const [selectedCombineOrderId, setSelectedCombineOrderId] = useState<number | null>(null);
-
-  // Data for merge mode
-  const mergeData = [
-    {
-      key: "1",
-      customer: "Nguyễn Văn A",
-      orderId: "HD001",
-      totalItems: 3,
-      totalAmount: 120000,
-    },
-    {
-      key: "2",
-      customer: "Trần Thị B",
-      orderId: "HD002",
-      totalItems: 5,
-      totalAmount: 200000,
-    },
-  ];
 
   const SplitColumns = [
     {
@@ -427,6 +409,11 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
       dataIndex: "productName",
       key: "productName",
       width: "45%",
+      render: (_: any, record: OrderDetailModel) => (
+        <span className={record.status ? "text-green-500 font-semibold" : ""}>
+          {record.productName}
+        </span>
+      ),
     },
     {
       title: "SL trên đơn gốc",
@@ -496,10 +483,9 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
 
   const handleSplitOrder = async () => {
     if (!selectedOrder) {
-      console.error("Không có đơn hàng được chọn.");
+      console.warn("Không có đơn hàng được chọn.");
       return;
     }
-  
     // Lọc những sản phẩm có số lượng tách > 0
     const productsToSplit = orderDetails
       .filter((item) => item.splitQty > 0)
@@ -546,11 +532,13 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
   
     if (result.success) {
       console.log("Tách đơn thành công:", result.message);
+      message.success("Tách đơn thành công");
       onOk(); 
       setIsReloadAfterUpdateQuantity(true);
       setIsReloadAfterAddProduct(true);
     } else {
       console.error("Tách đơn thất bại:", result.error || result.message);
+      message.error("Tách đơn thất bại. Vui lòng thử lại.");
     }
   };
   const handleCombineOrder = async () => {
@@ -578,11 +566,11 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
 
   const getAllOrder = async () => {
     const orders = await fetchAllOrders();
-    const options: SplitToOption[] = orders.map((order) => ({
+    const filteredOrders = orders.filter(order => order.orderId !== selectedOrder);
+    const options: SplitToOption[] = filteredOrders.map((order) => ({
       value: order.orderId,
       label: `Đơn ${order.orderId} - ${order.orderNote || "Không có ghi chú"}`,
     }));
-
     setSplitToOptionList([
       { value: 0, label: "Tạo đơn mới" },
       ...options,
@@ -693,6 +681,11 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
       getAllOrder();
       getAllRoom();
       getAllShippers();
+      //set lại các state
+      setSplitToOrder(0);
+      setSplitToRoom(null);
+      setSplitToShipper(null);
+      setOrderType(undefined);
       if (selectedOrder != null) {
         getOrderDetail(selectedOrder);
       }

@@ -21,6 +21,8 @@ interface Props {
   setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
   isReloadAfterConfirm: boolean;
   setIsReloadAfterConfirm: (isReload: boolean) => void;
+  isReloadAfterPayment: boolean;
+  setIsReloadAfterPayment: (isReload: boolean) => void;
   order: OrderModel[];
 }
 
@@ -150,7 +152,7 @@ const fetchGeneralData = async (orderId: number): Promise<OrderGeneralDataPosDto
   }
 };
 
-const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm , order}) => {
+const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm , isReloadAfterPayment , setIsReloadAfterPayment , order}) => {
   const [isModalNoteOrderOpen, setIsNoteOrderModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -306,10 +308,11 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
           <span className="">Xác nhận đơn</span>
         </button>
         <button
-          className="flex-1 flex w-full items-center gap-2 px-4 ml-2 py-2
-          rounded-2xl justify-center bg-[#FFE6BC] font-semibold text-lg
-          hover:bg-[#f7daa8] text-[#4a4133]"
+          className={`flex-1 flex w-full items-center gap-2 px-4 ml-2 py-2 border
+          rounded-2xl justify-center ${(selectedOrder!=null&&orderData?.totalQuantity!=0)
+           ?"bg-[#FFE6BC] font-semibold text-lg hover:bg-[#f7daa8] text-[#4a4133]":"text-gray-400 cursor-not-allowed"}`}
           onClick={showDrawerPayment}
+          disabled={!((selectedOrder!=null&&orderData?.totalQuantity!=0))}
         >
           <DollarOutlined />
           <span className="">Thanh toán</span>
@@ -321,6 +324,8 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
         onClose={onClosePaymentDrawer}
         selectedOrder={selectedOrder}
         order={order}
+        isReloadAfterPayment={isReloadAfterPayment}
+        setIsReloadAfterPayment={setIsReloadAfterPayment}
       />
 
       {/* Modal Note */}
