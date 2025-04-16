@@ -9,6 +9,8 @@ interface Product {
     id: number;
     name: string;
     price: number;
+    salePrice?: number;
+    sellPrice: number;
     image: string;
     description?: string;
     unit?: string;
@@ -60,15 +62,20 @@ const MenuPage: React.FC = () => {
                 }
             );
 
-            const mappedProducts = response.data.data.map((item: any) => ({
-                id: item.productId,
-                name: item.productName,
-                price: item.sellPrice,
-                image: item.productImages?.[0]?.imageUrl || '',
-                description: item.description || 'Không có mô tả',
-                unit: item.unitId?.toString(),
-                status: item.isAvailable ? 'Còn hàng' : 'Hết hàng',
-            }));
+            const mappedProducts = response.data.data.map((item: any) => {
+                const hasSale = item.salePrice && item.salePrice > 0;
+                return {
+                    id: item.productId,
+                    name: item.productName,
+                    price: hasSale ? item.salePrice : item.sellPrice,
+                    salePrice: hasSale ? item.salePrice : undefined,
+                    sellPrice: item.sellPrice,
+                    image: item.productImages?.[0]?.imageUrl || '',
+                    description: item.description || 'Không có mô tả',
+                    unit: item.unitId?.toString(),
+                    status: item.isAvailable ? 'Còn hàng' : 'Hết hàng',
+                }
+            });
 
             setFilteredProducts(mappedProducts);
         } catch (error: any) {

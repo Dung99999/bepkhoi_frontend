@@ -72,7 +72,6 @@ const GuessPage: React.FC = () => {
             };
 
             sessionStorage.setItem('customerInfo', JSON.stringify(customerInfo));
-            console.log("Đã lưu session:", customerInfo);
             navigate('/shop/menu');
 
         } catch (err) {
