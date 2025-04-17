@@ -436,6 +436,7 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
         isReloadAfterPayment={isReloadAfterPayment}
         setIsReloadAfterPayment={setIsReloadAfterPayment}
         order={order}
+        orderType={orderType}
         />
       </div>
 
