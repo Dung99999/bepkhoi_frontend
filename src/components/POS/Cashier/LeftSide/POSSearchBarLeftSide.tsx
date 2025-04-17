@@ -103,17 +103,39 @@ const POSSearchBarLeftSide: React.FC = () => {
     };
   }, []);
 
+  // const handleSearch = (value: string) => {
+  //   setSearchTerm(value);
+  //   if (value.trim() === "") {
+  //     setFilteredProducts([]);
+  //   } else {
+  //     setFilteredProducts(
+  //       allProducts.filter(
+  //         (product) =>
+  //           product.productName.toLowerCase().includes(value.toLowerCase()) ||
+  //           product.productId.toString().includes(value)
+  //       )
+  //     );
+  //     setIsFocused(true);
+  //   }
+  // };
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    if (value.trim() === "") {
+  
+    const normalizeString = (str: string) =>
+      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const normalizedValue = normalizeString(value);
+    if (normalizedValue.trim() === "") {
       setFilteredProducts([]);
     } else {
       setFilteredProducts(
-        allProducts.filter(
-          (product) =>
-            product.productName.toLowerCase().includes(value.toLowerCase()) ||
-            product.productId.toString().includes(value)
-        )
+        allProducts.filter((product) => {
+          const normalizedName = normalizeString(product.productName);
+          const normalizedId = product.productId.toString();
+          return (
+            normalizedName.includes(normalizedValue) ||
+            normalizedId.includes(normalizedValue)
+          );
+        })
       );
       setIsFocused(true);
     }
