@@ -366,11 +366,6 @@ async function fetchCombineOrder(
 //   }
 // }
 
-
-const handleChange = (value: string) => {
-  console.log(`selected ${value}`);
-};
-
 const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
   open,
   onCancel,
