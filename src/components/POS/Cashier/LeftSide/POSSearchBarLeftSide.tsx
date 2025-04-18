@@ -142,7 +142,7 @@ const POSSearchBarLeftSide: React.FC = () => {
   };
 
   return (
-    <div ref={searchRef} className="absolute w-[20vw] translate-y-[-1vw]">
+    <div ref={searchRef} className="absolute w-[20vw] translate-y-[-1vw] z-50">
       <Input
         ref={inputRef}
         placeholder="Tìm món ăn"
@@ -169,7 +169,7 @@ const POSSearchBarLeftSide: React.FC = () => {
             itemLayout="horizontal"
             dataSource={filteredProducts}
             renderItem={(product) => (
-              <List.Item className="hover:bg-[#faedd7] cursor-pointer transition-colors duration-200 px-4 py-2 flex items-center">
+              <List.Item className="hover:bg-[#faedd7] cursor-pointer transition-colors duration-200 z-100 px-4 py-2 flex items-center">
                 <Avatar
                   style={{ marginLeft: "10px" }}
                   src={product.productImageUrl}
