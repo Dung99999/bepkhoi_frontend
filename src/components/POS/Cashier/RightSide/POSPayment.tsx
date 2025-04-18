@@ -9,6 +9,7 @@ import { Empty, Input, Modal, message } from "antd";
 import React, { useState, useEffect } from "react";
 import DrawerPaymentFinal from "./DrawerPaymentFinal";
 import ModalSplitOrder from "./ModalSplitAndCombineOrders";
+import AddDeliveryInformation from "./AddDeliveryInformation";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 
@@ -24,6 +25,7 @@ interface Props {
   isReloadAfterPayment: boolean;
   setIsReloadAfterPayment: (isReload: boolean) => void;
   order: OrderModel[];
+  orderType: number | null;
 }
 
 interface AddNoteRequest {
@@ -152,12 +154,13 @@ const fetchGeneralData = async (orderId: number): Promise<OrderGeneralDataPosDto
   }
 };
 
-const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm , isReloadAfterPayment , setIsReloadAfterPayment , order}) => {
+const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm , isReloadAfterPayment , setIsReloadAfterPayment , order , orderType}) => {
   const [isModalNoteOrderOpen, setIsNoteOrderModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
   const [isDrawerPaymentVisible, setIsDrawerPaymentVisible] = useState(false);
   const [orderData, setOrderData] = useState<OrderGeneralDataPosDto | null>(null);
+  const [isAddDeliveryInformationOpen, setIsAddDeliveryInformationOpen] = useState<boolean>(false);
 
   const showDrawerPayment = () => setIsDrawerPaymentVisible(true);
   const onClosePaymentDrawer = () => setIsDrawerPaymentVisible(false);
@@ -281,6 +284,18 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
             <SplitCellsOutlined />
             <span className="pl-2">Tách Đơn/Ghép Đơn</span>
           </button>
+          {orderType === 2 && selectedOrder !== null && (
+            <button
+              className={`px-3 py-1 rounded-full flex items-center ${orderData?.totalQuantity !== 0
+                  ? "bg-white text-gray-700 cursor-pointer hover:bg-gray-200"
+                  : "text-gray-400 cursor-not-allowed"
+                }`}
+              onClick={() => setIsAddDeliveryInformationOpen(true)}
+              disabled={orderData?.totalQuantity === 0}
+            >
+              <span className="pl-2">Giao hàng</span>
+            </button>
+          )}
         </div>
 
         <div className="flex-1"></div>
@@ -379,6 +394,12 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
         setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
         setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
       />
+    {/* {Modal Add Delivery Information} */}
+    <AddDeliveryInformation
+      open={isAddDeliveryInformationOpen}
+      onClose={() => setIsAddDeliveryInformationOpen(false)}
+      selectedOrder={selectedOrder}
+    />
     </div>
   );
 };

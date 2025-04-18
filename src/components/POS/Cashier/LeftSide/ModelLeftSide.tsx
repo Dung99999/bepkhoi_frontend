@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import POSRoomTableList from "./POSRoomTableList";
 import POSMenuList from "./POSMenuList";
 import POSSearchBarLeftSide from "./POSSearchBarLeftSide";
-import POSShipperList from "./POSShipperList";
+import POSShipperList from "./POSShipperList"
 
 interface ModelLeftSideProps {
   selectedTable: number | null;
