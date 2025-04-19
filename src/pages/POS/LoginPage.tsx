@@ -54,9 +54,10 @@ export default function LoginPage() {
       }
 
       if (data.message === "successful") {
-        console.log("Login successful:", data);
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("Token", data.token);
+        localStorage.setItem("UserId", data.userId);
+        localStorage.setItem("RoleName", data.roleName);
+        localStorage.setItem("UserName", data.userName);
         alert("Đăng nhập thành công!");
         navigate("/manage/menu");
       }

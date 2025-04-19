@@ -91,7 +91,10 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
         </div>
 
         <div className="ml-[3vw] mr-[3vw]">
-          <POSSearchBarLeftSide />
+          <POSSearchBarLeftSide 
+          selectedOrder={selectedOrder}
+          setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
+          />
         </div>
       </div>
 

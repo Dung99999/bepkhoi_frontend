@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Radio } from "antd";
+import { message, Radio } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import notFoundImage from "../../../../styles/ErrorProductImage/image-not-found.png";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
@@ -157,7 +157,7 @@ async function fetchCategoryFilter(
   }
 }
 
-export async function fetchAddProductToOrder(
+async function fetchAddProductToOrder(
   orderId: number,
   productId: number
 ): Promise<{ message: string; data: any }> {
@@ -238,15 +238,19 @@ const POSMenuList: React.FC<Props> = ({
   const handleSelectItem = async (item: menuItem) => {
     setSelectedProduct(item);
     if (selectedOrder != null) {
-      try {
-        const result = await fetchAddProductToOrder(
-          selectedOrder,
-          item.productId
-        );
-        setIsReloadAfterAddProduct(true);
-        console.log("Product added:", result.message);
-      } catch (error: any) {
-        console.error("Failed to add product:", error.message);
+      if(item.isAvailable === true){
+        try {
+          const result = await fetchAddProductToOrder(
+            selectedOrder,
+            item.productId
+          );
+          setIsReloadAfterAddProduct(true);
+          console.log("Product added:", result.message);
+        } catch (error: any) {
+          console.error("Failed to add product:", error.message);
+        }
+      }else{
+        message.warning("Sản phẩm này đã hết hàng!");
       }
     }
   };
