@@ -19,9 +19,7 @@ function ShopMenuRedirect() {
                 const rooms = await response.json();
                 const isValidRoom = rooms.some((room: any) => 
                     room.roomId.toString() === roomId && 
-                    room.status && 
                     !room.isDelete && 
-                    !room.isUse
                 );
 
                 if (isValidRoom) {
