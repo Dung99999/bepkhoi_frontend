@@ -12,6 +12,7 @@ interface Product {
   image: string;
   quantity: number;
   description?: string;
+  productNote?: string;
 }
 
 const CartPage: React.FC = () => {
@@ -46,7 +47,7 @@ const CartPage: React.FC = () => {
   const discount = 0;
   const total = calculateTotal() - discount;
 
-  const handleCreateOrder = async () => {
+  const handleUpdateOrder = async () => {
     try {
       if (cart.length === 0) {
         messageApi.warning("Giỏ hàng trống! Hãy thêm đồ vào giỏ hàng trước");
@@ -55,32 +56,30 @@ const CartPage: React.FC = () => {
 
       const customerInfo = JSON.parse(sessionStorage.getItem("customerInfo") || "{}");
       const roomId = sessionStorage.getItem("roomId");
+      const selectedOrderId = sessionStorage.getItem("selectedOrderId");
+
+      if (!selectedOrderId) {
+        messageApi.error("Không tìm thấy thông tin đơn hàng");
+        return;
+      }
 
       const orderDetails = cart.map((item) => ({
         productId: item.id,
         productName: item.name,
         quantity: item.quantity,
         price: item.price * item.quantity,
-        productNote: "",
-        status: true
+        productNote: item.productNote,
       }));
 
-      const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-      const amountDue = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
       const orderPayload = {
+        orderId: parseInt(selectedOrderId),
         customerId: customerInfo.customerId || 0,
-        orderTypeId: 3,
         roomId: roomId ? parseInt(roomId) : 0,
-        totalQuantity: totalQuantity,
-        amountDue: amountDue,
-        orderStatusId: 1,
-        orderNote: "",
         orderDetails: orderDetails
       };
 
-      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/create-order-customer`, {
-        method: 'POST',
+      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/update-order-customer`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'accept': '*/*'
@@ -89,27 +88,22 @@ const CartPage: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create order');
+        throw new Error('Failed to update order');
       }
 
       const result = await response.json();
-      console.log('Order created:', result);
+      console.log('Order updated:', result);
 
-      messageApi.success('Đơn hàng đã được tạo thành công!');
+      messageApi.success('Cập nhật đơn hàng thành công!');
 
       setTimeout(() => {
         sessionStorage.removeItem("cart");
-        navigate("/shop/status", {
-          state: {
-            totalAmount: total,
-            orderId: result.orderId
-          }
-        });
+        navigate("/shop/status");
       }, 1000);
 
     } catch (error) {
-      console.error('Error creating order:', error);
-      messageApi.error('Có lỗi xảy ra khi tạo đơn hàng!');
+      console.error('Error updating order:', error);
+      messageApi.error('Có lỗi xảy ra khi cập nhật đơn hàng!');
     }
   };
 
@@ -130,7 +124,7 @@ const CartPage: React.FC = () => {
           total={total}
           discount={discount}
           calculateTotal={calculateTotal}
-          onCreateOrder={handleCreateOrder}
+          onCreateOrder={handleUpdateOrder}
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Modal, Button } from "antd";
 import { CheckCircleOutlined, CloseOutlined } from "@ant-design/icons";
 import { ModelModeContext } from "../../../context/ModelModeContext";
@@ -22,22 +22,42 @@ interface ProductModalProps {
 
 const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, unitTitle }) => {
     const [quantity, setQuantity] = useState(1);
+    const [productNote, setProductNote] = useState("");
     const modelMode = useContext(ModelModeContext);
 
     const increaseQuantity = () => setQuantity(prev => prev + 1);
     const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
     const addToCart = () => {
+        const selectedOrderId = sessionStorage.getItem('selectedOrderId');
+        if (!selectedOrderId || selectedOrderId === 'null') {
+            Modal.error({
+                title: 'Bạn chưa có phiếu đặt hàng trong hệ thống!',
+                content: 'Vui lòng liên hệ nhân viên quầy để tạo phiếu đặt hàng mới',
+                okText: 'Đã hiểu'
+            });
+            return;
+        }
         if (!product) return;
         const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
-        const existingIndex = cart.findIndex((item: Product) => item.id === product.id);
+        const existingIndex = cart.findIndex(
+            (item: any) => item.id === product.id && item.orderId === parseInt(selectedOrderId)
+        );
         if (existingIndex !== -1) {
             cart[existingIndex].quantity += quantity;
+            cart[existingIndex].productNote = productNote;
         } else {
-            cart.push({ ...product, quantity });
+            cart.push({
+                ...product,
+                quantity,
+                orderId: parseInt(selectedOrderId),
+                productNote
+            });
         }
+
         sessionStorage.setItem("cart", JSON.stringify(cart));
         setQuantity(1);
+        setProductNote("");
         animateToCart();
         setTimeout(onClose, 500);
     };
@@ -77,7 +97,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
         }, 550);
     };
 
-
     return (
         <Modal
             open={visible}
@@ -112,7 +131,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
                             </button>
                         </div>
 
-                        <div className="w-full h-1/2 bg-gray-200">
+                        <div className="w-full h-1/3 bg-gray-200">
                             <img
                                 id="product-image"
                                 src={product.image}
@@ -143,7 +162,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
                                     </div>
                                 </div>
                             </div>
-
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                                <input
+                                    type="text"
+                                    value={productNote}
+                                    onChange={(e) => setProductNote(e.target.value)}
+                                    placeholder="Thêm ghi chú cho món này..."
+                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                                />
+                            </div>
                             <div className="w-full flex flex-col items-center pb-6 pt-2">
                                 <div className="flex items-center space-x-8 mb-4">
                                     <Button type="default" className="rounded-md px-4 py-2" onClick={decreaseQuantity}>
@@ -204,7 +232,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
                                         </div>
                                     </div>
                                 </div>
-
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                                    <input
+                                        type="text"
+                                        value={productNote}
+                                        onChange={(e) => setProductNote(e.target.value)}
+                                        placeholder="Thêm ghi chú cho món này..."
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                                    />
+                                </div>
                                 <div className="w-full flex flex-col items-center pb-6 pt-4">
                                     <div className="flex items-center space-x-8 mb-4">
                                         <Button type="default" className="rounded-md px-4 py-2" onClick={decreaseQuantity}>

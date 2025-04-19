@@ -7,6 +7,8 @@ interface Product {
     name: string;
     price: number;
     image: string;
+    salePrice?: number;
+    sellPrice: number;
 }
 
 interface MenuListProps {
@@ -33,7 +35,21 @@ const MenuList: React.FC<MenuListProps> = ({ products, onProductClick }) => {
                             />
                             <div className="mt-2 text-center">
                                 <h3 className="text-sm font-semibold">{product.name}</h3>
-                                <p className="text-xs text-gray-500">{product.price.toLocaleString()}đ</p>
+                                <p className="text-xs text-gray-500">
+                                    {product.salePrice && product.salePrice > 0 ? (
+                                        <span>
+                                            <span className="line-through mr-1 text-red-500">
+                                                {product.sellPrice.toLocaleString()}đ
+                                            </span>
+                                            <span className="mx-1">➜</span>
+                                            <span className="text-green-600 font-semibold">
+                                                {product.salePrice.toLocaleString()}đ
+                                            </span>
+                                        </span>
+                                    ) : (
+                                        <span>{product.price.toLocaleString()}đ</span>
+                                    )}
+                                </p>
                                 <button className="mt-2 w-full py-1 text-xs font-semibold text-black bg-yellow-300 rounded-full">
                                     Chọn
                                 </button>
@@ -56,7 +72,21 @@ const MenuList: React.FC<MenuListProps> = ({ products, onProductClick }) => {
                             />
                             <div className="mt-2 text-center">
                                 <h3 className="text-sm font-semibold">{product.name}</h3>
-                                <p className="text-xs text-gray-500">{product.price.toLocaleString()}đ</p>
+                                <p className="text-xs text-gray-500">
+                                    {product.salePrice && product.salePrice > 0 ? (
+                                        <span>
+                                            <span className="line-through mr-1 text-red-500">
+                                                {product.sellPrice.toLocaleString()}đ
+                                            </span>
+                                            <span className="mx-1">➜</span>
+                                            <span className="text-green-600 font-semibold">
+                                                {product.salePrice.toLocaleString()}đ
+                                            </span>
+                                        </span>
+                                    ) : (
+                                        <span>{product.price.toLocaleString()}đ</span>
+                                    )}
+                                </p>
                                 <button className="mt-2 w-full py-1 text-xs font-semibold text-black bg-yellow-300 rounded-full">
                                     Chọn
                                 </button>

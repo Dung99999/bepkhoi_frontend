@@ -9,6 +9,8 @@ interface Product {
     id: number;
     name: string;
     price: number;
+    salePrice?: number;
+    sellPrice: number;
     image: string;
     description?: string;
     unit?: string;
@@ -36,6 +38,8 @@ const MenuPage: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
+    const [orderIds, setOrderIds] = useState<number[]>([]);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
     const fetchUnits = async () => {
         try {
@@ -60,15 +64,20 @@ const MenuPage: React.FC = () => {
                 }
             );
 
-            const mappedProducts = response.data.data.map((item: any) => ({
-                id: item.productId,
-                name: item.productName,
-                price: item.sellPrice,
-                image: item.productImages?.[0]?.imageUrl || '',
-                description: item.description || 'Không có mô tả',
-                unit: item.unitId?.toString(),
-                status: item.isAvailable ? 'Còn hàng' : 'Hết hàng',
-            }));
+            const mappedProducts = response.data.data.map((item: any) => {
+                const hasSale = item.salePrice && item.salePrice > 0;
+                return {
+                    id: item.productId,
+                    name: item.productName,
+                    price: hasSale ? item.salePrice : item.sellPrice,
+                    salePrice: hasSale ? item.salePrice : undefined,
+                    sellPrice: item.sellPrice,
+                    image: item.productImages?.[0]?.imageUrl || '',
+                    description: item.description || 'Không có mô tả',
+                    unit: item.unitId?.toString(),
+                    status: item.isAvailable ? 'Còn hàng' : 'Hết hàng',
+                }
+            });
 
             setFilteredProducts(mappedProducts);
         } catch (error: any) {
@@ -106,6 +115,47 @@ const MenuPage: React.FC = () => {
         }
     };
 
+    const fetchOrderIds = async () => {
+        try {
+            const roomId = sessionStorage.getItem('roomId');
+            const customerInfo = sessionStorage.getItem('customerInfo');
+
+            if (!roomId || !customerInfo) {
+                setOrderIds([]);
+                setSelectedOrderId(null);
+                sessionStorage.removeItem('selectedOrderId');
+                return;
+            }
+            const { customerId } = JSON.parse(customerInfo);
+            const response = await axios.get(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/order-ids-for-qr`,
+                {
+                    params: {
+                        roomId,
+                        customerId
+                    }
+                }
+            );
+            const orders = response.data || [];
+            setOrderIds(orders);
+            const maxOrderId = orders.length > 0 ? Math.max(...orders) : null;
+            const savedOrderId = sessionStorage.getItem('selectedOrderId');
+            const isValidOrder = savedOrderId && orders.includes(parseInt(savedOrderId));
+            const orderIdToSet = isValidOrder ? parseInt(savedOrderId) : maxOrderId;
+            setSelectedOrderId(orderIdToSet);
+            if (orderIdToSet !== null) {
+                sessionStorage.setItem('selectedOrderId', orderIdToSet.toString());
+            } else {
+                sessionStorage.removeItem('selectedOrderId');
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách order IDs:", error);
+            setOrderIds([]);
+            setSelectedOrderId(null);
+            sessionStorage.removeItem('selectedOrderId');
+        }
+    };
+
     const getUnitTitle = (unitId: number): string => {
         const unit = units.find(u => u.unitId === unitId);
         return unit ? unit.unitTitle : 'Không xác định';
@@ -133,6 +183,11 @@ const MenuPage: React.FC = () => {
 
     useEffect(() => {
         fetchAllData();
+        fetchOrderIds();
+        const savedOrderId = sessionStorage.getItem('selectedOrderId');
+        if (savedOrderId) {
+            setSelectedOrderId(parseInt(savedOrderId));
+        }
     }, []);
 
     useEffect(() => {
@@ -149,6 +204,9 @@ const MenuPage: React.FC = () => {
                 search={search}
                 setSearch={(value) => setSearch(value)}
                 toggleDrawer={toggleDrawer}
+                orderIds={orderIds}
+                selectedOrderId={selectedOrderId}
+                onOrderIdChange={setSelectedOrderId}
             />
             <h1 className="text-lg font-bold pt-4 px-4">{selectedCategory}</h1>
 
