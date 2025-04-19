@@ -131,7 +131,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
                             </button>
                         </div>
 
-                        <div className="w-full h-1/2 bg-gray-200">
+                        <div className="w-full h-1/3 bg-gray-200">
                             <img
                                 id="product-image"
                                 src={product.image}
