@@ -4,6 +4,7 @@ import MenuPage from "../pages/Shop/MenuPage";
 import CartPage from "../pages/Shop/CartPage";
 import PaymentPage from "../pages/Shop/PaymentPage";
 import CartStatus from "../pages/Shop/CartStatus";
+import OrderStatus from "../pages/Shop/OrderStatus";
 
 interface RouteItem {
     path: string;
@@ -16,7 +17,7 @@ const shopRoutes: RouteItem[] = [
     { path: "/shop/menu", element: <MenuPage />, roles: ["customer"] },
     { path: "/shop/cart", element: <CartPage />, roles: ["customer"] },
     { path: "/shop/payment", element: <PaymentPage />, roles: ["customer"] },
-    { path: "/shop/status", element: <CartStatus />, roles: ["customer"] },
+    { path: "/shop/status", element: <OrderStatus />, roles: ["customer"] },
 ];
 
 export default shopRoutes;

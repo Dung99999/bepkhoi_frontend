@@ -38,6 +38,8 @@ const MenuPage: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
+    const [orderIds, setOrderIds] = useState<number[]>([]);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
     const fetchUnits = async () => {
         try {
@@ -113,6 +115,47 @@ const MenuPage: React.FC = () => {
         }
     };
 
+    const fetchOrderIds = async () => {
+        try {
+            const roomId = sessionStorage.getItem('roomId');
+            const customerInfo = sessionStorage.getItem('customerInfo');
+
+            if (!roomId || !customerInfo) {
+                setOrderIds([]);
+                setSelectedOrderId(null);
+                sessionStorage.removeItem('selectedOrderId');
+                return;
+            }
+            const { customerId } = JSON.parse(customerInfo);
+            const response = await axios.get(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/order-ids-for-qr`,
+                {
+                    params: {
+                        roomId,
+                        customerId
+                    }
+                }
+            );
+            const orders = response.data || [];
+            setOrderIds(orders);
+            const maxOrderId = orders.length > 0 ? Math.max(...orders) : null;
+            const savedOrderId = sessionStorage.getItem('selectedOrderId');
+            const isValidOrder = savedOrderId && orders.includes(parseInt(savedOrderId));
+            const orderIdToSet = isValidOrder ? parseInt(savedOrderId) : maxOrderId;
+            setSelectedOrderId(orderIdToSet);
+            if (orderIdToSet !== null) {
+                sessionStorage.setItem('selectedOrderId', orderIdToSet.toString());
+            } else {
+                sessionStorage.removeItem('selectedOrderId');
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách order IDs:", error);
+            setOrderIds([]);
+            setSelectedOrderId(null);
+            sessionStorage.removeItem('selectedOrderId');
+        }
+    };
+
     const getUnitTitle = (unitId: number): string => {
         const unit = units.find(u => u.unitId === unitId);
         return unit ? unit.unitTitle : 'Không xác định';
@@ -140,6 +183,11 @@ const MenuPage: React.FC = () => {
 
     useEffect(() => {
         fetchAllData();
+        fetchOrderIds();
+        const savedOrderId = sessionStorage.getItem('selectedOrderId');
+        if (savedOrderId) {
+            setSelectedOrderId(parseInt(savedOrderId));
+        }
     }, []);
 
     useEffect(() => {
@@ -156,6 +204,9 @@ const MenuPage: React.FC = () => {
                 search={search}
                 setSearch={(value) => setSearch(value)}
                 toggleDrawer={toggleDrawer}
+                orderIds={orderIds}
+                selectedOrderId={selectedOrderId}
+                onOrderIdChange={setSelectedOrderId}
             />
             <h1 className="text-lg font-bold pt-4 px-4">{selectedCategory}</h1>
 

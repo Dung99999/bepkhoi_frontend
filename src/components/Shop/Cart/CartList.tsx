@@ -8,6 +8,7 @@ interface Product {
   image: string;
   quantity: number;
   description?: string;
+  productNote?: string;
 }
 
 interface CartListProps {
@@ -26,6 +27,11 @@ const CartList: React.FC<CartListProps> = ({ cart, onQuantityChange }) => {
               <div className="ml-4">
                 <p className="font-semibold text-lg">{product.name}</p>
                 <p className="text-gray-500">•{product.description}</p>
+                {product.productNote && (
+                  <p className="text-xs text-gray-600 mt-1 italic">
+                    <span className="font-medium">Ghi chú:</span> {product.productNote}
+                  </p>
+                )}
               </div>
             </div>
             <div className="text-right">
