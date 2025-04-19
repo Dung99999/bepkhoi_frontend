@@ -225,19 +225,13 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
   return (
     <div className="px-3 w-full bg-white rounded-md ">
       {/* First row */}
-      <div className="flex flex-row bg-[#fafafa] w-full border-b  pb-2">
+      <div className="flex flex-row bg-[#fafafa] w-full border-b  py-2">
         {/* Left - first row */}
         <div className="justify-start flex items-center">
           {/* Name of discound */}
           <p className="text-gray-600 font-semibold mr-2 ml-2">
-            Bếp Khói Ocean Park
+            Bếp Khói Ocean Park 
           </p>
-          <div
-            className="mt-2 p-1 flex items-center bg-gray-100 rounded-full w-6 h-6 cursor-pointer hover:bg-gray-300"
-            title="Chọn cửa hàng"
-          >
-            <CaretDownOutlined />
-          </div>
         </div>
 
         <div className="flex-1"></div>
@@ -256,7 +250,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
             className="text-gray-600 font-semibold cursor-not-allowed p-1"
             title="bạn không có quyền chỉnh sửa"
           >
-            Phạm Sơn Tùng
+            {localStorage.getItem("UserName")?localStorage.getItem("UserName"):"~"}({localStorage.getItem("RoleName")?localStorage.getItem("RoleName"):"~"})
           </p>
 
           {/* editButton */}

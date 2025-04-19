@@ -290,7 +290,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
       const success = await fetchDeleteConfirmOrderDetail(
         selectedOrder,
         orderDetailId,
-        2, 
+        localStorage.getItem("userId") ? parseInt(localStorage.getItem("userId") || "") : 2, 
         deleteReason.trim()
       );
       if (success) {
