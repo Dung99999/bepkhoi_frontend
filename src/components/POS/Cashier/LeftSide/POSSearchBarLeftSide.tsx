@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Input, List, Avatar } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef } from "antd";
-
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+
+interface Props {
+  selectedOrder: number | null;
+  setIsReloadAfterAddProduct: (isReload: boolean) => void;
+}
+
 
 interface menuItem {
   productId: number;
@@ -58,7 +63,36 @@ async function fetchMenu(): Promise<menuItem[]> {
   }
 }
 
-const POSSearchBarLeftSide: React.FC = () => {
+async function fetchAddProductToOrder(
+  orderId: number,
+  productId: number
+): Promise<{ message: string; data: any }> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}api/orders/add-product-to-order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*",
+        },
+        body: JSON.stringify({ orderId, productId }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to add product to order");
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error: any) {
+    console.error("Error adding product to order:", error.message);
+    throw error;
+  }
+}
+const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder, setIsReloadAfterAddProduct}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [allProducts, setAllProducts] = useState<menuItem[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<menuItem[]>([]);
@@ -103,21 +137,17 @@ const POSSearchBarLeftSide: React.FC = () => {
     };
   }, []);
 
-  // const handleSearch = (value: string) => {
-  //   setSearchTerm(value);
-  //   if (value.trim() === "") {
-  //     setFilteredProducts([]);
-  //   } else {
-  //     setFilteredProducts(
-  //       allProducts.filter(
-  //         (product) =>
-  //           product.productName.toLowerCase().includes(value.toLowerCase()) ||
-  //           product.productId.toString().includes(value)
-  //       )
-  //     );
-  //     setIsFocused(true);
-  //   }
-  // };
+  const handleSelectProduct = async (item: menuItem) => {
+    if (selectedOrder != null) {
+      try {
+        const result = await fetchAddProductToOrder(selectedOrder, item.productId);
+        setIsReloadAfterAddProduct(true);
+        console.log("Product added:", result.message);
+      } catch (error: any) {
+        console.error("Failed to add product:", error.message);
+      }
+    }
+  };
   const handleSearch = (value: string) => {
     setSearchTerm(value);
   
@@ -145,7 +175,7 @@ const POSSearchBarLeftSide: React.FC = () => {
     <div ref={searchRef} className="absolute w-[20vw] translate-y-[-1vw] z-50">
       <Input
         ref={inputRef}
-        placeholder="Tìm món ăn"
+        placeholder="Tìm món ăn(F3)"
         className="w-full rounded-full transition-all duration-200"
         style={{
           width: "350px",
@@ -169,7 +199,9 @@ const POSSearchBarLeftSide: React.FC = () => {
             itemLayout="horizontal"
             dataSource={filteredProducts}
             renderItem={(product) => (
-              <List.Item className="hover:bg-[#faedd7] cursor-pointer transition-colors duration-200 z-100 px-4 py-2 flex items-center">
+              <List.Item 
+              onClick={() => handleSelectProduct(product)}
+              className="hover:bg-[#faedd7] cursor-pointer transition-colors duration-200 z-100 px-4 py-2 flex items-center">
                 <Avatar
                   style={{ marginLeft: "10px" }}
                   src={product.productImageUrl}
