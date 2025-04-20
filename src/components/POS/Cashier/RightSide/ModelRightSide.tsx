@@ -6,6 +6,7 @@ import POSPayment from "./POSPayment";
 import styles from "../../../../styles/POS/main.module.css";
 import ModalCreateCustomer from "./ModalCreateCustomer";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface props{
   selectedTable: number | null;
@@ -65,8 +66,16 @@ async function fetchOrders(roomId: number | null, shipperId: number | null, orde
     }
 
     // Gửi request với query parameters nếu có
-    const response = await fetch(`${API_BASE_URL}api/orders/get-order-by-type-pos?${query.toString()}`);
-
+    const response = await fetch(
+      `${API_BASE_URL}api/orders/get-order-by-type-pos?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        }
+      }
+    );
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -96,6 +105,7 @@ async function fetchCreateNewOrder(data: Omit<CreateNewOrder, "orderStatusId"> &
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
       },
       body: JSON.stringify(requestBody),
     });
@@ -124,6 +134,7 @@ const fetchRemoveOrder = async (orderId: number): Promise<void> => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": "Bearer " + token,
       },
     });
 

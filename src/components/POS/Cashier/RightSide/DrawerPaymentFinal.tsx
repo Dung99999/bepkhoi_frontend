@@ -15,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface DrawerPaymentFinalProps {
   isVisible: boolean;
@@ -107,6 +108,7 @@ async function fetchCreateInvoiceForPayment(
     const response = await fetch(`${API_BASE_URL}api/Invoice/create-invoice-for-payment`, {
       method: "POST",
       headers: {
+        "Authorization": "Bearer " + token,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -144,7 +146,14 @@ const fetchOrderPayment = async (orderId: number): Promise<OrderPaymentDto | nul
     return null;
   }
   try {
-    const response = await fetch(`${API_BASE_URL}api/orders/Get-order-payment-information/${orderId}`);
+    const url = `${API_BASE_URL}api/orders/Get-order-payment-information/${orderId}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
     if (!response.ok) {
       switch (response.status) {
         case 400:
@@ -212,6 +221,10 @@ async function fetchVnPayUrl(orderId: number): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}api/Invoice/vnpay-url?Id=${orderId}`, {
       method: 'GET',
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
     });
 
     if (response.ok) {
@@ -234,7 +247,8 @@ async function printInvoicePdf(invoiceId: number) {
     const response = await fetch(`${API_BASE_URL}api/invoice/${invoiceId}/print-pdf`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/pdf'
+        'Accept': 'application/pdf',
+        "Authorization": "Bearer " + token,
       }
     });
 

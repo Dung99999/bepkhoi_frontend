@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Radio, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   selectedShipper: number | null;
@@ -35,9 +35,15 @@ export interface ShipperDTO {
   status: boolean;
 }
 
-export async function fetchShipperList(): Promise<ShipperDTO[]> {
+async function fetchShipperList(): Promise<ShipperDTO[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/Shipper`);
+    const response = await fetch(`${API_BASE_URL}api/Shipper`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
 
     if (!response.ok) {
       const errorText = await response.text();

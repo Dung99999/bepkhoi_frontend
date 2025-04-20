@@ -3,6 +3,7 @@ import { message, Radio } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import notFoundImage from "../../../../styles/ErrorProductImage/image-not-found.png";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   selectedTable: number | null;
@@ -41,9 +42,13 @@ interface isAvailableOption {
 
 async function fetchCategories(): Promise<CategoryOption[]> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}api/product-categories/get-all-categories`
-    );
+    const response = await fetch(`${API_BASE_URL}api/product-categories/get-all-categories`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -70,7 +75,13 @@ async function fetchCategories(): Promise<CategoryOption[]> {
 
 async function fetchMenu(): Promise<menuItem[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/Menu/get-menu-pos`);
+    const response = await fetch(`${API_BASE_URL}api/Menu/get-menu-pos`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`Network response was not ok: ${response.status}`);

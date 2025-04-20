@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Modal, Input, Button, Radio } from "antd";
 import { SaveOutlined, StopOutlined } from "@ant-design/icons";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   open: boolean;
@@ -15,6 +16,7 @@ const fetchCreateNewCustomer = async (customerName: string, phone: string) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
       },
       body: JSON.stringify({
         customerName: customerName,

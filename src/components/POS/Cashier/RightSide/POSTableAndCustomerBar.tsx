@@ -3,6 +3,7 @@ import { Input, Button, Modal, message } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ModalCreateCustomer from "./ModalCreateCustomer";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   selectedTable: number | null;
@@ -27,7 +28,13 @@ interface FetchCustomerById {
 }
 async function fetchCustomerList(): Promise<CustomerModel[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/Customer`);
+    const response = await fetch(`${API_BASE_URL}api/Customer`, {
+      method: 'GET',
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch customer list");
     }
@@ -41,7 +48,13 @@ async function fetchCustomerList(): Promise<CustomerModel[]> {
 
 async function fetchCustomerByOrderId(orderId: number): Promise<FetchCustomerById | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/orders/get-customer-of-order/${orderId}`);
+    const response = await fetch(`${API_BASE_URL}api/orders/get-customer-of-order/${orderId}`, {
+      method: 'GET',
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
     if (!response.ok) {
       console.log("Disconnect Sever...", response.json);
     }
@@ -71,6 +84,10 @@ async function assignCustomerToOrder(orderId: number, customerId: number): Promi
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/assign-customer-to-order?orderId=${orderId}&customerId=${customerId}`, {
       method: "POST",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
     });
 
     const result = await response.json();
@@ -93,8 +110,7 @@ const fetchDeleteCustomerFromOrder = async (orderId: number) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Nếu cần có token thì thêm vào header Authorization
-        // 'Authorization': `Bearer ${yourToken}`
+        "Authorization": "Bearer " + token,
       },
     });
 

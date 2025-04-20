@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Input, Radio } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 const ITEMS_PER_PAGE = 12;
 interface roomAreaOption {
@@ -32,7 +33,13 @@ interface Props {
 }
 async function fetchRoomAreas(): Promise<roomAreaOption[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/roomarea/get-all?limit=20&offset=0`);
+    const response = await fetch(`${API_BASE_URL}api/roomarea/get-all?limit=20&offset=0`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -55,7 +62,13 @@ async function fetchRoomAreas(): Promise<roomAreaOption[]> {
 }
 async function fetchRooms(): Promise<room[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`);
+    const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -91,7 +104,13 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
     }
 
     // Gửi request với query parameters
-    const response = await fetch(`${API_BASE_URL}api/rooms/filter-room-pos?${query.toString()}`);
+    const response = await fetch(`${API_BASE_URL}api/rooms/filter-room-pos?${query.toString()}`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -121,6 +140,8 @@ async function updateRoomNote(roomId: number | null, roomNote: string): Promise<
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+
       },
       body: JSON.stringify({ roomId: roomId, roomNote: roomNote }),
     });
