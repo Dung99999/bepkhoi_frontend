@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Input, message } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
+import SignalR_Connection from "../../../../services/signalRService";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface props {
@@ -210,6 +211,36 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
   const [deleteReason, setDeleteReason] = useState("");
   const [deletingOrderDetailId, setDeletingOrderDetailId] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (!selectedOrder) return;
+  
+    const connection = SignalR_Connection;
+  
+    const setupSignalRListeners = () => {
+      connection.on("ReceiveOrderUpdate", (updatedOrderId: number) => {
+        if (updatedOrderId === selectedOrder) {
+          console.log(`📡 Nhận sự kiện cập nhật cho order ${updatedOrderId}`);
+          fetchData(); // gọi lại API
+        }
+      });
+    };
+  
+    if (connection.state === "Disconnected") {
+      connection.start()
+        .then(() => {
+          console.log("🔌 SignalR connected");
+          setupSignalRListeners();
+        })
+        .catch((err) => console.error("❌ Kết nối SignalR thất bại:", err));
+    } else {
+      setupSignalRListeners();
+    }
+  
+    return () => {
+      connection.off("ReceiveOrderUpdate"); // cleanup khi component unmount
+    };
+  }, [selectedOrder]);
+  
   const fetchData = async () => {
     const orderDetails = await fetchOrderDetail(selectedOrder);
     setSelectedOrders(orderDetails);
