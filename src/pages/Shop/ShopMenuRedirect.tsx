@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+const token = localStorage.getItem("Token");
 
 function ShopMenuRedirect() {
     const { roomId } = useParams();
@@ -10,7 +11,15 @@ function ShopMenuRedirect() {
     useEffect(() => {
         const checkRoomValidity = async () => {
             try {
-                const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/get-all?limit=1000&offset=0`);
+                const response = await fetch(
+                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/get-all?limit=1000&offset=0`,
+                    {
+                      method: "GET",
+                      headers: {
+                        Authorization: `Bearer ${token}`
+                      }
+                    }
+                  );
                 
                 if (!response.ok) {
                     throw new Error('Không thể lấy danh sách phòng');

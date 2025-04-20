@@ -4,6 +4,7 @@ import CartList from "../../components/Shop/Cart/CartList";
 import CartConfirm from "../../components/Shop/Cart/CartConfirm";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
+const token = localStorage.getItem("Token");
 
 interface Product {
   id: number;
@@ -82,7 +83,8 @@ const CartPage: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'accept': '*/*'
+          'accept': '*/*',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(orderPayload)
       });

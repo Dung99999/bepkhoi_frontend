@@ -4,6 +4,7 @@ import MenuTop from "../../components/Shop/Menu/MenuTop";
 import ProductModal from "../../components/Shop/Menu/ProductModal";
 import { Drawer } from "antd";
 import axios from "axios";
+const token = localStorage.getItem("Token"); 
 
 interface Product {
     id: number;
@@ -43,7 +44,14 @@ const MenuPage: React.FC = () => {
 
     const fetchUnits = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}api/units/get-all-units`);
+            const response = await axios.get(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/units/get-all-units`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
             setUnits(response.data);
         } catch (error) {
             console.error("Lỗi khi lấy danh sách đơn vị tính:", error);
@@ -55,14 +63,17 @@ const MenuPage: React.FC = () => {
             const response = await axios.get(
                 `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/get-all-menus-customer`,
                 {
-                    params: {
-                        sortBy: "ProductId",
-                        sortDirection: "asc",
-                        productNameOrId: searchText,
-                        ...(categoryId ? { categoryId } : {}),
-                    },
+                  params: {
+                    sortBy: "ProductId",
+                    sortDirection: "asc",
+                    productNameOrId: searchText,
+                    ...(categoryId ? { categoryId } : {}),
+                  },
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
                 }
-            );
+              );
 
             const mappedProducts = response.data.data.map((item: any) => {
                 const hasSale = item.salePrice && item.salePrice > 0;
@@ -95,7 +106,14 @@ const MenuPage: React.FC = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`);
+            const response = await axios.get(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+              );
             setCategories(response.data);
         } catch (error) {
             console.error("Lỗi khi lấy danh mục sản phẩm:", error);
@@ -130,12 +148,15 @@ const MenuPage: React.FC = () => {
             const response = await axios.get(
                 `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/order-ids-for-qr`,
                 {
-                    params: {
-                        roomId,
-                        customerId
-                    }
+                  params: {
+                    roomId,
+                    customerId
+                  },
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
                 }
-            );
+              );
             const orders = response.data || [];
             setOrderIds(orders);
             const maxOrderId = orders.length > 0 ? Math.max(...orders) : null;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import loginImage from "../../styles/LoginPage/images/login_image.png";
+const token = localStorage.getItem("Token"); 
 
 interface CustomerInfo {
     customerId: string;
@@ -40,8 +41,14 @@ const GuessPage: React.FC = () => {
 
             try {
                 const searchResponse = await fetch(
-                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`
-                );
+                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`,
+                    {
+                      method: "GET",
+                      headers: {
+                        "Authorization": `Bearer ${token}`,
+                      },
+                    }
+                  );
 
                 if (!searchResponse.ok) throw new Error("Không thể lấy thông tin người dùng");
 
@@ -98,8 +105,14 @@ const GuessPage: React.FC = () => {
 
         try {
             const searchResponse = await fetch(
-                `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`
-            );
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`,
+                {
+                  method: "GET",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
 
             let customerData = await searchResponse.json();
             let customerInfo: CustomerInfo | null = null;
@@ -111,7 +124,10 @@ const GuessPage: React.FC = () => {
                     `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/create-new-customer`,
                     {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                             'Content-Type': 'application/json',
+                              Authorization: `Bearer ${token}`,
+                            },
                         body: JSON.stringify({ phone: phoneNumber, customerName: name })
                     }
                 );
@@ -121,8 +137,14 @@ const GuessPage: React.FC = () => {
                 }
 
                 const newSearchResponse = await fetch(
-                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`
-                );
+                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`,
+                    {
+                      method: "GET",
+                      headers: {
+                        Authorization: `Bearer ${token}`
+                      }
+                    }
+                  );
                 customerData = await newSearchResponse.json();
             }
 
