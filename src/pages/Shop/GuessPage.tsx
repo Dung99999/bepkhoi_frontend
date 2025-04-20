@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import loginImage from "../../styles/LoginPage/images/login_image.png";
+
+interface CustomerInfo {
+    customerId: string;
+    phone: string;
+    name: string;
+}
 
 const GuessPage: React.FC = () => {
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -10,72 +16,128 @@ const GuessPage: React.FC = () => {
     const [isNameFocused, setIsNameFocused] = useState(false);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isNameDisabled, setIsNameDisabled] = useState(true);
+    const [phoneError, setPhoneError] = useState("");
     const navigate = useNavigate();
+
+    const validatePhoneNumber = (phone: string): boolean => {
+        const regex = /^0\d{9}$/;
+        return regex.test(phone);
+    };
+
+    useEffect(() => {
+        const searchUser = async () => {
+            if (!validatePhoneNumber(phoneNumber)) {
+                setPhoneError("Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số");
+                setIsNameDisabled(true);
+                setName("");
+                return;
+            }
+
+            setPhoneError("");
+            setIsSearching(true);
+
+            try {
+                const searchResponse = await fetch(
+                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`
+                );
+
+                if (!searchResponse.ok) throw new Error("Không thể lấy thông tin người dùng");
+
+                const customers = await searchResponse.json();
+                const matchedCustomer = Array.isArray(customers) 
+                    ? customers.find(c => c.phone === phoneNumber || 
+                                       c.phone === `+84${phoneNumber.substring(1)}` || 
+                                       c.phone === `84${phoneNumber.substring(1)}`)
+                    : null;
+
+                if (matchedCustomer) {
+                    setName(matchedCustomer.name || matchedCustomer.customerName || "");
+                    setIsNameDisabled(true);
+                } else {
+                    setName("");
+                    setIsNameDisabled(false);
+                }
+            } catch (err) {
+                console.error("Lỗi khi tìm kiếm:", err);
+                setName("");
+                setIsNameDisabled(false);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            if (phoneNumber.length === 10) searchUser();
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [phoneNumber]);
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/\D/g, '');
+        setPhoneNumber(value);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        
+        if (!validatePhoneNumber(phoneNumber)) {
+            setPhoneError("Số điện thoại không hợp lệ! Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số");
+            return;
+        }
+
+        if (!isNameDisabled && !name) {
+            setError("Vui lòng nhập tên");
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            const createResponse = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/create-new-customer`, {
-                method: 'POST',
-                headers: {
-                    'accept': '*/*',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    phone: phoneNumber,
-                    customerName: name
-                })
-            });
+            const searchResponse = await fetch(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`
+            );
 
-            if (!createResponse.ok && createResponse.status !== 409) {
-                const errorData = await createResponse.json();
-                throw new Error(errorData.message || "Có lỗi khi tạo người dùng");
-            }
-            const searchResponse = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`, {
-                method: 'GET',
-                headers: {
-                    'accept': 'text/plain',
-                },
-            });
+            let customerData = await searchResponse.json();
+            let customerInfo: CustomerInfo | null = null;
 
-            if (!searchResponse.ok) {
-                throw new Error("Không thể lấy thông tin người dùng");
-            }
+            if ((Array.isArray(customerData) && customerData.length === 0) || 
+                (!Array.isArray(customerData) && !customerData?.phone)) {
+                
+                const createResponse = await fetch(
+                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/create-new-customer`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: phoneNumber, customerName: name })
+                    }
+                );
 
-            const customerData = await searchResponse.json();
+                if (!createResponse.ok && createResponse.status !== 409) {
+                    throw new Error("Không thể tạo người dùng mới");
+                }
 
-            let customerId, customerPhone, customerName;
-
-            if (Array.isArray(customerData) && customerData.length > 0) {
-                const firstCustomer = customerData[0];
-                customerId = firstCustomer.id || firstCustomer.customerId;
-                customerPhone = firstCustomer.phone || phoneNumber;
-                customerName = firstCustomer.name || firstCustomer.customerName || name;
-            } else if (typeof customerData === 'object' && customerData !== null) {
-                customerId = customerData.id || customerData.customerId;
-                customerPhone = customerData.phone || phoneNumber;
-                customerName = customerData.name || customerData.customerName || name;
-            } else {
-                throw new Error("Định dạng dữ liệu không hợp lệ");
+                const newSearchResponse = await fetch(
+                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`
+                );
+                customerData = await newSearchResponse.json();
             }
 
-            if (!customerId) {
-                throw new Error("Không tìm thấy ID người dùng");
-            }
-            const customerInfo = {
-                customerId,
-                phone: customerPhone,
-                name: customerName
+            const customer = Array.isArray(customerData) ? customerData[0] : customerData;
+            customerInfo = {
+                customerId: customer.id || customer.customerId,
+                phone: customer.phone || phoneNumber,
+                name: customer.name || customer.customerName || name
             };
+
+            if (!customerInfo.customerId) throw new Error("Không có thông tin khách hàng");
 
             sessionStorage.setItem('customerInfo', JSON.stringify(customerInfo));
             navigate('/shop/menu');
-
         } catch (err) {
-            console.error("Chi tiết lỗi:", err);
             setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
         } finally {
             setIsLoading(false);
@@ -176,12 +238,94 @@ const GuessPage: React.FC = () => {
                         }}
                     >
                         <input
+                            type="tel"
+                            value={phoneNumber}
+                            onChange={handlePhoneChange}
+                            onFocus={() => setIsPhoneFocused(true)}
+                            onBlur={() => setIsPhoneFocused(false)}
+                            placeholder=" "
+                            maxLength={10}
+                            style={{
+                                width: "100%",
+                                padding: "16px 20px",
+                                fontSize: "16px",
+                                borderRadius: "12px",
+                                border: `2px solid ${phoneError ? "#d32f2f" : isPhoneFocused ? "#007bff" : "#ddd"}`,
+                                outline: "none",
+                                transition: "all 0.3s ease",
+                                boxShadow: isPhoneFocused
+                                    ? "0 0 0 3px rgba(0, 123, 255, 0.25)"
+                                    : "none",
+                                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                            }}
+                        />
+                        <motion.label
+                            initial={{ y: "50%", x: 20, opacity: 0.7 }}
+                            animate={{
+                                y: phoneNumber || isPhoneFocused ? "-10px" : "50%",
+                                x: phoneNumber || isPhoneFocused ? 15 : 20,
+                                opacity: phoneNumber || isPhoneFocused ? 1 : 0.7,
+                                fontSize: phoneNumber || isPhoneFocused ? "12px" : "16px",
+                                color: phoneError ? "#d32f2f" : isPhoneFocused ? "#007bff" : "#666",
+                            }}
+                            transition={{ duration: 0.2 }}
+                            style={{
+                                position: "absolute",
+                                left: 0,
+                                top: 0,
+                                padding: "0 5px",
+                                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                                pointerEvents: "none",
+                                transformOrigin: "left center",
+                            }}
+                        >
+                            Số điện thoại
+                            {isSearching && (
+                                <span style={{ marginLeft: "5px" }}>
+                                    <div style={{
+                                        display: "inline-block",
+                                        width: "12px",
+                                        height: "12px",
+                                        border: "2px solid rgba(0,0,0,0.3)",
+                                        borderTopColor: "#007bff",
+                                        borderRadius: "50%",
+                                        animation: "spin 1s linear infinite",
+                                    }} />
+                                </span>
+                            )}
+                        </motion.label>
+                        {phoneError && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                style={{
+                                    color: "#d32f2f",
+                                    fontSize: "12px",
+                                    textAlign: "left",
+                                    marginTop: "4px",
+                                    marginLeft: "10px",
+                                }}
+                            >
+                                {phoneError}
+                            </motion.div>
+                        )}
+                    </motion.div>
+
+                    <motion.div
+                        whileTap={{ scale: 0.98 }}
+                        style={{
+                            position: "relative",
+                            marginBottom: "25px",
+                        }}
+                    >
+                        <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             onFocus={() => setIsNameFocused(true)}
                             onBlur={() => setIsNameFocused(false)}
                             placeholder=" "
+                            disabled={isNameDisabled}
                             style={{
                                 width: "100%",
                                 padding: "16px 20px",
@@ -194,7 +338,10 @@ const GuessPage: React.FC = () => {
                                     ? "0 0 0 3px rgba(0, 123, 255, 0.25)"
                                     : "none",
                                 borderColor: isNameFocused ? "#007bff" : "#ddd",
-                                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: isNameDisabled
+                                    ? "rgba(245, 245, 245, 0.8)"
+                                    : "rgba(255, 255, 255, 0.8)",
+                                cursor: isNameDisabled ? "not-allowed" : "text",
                             }}
                         />
                         <motion.label
@@ -212,7 +359,9 @@ const GuessPage: React.FC = () => {
                                 left: 0,
                                 top: 0,
                                 padding: "0 5px",
-                                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: isNameDisabled
+                                    ? "rgba(245, 245, 245, 0.8)"
+                                    : "rgba(255, 255, 255, 0.8)",
                                 pointerEvents: "none",
                                 transformOrigin: "left center",
                             }}
@@ -221,74 +370,25 @@ const GuessPage: React.FC = () => {
                         </motion.label>
                     </motion.div>
 
-                    <motion.div
-                        whileTap={{ scale: 0.98 }}
-                        style={{
-                            position: "relative",
-                            marginBottom: "30px",
-                        }}
-                    >
-                        <input
-                            type="tel"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            onFocus={() => setIsPhoneFocused(true)}
-                            onBlur={() => setIsPhoneFocused(false)}
-                            placeholder=" "
-                            style={{
-                                width: "100%",
-                                padding: "16px 20px",
-                                fontSize: "16px",
-                                borderRadius: "12px",
-                                border: "2px solid #ddd",
-                                outline: "none",
-                                transition: "all 0.3s ease",
-                                boxShadow: isPhoneFocused
-                                    ? "0 0 0 3px rgba(0, 123, 255, 0.25)"
-                                    : "none",
-                                borderColor: isPhoneFocused ? "#007bff" : "#ddd",
-                                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                            }}
-                        />
-                        <motion.label
-                            initial={{ y: "50%", x: 20, opacity: 0.7 }}
-                            animate={{
-                                y: phoneNumber || isPhoneFocused ? "-10px" : "50%",
-                                x: phoneNumber || isPhoneFocused ? 15 : 20,
-                                opacity: phoneNumber || isPhoneFocused ? 1 : 0.7,
-                                fontSize: phoneNumber || isPhoneFocused ? "12px" : "16px",
-                                color: isPhoneFocused ? "#007bff" : "#666",
-                            }}
-                            transition={{ duration: 0.2 }}
-                            style={{
-                                position: "absolute",
-                                left: 0,
-                                top: 0,
-                                padding: "0 5px",
-                                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                                pointerEvents: "none",
-                                transformOrigin: "left center",
-                            }}
-                        >
-                            Số điện thoại
-                        </motion.label>
-                    </motion.div>
-
                     <motion.button
                         type="submit"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        disabled={!phoneNumber || !name || isLoading}
+                        disabled={!phoneNumber || (isNameDisabled ? false : !name) || isLoading}
                         style={{
                             width: "100%",
                             padding: "14px",
                             fontSize: "16px",
                             fontWeight: "600",
                             color: "#fff",
-                            backgroundColor: phoneNumber && name ? (isLoading ? "#6c757d" : "#007bff") : "#aaa",
+                            backgroundColor: phoneNumber && (isNameDisabled || name)
+                                ? (isLoading ? "#6c757d" : "#007bff")
+                                : "#aaa",
                             border: "none",
                             borderRadius: "12px",
-                            cursor: phoneNumber && name ? "pointer" : "not-allowed",
+                            cursor: phoneNumber && (isNameDisabled || name) && !isLoading
+                                ? "pointer"
+                                : "not-allowed",
                             transition: "all 0.3s ease",
                             marginBottom: "20px",
                             position: "relative",
