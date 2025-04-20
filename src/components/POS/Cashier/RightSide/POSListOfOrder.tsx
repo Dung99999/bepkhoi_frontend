@@ -227,7 +227,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
       connection.on("ReceiveOrderUpdate", (updatedOrderId: number) => {
         if (updatedOrderId === selectedOrder) {
           console.log(`📡 Nhận sự kiện cập nhật cho order ${updatedOrderId}`);
-          fetchData(); // gọi lại API
+          fetchData(); 
         }
       });
     };

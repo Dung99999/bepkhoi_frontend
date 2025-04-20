@@ -3,6 +3,7 @@ import CartAction from "../../components/Shop/Cart/CartAction";
 import { useNavigate } from "react-router-dom";
 import { Spin, Tag } from "antd";
 import axios from "axios";
+const token = localStorage.getItem("Token");
 
 interface OrderDetail {
     orderDetailId: number;
@@ -32,9 +33,12 @@ const OrderStatus: React.FC = () => {
                 const response = await axios.get(
                     `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/get-order-details-by-order-id`,
                     {
-                        params: { orderId }
+                      params: { orderId },
+                      headers: {
+                        Authorization: `Bearer ${token}`
+                      }
                     }
-                );
+                  );
                 
                 setOrderDetails(response.data || []);
             } catch (error) {
