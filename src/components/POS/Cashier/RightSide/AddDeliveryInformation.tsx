@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Modal, Input, Button, Radio, message } from "antd";
 import { SaveOutlined, StopOutlined } from "@ant-design/icons";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   open: boolean;
@@ -32,6 +33,7 @@ const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInform
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          "Authorization": "Bearer " + token,
         },
       });
   
@@ -66,6 +68,7 @@ const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInform
       const response = await fetch(url, {
         method: "POST",
         headers: {
+          "Authorization": "Bearer " + token,
           "Content-Type": "application/json",
           Accept: "*/*",
         },

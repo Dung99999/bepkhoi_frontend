@@ -11,6 +11,7 @@ import DrawerPaymentFinal from "./DrawerPaymentFinal";
 import ModalSplitOrder from "./ModalSplitAndCombineOrders";
 import AddDeliveryInformation from "./AddDeliveryInformation";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 
 
@@ -63,6 +64,7 @@ async function fetchAddNoteToOrder(request: AddNoteRequest): Promise<boolean> {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": "Bearer " + token,
       },
       body: JSON.stringify(request),
     });
@@ -96,6 +98,7 @@ async function confirmOrderPos(orderId: number): Promise<boolean> {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": "Bearer " + token,
       },
     });
     if (response.ok) {
@@ -121,7 +124,13 @@ async function confirmOrderPos(orderId: number): Promise<boolean> {
 
 const fetchGeneralData = async (orderId: number): Promise<OrderGeneralDataPosDto | null> => {
   try {
-    const response = await fetch(`${API_BASE_URL}api/orders/get-order-general-data/${orderId}`);
+    const response = await fetch(`${API_BASE_URL}api/orders/get-order-general-data/${orderId}`, {
+      method: 'GET',
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
 
     if (!response.ok) {
       const errorBody = await response.json();

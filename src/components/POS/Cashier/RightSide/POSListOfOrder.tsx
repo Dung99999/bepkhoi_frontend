@@ -3,6 +3,8 @@ import { Button, Modal, Input, message } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
 import SignalR_Connection from "../../../../services/signalRService";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
+
 
 interface props {
   selectedOrder: number | null
@@ -37,13 +39,14 @@ interface AddNoteToOrderDetailRequest {
 }
 
 async function fetchOrderDetail(orderId: number | null): Promise<OrderDetailModel[]> {
-  const apiUrl = `${API_BASE_URL}api/orders/get-order-details-by-order-id?orderId=${orderId}`; // URL endpoint cho API
+  const apiUrl = `${API_BASE_URL}api/orders/get-order-details-by-order-id?orderId=${orderId}`; 
 
   try {
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": "Bearer " + token,
       },
     });
 
@@ -86,6 +89,7 @@ async function updateOrderDetailQuantity(request: UpdateOrderDetailQuantityReque
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": "Bearer " + token,
       },
       body: JSON.stringify(request),
     });
@@ -111,6 +115,7 @@ async function addNoteToOrderDetail(request: AddNoteToOrderDetailRequest): Promi
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": "Bearer " + token,
       },
       body: JSON.stringify(request),
     });
@@ -147,6 +152,7 @@ async function fetchDeleteUnconfirmOrderDetail(orderId: number, orderDetailId: n
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',
+        "Authorization": "Bearer " + token,
       },
     });
     const result = await response.json();
@@ -186,6 +192,7 @@ async function fetchDeleteConfirmOrderDetail(
       method: "DELETE",
       headers: {
         Accept: "application/json",
+        "Authorization": "Bearer " + token,
       },
     });
     const result = await response.json();
@@ -271,7 +278,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
   }, [selectedOrder]);
 
   useEffect(() => {
-    if (selectedOrder !== null && isReloadAfterAddProduct == true) {
+    if (selectedOrder !== null && isReloadAfterAddProduct === true) {
       fetchData();
       setIsReloadAfterAddProduct(false);
     }

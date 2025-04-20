@@ -3,6 +3,7 @@ import { Input, List, Avatar } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef } from "antd";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   selectedOrder: number | null;
@@ -28,7 +29,13 @@ interface menuItem {
 
 async function fetchMenu(): Promise<menuItem[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/Menu/get-menu-pos`);
+    const response = await fetch(`${API_BASE_URL}api/Menu/get-menu-pos`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      }
+    });
     if (!response.ok) {
       throw new Error(`Network response was not ok: ${response.status}`);
     }
