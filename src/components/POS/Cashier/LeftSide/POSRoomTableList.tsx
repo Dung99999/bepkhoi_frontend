@@ -14,13 +14,13 @@ interface isUseOption {
   value: boolean | null;
 }
 interface room {
-  roomId: number,
-  roomName: string,
-  roomAreaId: number,
-  ordinalNumber: number,
-  seatNumber: number,
-  roomNote: string,
-  isUse: boolean | null
+  roomId: number;
+  roomName: string;
+  roomAreaId: number;
+  ordinalNumber: number;
+  seatNumber: number;
+  roomNote: string;
+  isUse: boolean | null;
 }
 interface Props {
   setActiveTab: (tab: "room" | "menu") => void;
@@ -33,22 +33,26 @@ interface Props {
 }
 async function fetchRoomAreas(): Promise<roomAreaOption[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/roomarea/get-all?limit=20&offset=0`, {
-      method: "GET",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
+    const response = await fetch(
+      `${API_BASE_URL}api/roomarea/get-all?limit=20&offset=0`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
 
-    const data: { roomAreaId: number | null; roomAreaName: string }[] = await response.json();
+    const data: { roomAreaId: number | null; roomAreaName: string }[] =
+      await response.json();
 
-    let options = data.map(item => ({
+    let options = data.map((item) => ({
       label: item.roomAreaName,
-      value: item.roomAreaId
+      value: item.roomAreaId,
     }));
 
     // Thêm option {label: "Tất Cả", value: null} vào vị trí index 1
@@ -62,13 +66,16 @@ async function fetchRoomAreas(): Promise<roomAreaOption[]> {
 }
 async function fetchRooms(): Promise<room[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`, {
-      method: "GET",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
+    const response = await fetch(
+      `${API_BASE_URL}api/rooms/get-all-room-for-pos`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -76,7 +83,7 @@ async function fetchRooms(): Promise<room[]> {
 
     const data: room[] = await response.json();
 
-    return data.map(item => ({
+    return data.map((item) => ({
       roomId: item.roomId,
       roomName: item.roomName,
       roomAreaId: item.roomAreaId,
@@ -90,7 +97,10 @@ async function fetchRooms(): Promise<room[]> {
     return []; // Trả về mảng rỗng nếu lỗi
   }
 }
-async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean | null): Promise<room[]> {
+async function fetchRoomFilter(
+  choosedArea: number | null,
+  choosedIsUse: boolean | null
+): Promise<room[]> {
   try {
     // Tạo chuỗi query string từ các tham số
     const query = new URLSearchParams();
@@ -104,13 +114,16 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
     }
 
     // Gửi request với query parameters
-    const response = await fetch(`${API_BASE_URL}api/rooms/filter-room-pos?${query.toString()}`, {
-      method: "GET",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
+    const response = await fetch(
+      `${API_BASE_URL}api/rooms/filter-room-pos?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -118,7 +131,7 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
 
     const data: room[] = await response.json();
 
-    return data.map(item => ({
+    return data.map((item) => ({
       roomId: item.roomId,
       roomName: item.roomName,
       roomAreaId: item.roomAreaId,
@@ -133,15 +146,19 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
   }
 }
 
-async function updateRoomNote(roomId: number | null, roomNote: string): Promise<boolean> {
+async function updateRoomNote(
+  roomId: number | null,
+  roomNote: string
+): Promise<boolean> {
   try {
-    if (roomId === null) { return false }
+    if (roomId === null) {
+      return false;
+    }
     const response = await fetch(`${API_BASE_URL}api/rooms/update-room-note`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
-
+        Authorization: "Bearer " + token,
       },
       body: JSON.stringify({ roomId: roomId, roomNote: roomNote }),
     });
@@ -158,9 +175,7 @@ async function updateRoomNote(roomId: number | null, roomNote: string): Promise<
     console.error("Lỗi kết nối API:", error);
     return false;
   }
-};
-
-
+}
 
 const POSRoomTableList: React.FC<Props> = ({
   setActiveTab,
@@ -171,22 +186,25 @@ const POSRoomTableList: React.FC<Props> = ({
   orderType,
   setOrderType,
 }) => {
-  const [roomAreaOptionList, setRoomAreaOptionList] = useState<roomAreaOption[]>([]);
+  const [roomAreaOptionList, setRoomAreaOptionList] = useState<
+    roomAreaOption[]
+  >([]);
   const [choosedArea, setChoosedArea] = useState<number | null>(null);
   const [choosedIsUse, setChoosedIsUse] = useState<boolean | null>(null);
   const [room, setRoom] = useState<room[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [note, setNote] = useState("");
-  const [selectedRoomToNote, setSelectedRoomToNote] = useState<number | null>(null);
+  const [selectedRoomToNote, setSelectedRoomToNote] = useState<number | null>(
+    null
+  );
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentTables = room.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  const isUseFilterList: isUseOption[] =
-    [
-      { label: "Tất cả", value: null },
-      { label: "Đang sử dụng", value: true },
-      { label: "Đang trống", value: false }
-    ]
+  const isUseFilterList: isUseOption[] = [
+    { label: "Tất cả", value: null },
+    { label: "Đang sử dụng", value: true },
+    { label: "Đang trống", value: false },
+  ];
   async function getRoomAreas() {
     const roomAreas = await fetchRoomAreas();
     setRoomAreaOptionList(roomAreas);
@@ -211,10 +229,18 @@ const POSRoomTableList: React.FC<Props> = ({
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 flex gap-4">
-        <Radio.Group options={roomAreaOptionList} defaultValue={choosedArea} onChange={(e) => setChoosedArea(e.target.value)} />
+        <Radio.Group
+          options={roomAreaOptionList}
+          defaultValue={choosedArea}
+          onChange={(e) => setChoosedArea(e.target.value)}
+        />
       </div>
       <div className="p-4 flex gap-4">
-        <Radio.Group options={isUseFilterList} defaultValue={choosedIsUse} onChange={(e) => setChoosedIsUse(e.target.value)} />
+        <Radio.Group
+          options={isUseFilterList}
+          defaultValue={choosedIsUse}
+          onChange={(e) => setChoosedIsUse(e.target.value)}
+        />
       </div>
       <div className="flex-1 p-4 grid grid-cols-4 grid-rows-3 gap-4 overflow-y-auto">
         {currentTables.map((room) => (
@@ -237,8 +263,8 @@ const POSRoomTableList: React.FC<Props> = ({
             onMouseLeave={() => setHoveredId(null)}
             onClick={() => {
               setSelectedTable(room.roomId);
-              setSelectedShipper(null)
-              setOrderType(3); 
+              setSelectedShipper(null);
+              setOrderType(3);
             }}
           >
             <img
@@ -251,25 +277,25 @@ const POSRoomTableList: React.FC<Props> = ({
             <span
               className={`mt-1 text-xs text-gray-500 cursor-pointer transition-opacity duration-200
               ${(() => {
-                  if (room.roomNote !== null && room.roomNote !== "") {
-                    return "opacity-100 visible"
-                  } else if (room.roomId == hoveredId) {
-                    return "opacity-100 visible"
-                  } else {
-                    return "opacity-0 invisible"
-                  }
-                })()}`}
+                if (room.roomNote !== null && room.roomNote !== "") {
+                  return "opacity-100 visible";
+                } else if (room.roomId == hoveredId) {
+                  return "opacity-100 visible";
+                } else {
+                  return "opacity-0 invisible";
+                }
+              })()}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedRoomToNote(room.roomId);
-                if(room.roomNote!==null&&room.roomNote!=""){
+                if (room.roomNote !== null && room.roomNote != "") {
                   setNote(room.roomNote);
                 }
               }}
             >
-              {
-                (room.roomNote !== null && room.roomNote != "") ? room.roomNote : "Nhập ghi chú..."
-              }
+              {room.roomNote !== null && room.roomNote != ""
+                ? room.roomNote
+                : "Nhập ghi chú..."}
             </span>
           </div>
         ))}
@@ -277,18 +303,20 @@ const POSRoomTableList: React.FC<Props> = ({
 
       <div className="p-4 bg-[#FFFFFF] flex justify-end gap-2">
         <LeftOutlined
-          className={`cursor-pointer ${currentPage === 1 ? "opacity-50 pointer-events-none" : ""
-            }`}
+          className={`cursor-pointer ${
+            currentPage === 1 ? "opacity-50 pointer-events-none" : ""
+          }`}
           onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
         />
         <span>
           {currentPage} / {Math.ceil(room.length / ITEMS_PER_PAGE)}
         </span>
         <RightOutlined
-          className={`cursor-pointer ${startIndex + ITEMS_PER_PAGE >= room.length
+          className={`cursor-pointer ${
+            startIndex + ITEMS_PER_PAGE >= room.length
               ? "opacity-50 pointer-events-none"
               : ""
-            }`}
+          }`}
           onClick={() =>
             startIndex + ITEMS_PER_PAGE < room.length &&
             setCurrentPage(currentPage + 1)
@@ -299,17 +327,22 @@ const POSRoomTableList: React.FC<Props> = ({
       <Modal
         title="Nhập ghi chú"
         open={selectedRoomToNote !== null}
-        onCancel={() => { setNote(""); setSelectedRoomToNote(null) }}
+        onCancel={() => {
+          setNote("");
+          setSelectedRoomToNote(null);
+        }}
         onOk={async () => {
           const success = await updateRoomNote(selectedRoomToNote, note);
           if (success) {
-            await getRooms(); 
+            await getRooms();
           }
           updateRoomNote(selectedRoomToNote, note);
           setNote("");
           setSelectedRoomToNote(null);
         }}
-        okButtonProps={{ className: "bg-blue-400 hover:bg-blue-700 border-none text-white" }}
+        okButtonProps={{
+          className: "bg-blue-400 hover:bg-blue-700 border-none text-white",
+        }}
       >
         <Input.TextArea
           value={note}

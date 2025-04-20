@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { message, Table,  Tag } from "antd";
+import { message, Table, Tag } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import './MenuList.css';
+import "./MenuList.css";
 import MenuDetailModal from "./MenuDetailModal";
 import MenuUpdateModal from "./MenuUpdateModal";
-import axios from 'axios';
+import axios from "axios";
+
+const token = localStorage.getItem("Token");
 
 interface MenuListProps {
   search: string;
@@ -46,9 +48,11 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
 
     if (search.trim()) params.append("productNameOrId", search.trim());
 
-    if (category.length > 0 && !category.includes("all")) params.append("categoryId", category[0]);
+    if (category.length > 0 && !category.includes("all"))
+      params.append("categoryId", category[0]);
 
-    if (status.length > 0 && !status.includes("all")) params.append("isActive", status[0] === "1" ? "true" : "false");
+    if (status.length > 0 && !status.includes("all"))
+      params.append("isActive", status[0] === "1" ? "true" : "false");
 
     params.append("sortBy", "ProductId");
     params.append("sortDirection", "asc");
@@ -62,30 +66,41 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     const queryParams = createQueryParams();
     console.log("Query Params call to API:", queryParams);
 
-    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`)
-    .then((response) => response.json())
-    .then((data) => {
-      setItems(data.data ?? []);
-      setTotal(data.totalRecords || 0); 
+    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
     })
-    .catch((error) => {
-      console.error("Error fetching menu:", error);
-      setItems([]);
-    })
-    .finally(() => setLoading(false));
-  }, [search, category , status, page]);
+      .then((response) => response.json())
+      .then((data) => {
+        setItems(data.data ?? []);
+        setTotal(data.totalRecords || 0);
+      })
+      .catch((error) => {
+        console.error("Error fetching menu:", error);
+        setItems([]);
+      })
+      .finally(() => setLoading(false));
+  }, [search, category, status, page]);
 
   // Handle close row to close detail modal
   const handleCloseDetail = () => {
     setOpenDetail(false);
     setDetailData(null); // reset data
-  }
+  };
 
   const fetchMenuList = async () => {
     setLoading(true);
     try {
       const queryParams = createQueryParams();
-      const response = await fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`);
+      const response = await fetch(
+        `https://localhost:7257/api/Menu/get-all-menus?${queryParams}`,
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
       const data = await response.json();
       setItems(data.data ?? []);
       setTotal(data.totalRecords || 0);
@@ -101,13 +116,24 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     fetchMenuList();
   }, [search, category, status, page]);
 
-  // Handle delete 
+  // Handle delete
   const handleDelete = async () => {
-    if (detailData && window.confirm(`Bạn chắc chắn muốn xóa món \"${detailData.productName}\"?`)) {
+    if (
+      detailData &&
+      window.confirm(
+        `Bạn chắc chắn muốn xóa món \"${detailData.productName}\"?`
+      )
+    ) {
       try {
-        const response = await fetch(`https://localhost:7257/api/Menu/delete-menu/${detailData.productId}`, {
-          method: "DELETE"
-        });
+        const response = await fetch(
+          `https://localhost:7257/api/Menu/delete-menu/${detailData.productId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
         if (response.ok) {
           message.success("Xóa món thành công!");
           handleCloseDetail();
@@ -126,56 +152,97 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     setOpenDetail(true);
     setLoadingDetail(true);
     // Fetch APT Get Product By Id
-    fetch(`https://localhost:7257/api/Menu/get-menu-by-id/${record.productId}`)
+    fetch(
+      `https://localhost:7257/api/Menu/get-menu-by-id/${record.productId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((res) => setDetailData(res.data))
       .catch((error) => console.error("Error fetching detail:", error))
       .finally(() => setLoadingDetail(false));
-  }
-  
+  };
+
   // Handle update
-  const handleOpenUpdate = (record : MenuItem) => {
+  const handleOpenUpdate = (record: MenuItem) => {
     setUpdateData(record);
     setOpenUpdate(true);
   };
 
   // Column of table
   const columns: TableColumnsType<MenuItem> = [
-    { title: "ID", dataIndex: "productId", key: "productId", width: 60 },
+    {
+      title: "ID",
+      dataIndex: "productId",
+      key: "productId",
+      width: 60,
+      className: "text-[0.8vw]",
+    },
     {
       title: "Tên món",
       dataIndex: "productName",
       key: "productName",
+      className: "text-[0.8vw]",
       render: (text, record) => (
-        <span 
-          className="font-medium cursor-pointer" 
+        <span
+          className="font-medium cursor-pointer text-[0.8vw]"
           onClick={(e) => {
             e.stopPropagation();
             handleRowClick(record);
-          }}>
-            {text}
-        </span>),
+          }}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "Giá bán",
       dataIndex: "sellPrice",
       key: "sellPrice",
-      render: (price) => <span>{price?.toLocaleString()}đ</span>,
+      className: "text-[0.8vw]",
+      render: (price) => (
+        <span className="text-[0.8vw]">{price?.toLocaleString()}đ</span>
+      ),
     },
     {
       title: "Giá KM",
       dataIndex: "salePrice",
       key: "salePrice",
-      render: (price) => <span>{price?.toLocaleString()}đ</span>,
+      className: "text-[0.8vw]",
+      render: (price) => (
+        <span className="text-[0.8vw]">{price?.toLocaleString()}đ</span>
+      ),
     },
-    { title: "VAT (%)", dataIndex: "productVat", key: "productVat" },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
+    {
+      title: "VAT (%)",
+      dataIndex: "productVat",
+      key: "productVat",
+      className: "text-[0.8vw]",
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "description",
+      key: "description",
+      className: "text-[0.8vw]",
+    },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
+      className: "text-[0.8vw]",
       render: (value: boolean) =>
-        value ? <Tag color="green">Đang bán</Tag> : <Tag color="red">Ngừng bán</Tag>,
+        value ? (
+          <Tag color="green" className="text-[0.8vw]">
+            Đang bán
+          </Tag>
+        ) : (
+          <Tag color="red" className="text-[0.8vw]">
+            Ngừng bán
+          </Tag>
+        ),
     },
   ];
 
@@ -186,7 +253,7 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   };
 
   return (
-    <div className="mt-4 custom-table-wrapper">
+    <div className="mt-[0.5vw] custom-table-wrapper">
       <Table<MenuItem>
         rowKey="productId"
         loading={loading}
@@ -206,13 +273,13 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
         })}
       />
 
-      <MenuDetailModal 
+      <MenuDetailModal
         open={openDetail}
         loading={loadingDetail}
         data={detailData}
         onClose={() => setOpenDetail(false)}
         onUpdate={() => detailData && handleOpenUpdate(detailData)}
-        onDelete={handleDelete} 
+        onDelete={handleDelete}
         onReloadMenuList={fetchMenuList}
       />
 
@@ -223,7 +290,14 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
           onClose={() => setOpenUpdate(false)}
           onReload={() => {
             const queryParams = createQueryParams();
-            fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`)
+            fetch(
+              `https://localhost:7257/api/Menu/get-all-menus?${queryParams}`,
+              {
+                headers: {
+                  Authorization: "Bearer " + token,
+                },
+              }
+            )
               .then((response) => response.json())
               .then((data) => {
                 setItems(data.data ?? []);
