@@ -112,6 +112,9 @@ const HeaderManage: React.FC = () => {
                   items: item.submenu.map((subItem, subIndex) => ({
                     key: subIndex,
                     label: <NavLink to={subItem.path}>{subItem.label}</NavLink>,
+                    style: {
+                      fontSize: "1vw",
+                    },
                   })),
                 }}
                 trigger={["hover"]}

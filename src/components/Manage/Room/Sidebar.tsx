@@ -15,8 +15,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   showSearch = true,
 }) => {
   return (
-    <aside className="w-1/5 min-w-[250px] max-w-[30vw] p-4 rounded-lg overflow-auto mt-[-10vw]">
-      <div className="flex flex-col gap-[5px]">
+    <aside className="w-1/5 min-w-[15vw] max-w-[20vw] p-4 rounded-lg overflow-auto">
+      <div className="flex flex-col gap-[1.25vw]">
         {showSearch && (
           <SearchFilter search={search} setSearch={onSearchChange} />
         )}

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { message, Table, Tag } from "antd";
 import type { TableColumnsType } from "antd";
-import './../Menu/MenuList.css';
+import "./../Menu/MenuList.css";
 import CashierDetailModal from "./CashierDetailModal";
 import UserUpdateModal from "./UserUpdateModal";
+
+// Thêm token ở đầu file
+const token = localStorage.getItem("Token");
 
 interface UserListProps {
   search: string;
@@ -38,13 +41,20 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
 
   const fetchMenuList = () => {
     setLoading(true);
-    let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/search?searchTerm=${encodeURIComponent(search.trim())}`;
+    let apiUrl = `${
+      process.env.REACT_APP_API_APP_ENDPOINT
+    }api/cashiers/search?searchTerm=${encodeURIComponent(search.trim())}`;
     if (status === "1" || status === "0") {
       const statusValue = status === "1" ? "true" : "false";
       apiUrl += `&status=${statusValue}`;
     }
 
-    fetch(apiUrl)
+    fetch(apiUrl, {
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setItems(data ?? []);
@@ -70,12 +80,20 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
     setOpenDetail(true);
     setLoadingDetail(true);
 
-    fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${record.userId}`)
+    fetch(
+      `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${record.userId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      }
+    )
       .then((response) => response.json())
       .then((res) => setDetailData(res))
       .catch((error) => console.error("Error fetching detail:", error))
       .finally(() => setLoadingDetail(false));
-  }
+  };
 
   const columns: TableColumnsType<UserProps> = [
     { title: "ID", dataIndex: "userId", key: "userId", width: 60 },
@@ -86,7 +104,11 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
       dataIndex: "status",
       key: "status",
       render: (value: boolean) =>
-        value ? <Tag color="green">Đang sử dụng</Tag> : <Tag color="red">Ngừng sử dụng</Tag>,
+        value ? (
+          <Tag color="green">Đang sử dụng</Tag>
+        ) : (
+          <Tag color="red">Ngừng sử dụng</Tag>
+        ),
     },
   ];
 
@@ -125,7 +147,6 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
         onReloadUserList={fetchMenuList}
       />
 
-
       {openUpdate && updateData && (
         <UserUpdateModal
           open={openUpdate}
@@ -137,7 +158,6 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
           onReload={fetchMenuList}
         />
       )}
-
     </div>
   );
 };
