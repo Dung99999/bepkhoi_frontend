@@ -195,20 +195,10 @@ const paymentOptions = [
 
 const bankItems: { label: string; key: string; img: string }[] = [
   {
-    label: "MB Bank 11111111",
-    key: "MB Bank 11111111",
-    img: "https://brandlogos.net/wp-content/uploads/2021/10/mb-bank-logo.png",
-  },
-  {
-    label: "Vietcombank 22222222",
-    key: "Vietcombank 22222222",
-    img: "https://cdn.haitrieu.com/wp-content/uploads/2022/02/Icon-Vietcombank.png",
-  },
-  {
-    label: "Techcombank 33333333",
-    key: "Techcombank 33333333",
-    img: "https://static.wixstatic.com/media/9d8ed5_263edd01c0b847059f8035fd531145d6~mv2.png/v1/fill/w_560,h_560,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/9d8ed5_263edd01c0b847059f8035fd531145d6~mv2.png",
-  },
+    label: "VNPAY",
+    key: "1",
+    img: "https://vinadesign.vn/uploads/thumbnails/800/2023/05/vnpay-logo-vinadesign-25-12-59-16.jpg",
+  }
 ];
 
 const items: MenuProps["items"] = bankItems.map((bank) => ({

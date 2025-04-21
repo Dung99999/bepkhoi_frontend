@@ -1,27 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Input, Radio } from "antd";
+import React, { useState, useEffect, useCallback } from "react";
+import { Modal, Input, Radio, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import useSignalR from "../../../../CustomHook/useSignalR";
+
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 const token = localStorage.getItem("Token");
 
 const ITEMS_PER_PAGE = 12;
+
 interface roomAreaOption {
   label: string;
   value: number | null;
 }
+
 interface isUseOption {
   label: string;
   value: boolean | null;
 }
+
 interface room {
-  roomId: number,
-  roomName: string,
-  roomAreaId: number,
-  ordinalNumber: number,
-  seatNumber: number,
-  roomNote: string,
-  isUse: boolean | null
+  roomId: number;
+  roomName: string;
+  roomAreaId: number;
+  ordinalNumber: number;
+  seatNumber: number;
+  roomNote: string;
+  isUse: boolean | null;
 }
+
 interface Props {
   setActiveTab: (tab: "room" | "menu") => void;
   selectedTable: number | null;
@@ -31,14 +37,15 @@ interface Props {
   orderType: number | null;
   setOrderType: (shipperId: number | null) => void;
 }
+
 async function fetchRoomAreas(): Promise<roomAreaOption[]> {
   try {
     const response = await fetch(`${API_BASE_URL}api/roomarea/get-all?limit=20&offset=0`, {
       method: "GET",
       headers: {
         "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -46,12 +53,11 @@ async function fetchRoomAreas(): Promise<roomAreaOption[]> {
 
     const data: { roomAreaId: number | null; roomAreaName: string }[] = await response.json();
 
-    let options = data.map(item => ({
+    let options = data.map((item) => ({
       label: item.roomAreaName,
-      value: item.roomAreaId
+      value: item.roomAreaId,
     }));
 
-    // Thêm option {label: "Tất Cả", value: null} vào vị trí index 1
     options.splice(0, 0, { label: "Tất Cả", value: null });
 
     return options;
@@ -60,14 +66,15 @@ async function fetchRoomAreas(): Promise<roomAreaOption[]> {
     return [];
   }
 }
+
 async function fetchRooms(): Promise<room[]> {
   try {
     const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`, {
       method: "GET",
       headers: {
         "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     if (!response.ok) {
@@ -76,7 +83,7 @@ async function fetchRooms(): Promise<room[]> {
 
     const data: room[] = await response.json();
 
-    return data.map(item => ({
+    return data.map((item) => ({
       roomId: item.roomId,
       roomName: item.roomName,
       roomAreaId: item.roomAreaId,
@@ -87,15 +94,13 @@ async function fetchRooms(): Promise<room[]> {
     }));
   } catch (error) {
     console.error("Error fetching rooms:", error);
-    return []; // Trả về mảng rỗng nếu lỗi
+    return [];
   }
 }
+
 async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean | null): Promise<room[]> {
   try {
-    // Tạo chuỗi query string từ các tham số
     const query = new URLSearchParams();
-
-    // Chỉ thêm query parameter nếu giá trị không phải null
     if (choosedArea !== null) {
       query.append("roomAreaId", choosedArea.toString());
     }
@@ -103,13 +108,12 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
       query.append("isUse", choosedIsUse.toString());
     }
 
-    // Gửi request với query parameters
     const response = await fetch(`${API_BASE_URL}api/rooms/filter-room-pos?${query.toString()}`, {
       method: "GET",
       headers: {
         "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     if (!response.ok) {
@@ -118,7 +122,7 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
 
     const data: room[] = await response.json();
 
-    return data.map(item => ({
+    return data.map((item) => ({
       roomId: item.roomId,
       roomName: item.roomName,
       roomAreaId: item.roomAreaId,
@@ -129,19 +133,20 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
     }));
   } catch (error) {
     console.error("Error fetching rooms:", error);
-    return []; // Trả về mảng rỗng nếu lỗi
+    return [];
   }
 }
 
 async function updateRoomNote(roomId: number | null, roomNote: string): Promise<boolean> {
   try {
-    if (roomId === null) { return false }
+    if (roomId === null) {
+      return false;
+    }
     const response = await fetch(`${API_BASE_URL}api/rooms/update-room-note`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token,
-
       },
       body: JSON.stringify({ roomId: roomId, roomNote: roomNote }),
     });
@@ -158,9 +163,7 @@ async function updateRoomNote(roomId: number | null, roomNote: string): Promise<
     console.error("Lỗi kết nối API:", error);
     return false;
   }
-};
-
-
+}
 
 const POSRoomTableList: React.FC<Props> = ({
   setActiveTab,
@@ -179,42 +182,92 @@ const POSRoomTableList: React.FC<Props> = ({
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [selectedRoomToNote, setSelectedRoomToNote] = useState<number | null>(null);
+
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentTables = room.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  const isUseFilterList: isUseOption[] =
-    [
-      { label: "Tất cả", value: null },
-      { label: "Đang sử dụng", value: true },
-      { label: "Đang trống", value: false }
-    ]
+
+  const isUseFilterList: isUseOption[] = [
+    { label: "Tất cả", value: null },
+    { label: "Đang sử dụng", value: true },
+    { label: "Đang trống", value: false },
+  ];
+
   async function getRoomAreas() {
     const roomAreas = await fetchRoomAreas();
     setRoomAreaOptionList(roomAreas);
   }
+
   async function getRooms() {
     const roomList = await fetchRooms();
     setRoom(roomList);
+    // Điều chỉnh currentPage nếu cần
+    const maxPage = Math.ceil(roomList.length / ITEMS_PER_PAGE);
+    if (currentPage > maxPage && maxPage > 0) {
+      setCurrentPage(maxPage);
+    }
   }
+
   async function getRoomFilter() {
+    console.log("Fetching rooms with filters:", { choosedArea, choosedIsUse });
     const rooms = await fetchRoomFilter(choosedArea, choosedIsUse);
     setRoom(rooms);
+    // Điều chỉnh currentPage nếu cần
+    const maxPage = Math.ceil(rooms.length / ITEMS_PER_PAGE);
+    if (currentPage > maxPage && maxPage > 0) {
+      console.log(`Adjusting currentPage from ${currentPage} to ${maxPage}`);
+      setCurrentPage(maxPage);
+    }
+    console.log("Updated room list:", rooms.map((r) => ({ roomId: r.roomId, isUse: r.isUse })));
   }
+
   useEffect(() => {
     getRoomAreas();
     getRooms();
-  }, []); // Chạy 1 lần khi component mount
+  }, []);
 
   useEffect(() => {
     getRoomFilter();
   }, [choosedArea, choosedIsUse]);
 
+  const debounceRoomStatusUpdate = useCallback(() => {
+    let timeout: NodeJS.Timeout;
+    return (data: { roomId: number; isUse: boolean }) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        // Kiểm tra xem roomId có liên quan đến danh sách hiện tại hoặc bộ lọc
+        const roomExists = room.some((r) => r.roomId === data.roomId);
+        const matchesFilter = choosedIsUse === null || choosedIsUse === data.isUse;
+        if (roomExists || matchesFilter) {
+          getRoomFilter();
+        }
+      }, 500);
+    };
+  }, [choosedArea, choosedIsUse, room]);
+
+  useSignalR(
+    {
+      eventName: "RoomStatusUpdate",
+      groupName: "room",
+      callback: debounceRoomStatusUpdate(),
+    },
+    [debounceRoomStatusUpdate]
+  );
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 flex gap-4">
-        <Radio.Group options={roomAreaOptionList} defaultValue={choosedArea} onChange={(e) => setChoosedArea(e.target.value)} />
+        <Radio.Group
+          options={roomAreaOptionList}
+          value={choosedArea}
+          onChange={(e) => setChoosedArea(e.target.value)}
+        />
       </div>
       <div className="p-4 flex gap-4">
-        <Radio.Group options={isUseFilterList} defaultValue={choosedIsUse} onChange={(e) => setChoosedIsUse(e.target.value)} />
+        <Radio.Group
+          options={isUseFilterList}
+          value={choosedIsUse}
+          onChange={(e) => setChoosedIsUse(e.target.value)}
+        />
       </div>
       <div className="flex-1 p-4 grid grid-cols-4 grid-rows-3 gap-4 overflow-y-auto">
         {currentTables.map((room) => (
@@ -223,13 +276,13 @@ const POSRoomTableList: React.FC<Props> = ({
             className={`relative flex flex-col items-center justify-center p-4 rounded-md cursor-pointer transition 
               ${(() => {
                 if (room.roomId === selectedTable) {
-                  return "bg-blue-300"; // If the room is selected
+                  return "bg-blue-300";
                 } else if (room.roomId === hoveredId) {
-                  return "bg-gray-300"; // If the room is hovered
+                  return "bg-gray-300";
                 } else if (room.isUse === true) {
-                  return "bg-gray-200"; // If the room is in use
+                  return "bg-gray-200";
                 } else {
-                  return "bg-white"; // Default background color
+                  return "bg-white";
                 }
               })()}
             `}
@@ -237,8 +290,8 @@ const POSRoomTableList: React.FC<Props> = ({
             onMouseLeave={() => setHoveredId(null)}
             onClick={() => {
               setSelectedTable(room.roomId);
-              setSelectedShipper(null)
-              setOrderType(3); 
+              setSelectedShipper(null);
+              setOrderType(3);
             }}
           >
             <img
@@ -247,65 +300,51 @@ const POSRoomTableList: React.FC<Props> = ({
               className="w-12 h-12"
             />
             <span className="mt-1 text-sm">{room.roomName}</span>
-
             <span
               className={`mt-1 text-xs text-gray-500 cursor-pointer transition-opacity duration-200
-              ${(() => {
-                  if (room.roomNote !== null && room.roomNote !== "") {
-                    return "opacity-100 visible"
-                  } else if (room.roomId == hoveredId) {
-                    return "opacity-100 visible"
-                  } else {
-                    return "opacity-0 invisible"
-                  }
-                })()}`}
+                ${room.roomNote !== null && room.roomNote !== "" ? "opacity-100 visible" : room.roomId === hoveredId ? "opacity-100 visible" : "opacity-0 invisible"}
+              `}
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedRoomToNote(room.roomId);
-                if(room.roomNote!==null&&room.roomNote!=""){
+                if (room.roomNote !== null && room.roomNote !== "") {
                   setNote(room.roomNote);
                 }
               }}
             >
-              {
-                (room.roomNote !== null && room.roomNote != "") ? room.roomNote : "Nhập ghi chú..."
-              }
+              {room.roomNote !== null && room.roomNote !== "" ? room.roomNote : "Nhập ghi chú..."}
             </span>
           </div>
         ))}
       </div>
-
       <div className="p-4 bg-[#FFFFFF] flex justify-end gap-2">
         <LeftOutlined
-          className={`cursor-pointer ${currentPage === 1 ? "opacity-50 pointer-events-none" : ""
-            }`}
+          className={`cursor-pointer ${currentPage === 1 ? "opacity-50 pointer-events-none" : ""}`}
           onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
         />
         <span>
           {currentPage} / {Math.ceil(room.length / ITEMS_PER_PAGE)}
         </span>
         <RightOutlined
-          className={`cursor-pointer ${startIndex + ITEMS_PER_PAGE >= room.length
-              ? "opacity-50 pointer-events-none"
-              : ""
-            }`}
-          onClick={() =>
-            startIndex + ITEMS_PER_PAGE < room.length &&
-            setCurrentPage(currentPage + 1)
-          }
+          className={`cursor-pointer ${startIndex + ITEMS_PER_PAGE >= room.length ? "opacity-50 pointer-events-none" : ""}`}
+          onClick={() => startIndex + ITEMS_PER_PAGE < room.length && setCurrentPage(currentPage + 1)}
         />
       </div>
-
       <Modal
         title="Nhập ghi chú"
         open={selectedRoomToNote !== null}
-        onCancel={() => { setNote(""); setSelectedRoomToNote(null) }}
+        onCancel={() => {
+          setNote("");
+          setSelectedRoomToNote(null);
+        }}
         onOk={async () => {
           const success = await updateRoomNote(selectedRoomToNote, note);
           if (success) {
-            await getRooms(); 
+            message.success("Cập nhật ghi chú thành công");
+            await getRooms();
+          } else {
+            message.error("Cập nhật ghi chú thất bại");
           }
-          updateRoomNote(selectedRoomToNote, note);
           setNote("");
           setSelectedRoomToNote(null);
         }}
