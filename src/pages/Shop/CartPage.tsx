@@ -84,7 +84,6 @@ const CartPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
           'accept': '*/*',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(orderPayload)
       });

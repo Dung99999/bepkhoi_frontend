@@ -10,7 +10,6 @@ interface Props {
   selectedShipper: number | null;
   orderType: number | null;
   onCreateCustomer: () => void;
-  onCustomerSelect: (customerId: number | null) => void;
   selectedOrder: number | null;
   currentTab: string | null;
 }
@@ -135,7 +134,6 @@ const fetchDeleteCustomerFromOrder = async (orderId: number) => {
 const POSTableAndCustomerBar: React.FC<Props> = ({
   selectedTable,
   onCreateCustomer,
-  onCustomerSelect,
   selectedOrder,
   orderType,
   selectedShipper,
@@ -162,18 +160,15 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
         if (customer) {
           setSearchValue(`${customer.customerName} - ${customer.phone}`);
           setIsLockSearch(true);
-          onCustomerSelect(customer.customerId);
         } else {
           // Không có khách => reset
           setSearchValue("");
           setIsLockSearch(false);
-          onCustomerSelect(null);
         }
       } else {
         // selectedOrder bị reset => cũng reset input
         setSearchValue("");
         setIsLockSearch(false);
-        onCustomerSelect(null);
       }
     };
     if(selectedOrder == Number(currentTab)){
@@ -216,7 +211,6 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
       const success = await assignCustomerToOrder(selectedOrder, customer.customerId);
       if (success) {
         console.log(`Customer ${customer.customerId} assigned to order ${selectedOrder}`);
-        onCustomerSelect(customer.customerId); 
         message.success("Thêm khách hàng thành công");
       } else {
         console.warn("Không thể gán khách hàng vào đơn.");
@@ -240,7 +234,6 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
       }
     }
     setSearchValue("");  
-    onCustomerSelect(null);  
     setIsLockSearch(false);  
   };
 

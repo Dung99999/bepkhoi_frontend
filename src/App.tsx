@@ -17,6 +17,7 @@ import ShopMenuRedirect from "./pages/Shop/ShopMenuRedirect";
 import posRoutes from "./Routes/POSRoutes";
 import landingRoutes from "./Routes/LandingRoutes";
 import LandingPageLayout from "./layouts/LandingPageLayout";
+import { startConnection } from "../src/services/signalRService";
 // // import POSRoutes from "./Routes/POSRoutes";
 // import { POSTableList } from "./components/POS/POSTableList";
 // import { POSMenuList } from "./components/POS/POSMenuList";
@@ -56,6 +57,12 @@ const App: React.FC = () => {
     }
     return <ShopLayout modelMode={modelMode} />;
   };
+  useEffect(() => {
+    // Khởi tạo kết nối SignalR khi ứng dụng bắt đầu
+    startConnection().catch((err) => {
+      console.error("Khởi tạo SignalR thất bại:", err);
+    });
+  }, []);
 
   return (
     <Router>

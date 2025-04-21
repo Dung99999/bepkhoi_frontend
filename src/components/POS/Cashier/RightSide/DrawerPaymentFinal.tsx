@@ -21,7 +21,6 @@ interface DrawerPaymentFinalProps {
   isVisible: boolean;
   onClose: () => void;
   selectedOrder: number | null;
-  order: OrderModel[];
   isReloadAfterPayment: boolean;
   setIsReloadAfterPayment: (isReload: boolean) => void;
 }
@@ -283,7 +282,6 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   selectedOrder,
   isReloadAfterPayment,
   setIsReloadAfterPayment,
-  order
 }) => {
   const [selectedBank, setSelectedBank] = useState(bankItems[0]);
   const [paymentMethod, setPaymentMethod] = useState<number>(1);
@@ -595,11 +593,6 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
               </div>
               {/* Payment method */}
               <div className="mt-5">
-                {/* <Radio.Group
-                  options={plainOptions}
-                  onChange={onChangePaymentMethod}
-                  value={paymentMethod}
-                /> */}
                 <Radio.Group
                   options={paymentOptions}
                   value={paymentMethod}
