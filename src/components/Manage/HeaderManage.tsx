@@ -21,7 +21,8 @@ const navItems = [
     ],
   },
   {
-    label: "Phòng/Bàn", path: "/manage/rooms",
+    label: "Phòng/Bàn",
+    path: "/manage/rooms",
     submenu: [
       { label: "Bàn", path: "/manage/rooms" },
       { label: "Phòng", path: "/manage/roomArea" },
@@ -61,39 +62,39 @@ const HeaderManage: React.FC = () => {
 
   return (
     <header className="bg-white shadow-md font-sans">
-      <div className="flex justify-between items-center px-[8.33%] py-4 mt-[-5px] mb-[-5px]">
-        <div className="flex items-center space-x-3">
+      <div className="flex justify-between items-center px-[8vw] py-[2vw] mt-[-0.5vw] mb-[-0.5vw]">
+        <div className="flex items-center space-x-[1vw]">
           <img
             src={logoBepKhoi}
             alt="Logo Bếp Khói"
-            className="w-20 h-20 object-contain items-center gap-x-4"
+            className="w-[5vw] h-[5vw] min-w-[4vw] min-h-[4vw] max-w-[8vw] max-h-[8vw] object-contain items-center gap-x-[1vw]"
           />
           <div className="flex flex-col">
-            <div className="text-2xl font-semibold text-gray-800">
+            <div className="text-[1.5vw] font-semibold text-gray-800">
               Nhà hàng Bếp Khói
             </div>
-            <div className="text-[15px] italic font-medium text-gray-400">
+            <div className="text-[1vw] italic font-medium text-gray-400">
               Nâng niu văn hóa ẩm thực Việt
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-6 text-gray-600 text-sm">
-          <button className="hover:text-yellow-500 transition flex items-center gap-[5px]">
+        <div className="flex items-center space-x-[2vw] text-gray-600 text-[0.9vw]">
+          <button className="hover:text-yellow-500 transition flex items-center gap-[0.3vw]">
             <MessageOutlined />
             <span>Hỗ trợ</span>
           </button>
-          <button className="hover:text-yellow-500 transition flex items-center gap-[5px]">
+          <button className="hover:text-yellow-500 transition flex items-center gap-[0.3vw]">
             <GlobalOutlined />
             <span>Tiếng Việt (VN)</span>
           </button>
-          <div className="flex items-center gap-[5px]">
+          <div className="flex items-center gap-[0.3vw]">
             <PhoneOutlined />
             <span className="font-medium text-yellow-500">0975307087</span>
           </div>
           <button
             onClick={handleOpenModal}
-            className="hover:text-yellow-500 transition text-[18px]"
+            className="hover:text-yellow-500 transition text-[1.2vw]"
             title="Thông tin cá nhân"
           >
             <UserOutlined />
@@ -101,8 +102,8 @@ const HeaderManage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center px-[8.33%] h-[50px] bg-[#FFEBCD] border-t">
-        <nav className="flex space-x-4">
+      <div className="flex justify-between items-center px-[8vw] h-[3vw] bg-[#FFEBCD] border-t">
+        <nav className="flex space-x-[1vw] text-[1vw]">
           {navItems.map((item, index) =>
             item.submenu ? (
               <Dropdown
@@ -111,11 +112,14 @@ const HeaderManage: React.FC = () => {
                   items: item.submenu.map((subItem, subIndex) => ({
                     key: subIndex,
                     label: <NavLink to={subItem.path}>{subItem.label}</NavLink>,
+                    style: {
+                      fontSize: "1vw",
+                    },
                   })),
                 }}
                 trigger={["hover"]}
               >
-                <div className="px-4 py-2 rounded-lg font-medium cursor-pointer hover:bg-[#FFE4B5] hover:text-black transition-all">
+                <div className="px-[1vw] py-[0.5vw] rounded-lg font-medium cursor-pointer hover:bg-[#FFE4B5] hover:text-black transition-all">
                   {item.label}
                 </div>
               </Dropdown>
@@ -124,9 +128,10 @@ const HeaderManage: React.FC = () => {
                 key={index}
                 to={item.path}
                 className={({ isActive }) =>
-                  `px-4 py-2 rounded-lg font-medium transition-all duration-200 ${isActive
-                    ? "bg-[#FFE4B5] text-black"
-                    : "hover:bg-[#FFE4B5] hover:text-black"
+                  `px-[1vw] py-[0.5vw] rounded-[1vw] font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-[#FFE4B5] text-black"
+                      : "hover:bg-[#FFE4B5] hover:text-black"
                   }`
                 }
               >
@@ -137,10 +142,15 @@ const HeaderManage: React.FC = () => {
         </nav>
 
         <button
-          className="bg-white p-2 rounded-md hover:bg-gray-100 transition"
+          className="bg-white p-[0.5vw] w-[2vw] h-[2vw] rounded-[0.6vw] hover:bg-gray-100 transition flex items-center justify-center"
           title="Chỉnh sửa"
         >
-          <a href="/pos/cashier" className=""><EditOutlined /></a>
+          <a
+            href="/pos/cashier"
+            className="w-[1.8vw] h-[1.8vw] flex items-center justify-center"
+          >
+            <EditOutlined className="text-[1vw]" />
+          </a>
         </button>
       </div>
 

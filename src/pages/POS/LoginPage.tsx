@@ -80,29 +80,31 @@ export default function LoginPage() {
         <img src={loginImage} alt="Login Background" />
       </div>
       <div className={styles.loginFormContainer}>
-        <div className="w-full bg-white rounded-lg shadow-md sm:max-w-md py-6 px-8">
-          <div className="pb-9 flex items-center gap-4">
+        <div className="w-[30vw] bg-white rounded-lg shadow-md py-[1vw] px-[2vw]">
+          <div className="pb-[2vw] flex items-center gap-[1vw]">
             {/* Logo */}
             <div>
               <img
                 src={logoBepKhoi}
                 alt="Logo Bếp Khói"
-                className="w-20 h-20"
+                className="w-[5vw] h-[5vw]"
               />
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-[#d69629] md:text-4xl">
+              <h1 className="text-[2vw] font-bold text-[#d69629] md:text-[2vw]">
                 Đăng nhập
               </h1>
-              <p className="mt-2 font-light">Nhà hàng Bếp Khói xin chào!</p>
+              <p className="mt-[0.5vw] text-[0.9vw] font-light">
+                Nhà hàng Bếp Khói xin chào!
+              </p>
             </div>
           </div>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-[1vw]" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="username"
-                className="block mb-2 text-sm font-medium text-gray-900"
+                className="block mb-[0.5vw] text-[0.9vw] font-medium text-gray-900"
               >
                 Your email
               </label>
@@ -112,7 +114,7 @@ export default function LoginPage() {
                 id="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg w-full p-2.5"
+                className="bg-gray-50 border border-gray-300 text-[0.9vw] text-gray-900 rounded-lg w-full p-[0.6vw]"
                 placeholder="name@company.com"
                 required
               />
@@ -120,7 +122,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block mb-2 text-sm font-medium text-gray-900"
+                className="block mb-[0.5vw] text-[0.9vw] font-medium text-gray-900"
               >
                 Password
               </label>
@@ -130,7 +132,7 @@ export default function LoginPage() {
                 id="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg w-full p-2.5"
+                className="bg-gray-50 border border-gray-300 text-[0.9vw] text-gray-900 rounded-lg w-full p-[0.6vw]"
                 placeholder="••••••••"
                 required
               />
@@ -140,29 +142,29 @@ export default function LoginPage() {
                 <input
                   id="remember"
                   type="checkbox"
-                  className="w-4 h-4 border border-gray-300 rounded"
+                  className="w-[1vw] h-[1vw] border border-gray-300 rounded"
                 />
                 <label
                   htmlFor="remember"
-                  className="ml-2 text-sm text-gray-500"
+                  className="ml-[0.5vw] text-[0.9vw] text-gray-500"
                 >
                   Remember me
                 </label>
               </div>
               <a
                 href="http://localhost:3000/verify"
-                className="text-sm font-medium text-blue-600 hover:underline"
+                className="text-[0.9vw] font-medium text-blue-600 hover:underline"
               >
                 Forgot password?
               </a>
             </div>
             <button
               type="submit"
-              className="w-full bg-[#fcc25d] text-blue font-semibold rounded-lg px-5 py-2.5 hover:bg-[#dba342]"
+              className="w-full bg-[#fcc25d] text-[0.9vw] text-blue font-semibold rounded-lg px-[1.2vw] py-[0.6vw] hover:bg-[#dba342]"
             >
               Sign in
             </button>
-            <p className="text-sm text-gray-500">
+            <p className="text-[0.9vw] text-gray-500">
               contact for admin to get account
             </p>
           </form>

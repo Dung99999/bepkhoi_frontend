@@ -51,7 +51,8 @@ async function fetchRoomAreas(): Promise<roomAreaOption[]> {
       throw new Error("Network response was not ok");
     }
 
-    const data: { roomAreaId: number | null; roomAreaName: string }[] = await response.json();
+    const data: { roomAreaId: number | null; roomAreaName: string }[] =
+      await response.json();
 
     let options = data.map((item) => ({
       label: item.roomAreaName,
@@ -137,7 +138,10 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
   }
 }
 
-async function updateRoomNote(roomId: number | null, roomNote: string): Promise<boolean> {
+async function updateRoomNote(
+  roomId: number | null,
+  roomNote: string
+): Promise<boolean> {
   try {
     if (roomId === null) {
       return false;
@@ -174,7 +178,9 @@ const POSRoomTableList: React.FC<Props> = ({
   orderType,
   setOrderType,
 }) => {
-  const [roomAreaOptionList, setRoomAreaOptionList] = useState<roomAreaOption[]>([]);
+  const [roomAreaOptionList, setRoomAreaOptionList] = useState<
+    roomAreaOption[]
+  >([]);
   const [choosedArea, setChoosedArea] = useState<number | null>(null);
   const [choosedIsUse, setChoosedIsUse] = useState<boolean | null>(null);
   const [room, setRoom] = useState<room[]>([]);
@@ -191,7 +197,6 @@ const POSRoomTableList: React.FC<Props> = ({
     { label: "Đang sử dụng", value: true },
     { label: "Đang trống", value: false },
   ];
-
   async function getRoomAreas() {
     const roomAreas = await fetchRoomAreas();
     setRoomAreaOptionList(roomAreas);
@@ -348,7 +353,9 @@ const POSRoomTableList: React.FC<Props> = ({
           setNote("");
           setSelectedRoomToNote(null);
         }}
-        okButtonProps={{ className: "bg-blue-400 hover:bg-blue-700 border-none text-white" }}
+        okButtonProps={{
+          className: "bg-blue-400 hover:bg-blue-700 border-none text-white",
+        }}
       >
         <Input.TextArea
           value={note}

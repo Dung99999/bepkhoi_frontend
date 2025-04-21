@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { message, Table } from "antd";
 import type { TableColumnsType } from "antd";
-import './../Menu/MenuList.css';
+import "./../Menu/MenuList.css";
 import CustomerDetailModal from "./CustomerDetailModal";
+
+// Thêm token ở đầu file
+const token = localStorage.getItem("Token");
 
 interface CustomerListProps {
   search: string;
@@ -28,10 +31,17 @@ const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
   const fetchMenuList = () => {
     setLoading(true);
     const apiUrl = search.trim()
-      ? `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${encodeURIComponent(search.trim())}`
+      ? `${
+          process.env.REACT_APP_API_APP_ENDPOINT
+        }api/Customer/search?searchTerm=${encodeURIComponent(search.trim())}`
       : `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer`;
 
-    fetch(apiUrl)
+    fetch(apiUrl, {
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setItems(data ?? []);
@@ -52,18 +62,31 @@ const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
     setOpenDetail(true);
     setLoadingDetail(true);
 
-    fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/${record.customerId}`)
+    fetch(
+      `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/${record.customerId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      }
+    )
       .then((response) => response.json())
       .then((res) => setDetailData(res))
       .catch((error) => console.error("Error fetching detail:", error))
       .finally(() => setLoadingDetail(false));
-  }
+  };
 
   const columns: TableColumnsType<CustomerItem> = [
     { title: "ID", dataIndex: "customerId", key: "customerId", width: 60 },
     { title: "Tên khách hàng", dataIndex: "customerName", key: "customerName" },
     { title: "Số điện thoại", dataIndex: "phone", key: "phone" },
-    { title: "Tổng tiền sử dụng", dataIndex: "totalAmountSpent", key: "totalAmountSpent" },
+    {
+      title: "Tổng tiền sử dụng",
+      dataIndex: "totalAmountSpent",
+      key: "totalAmountSpent",
+      render: (value) => `${Number(value).toLocaleString()}đ`,
+    },
   ];
 
   return (
@@ -82,7 +105,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
         locale={{ emptyText: "Không có dữ liệu phù hợp." }}
         className="custom-table"
         onRow={(record) => ({
-          onClick: () => handleRowClick(record), // Bắt sự kiện click vào hàng
+          onClick: () => handleRowClick(record),
         })}
       />
 

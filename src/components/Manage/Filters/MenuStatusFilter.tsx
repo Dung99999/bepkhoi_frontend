@@ -9,7 +9,7 @@ interface Props {
 }
 
 const options = [
-  { label: "Tất cả", value: "all"},
+  { label: "Tất cả", value: "all" },
   { label: "Đang hiển thị", value: "1" },
   { label: "Không hiển thị", value: "0" },
 ];
@@ -18,30 +18,45 @@ const MenuStatusFilter: React.FC<Props> = ({ status, setStatus }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   const handleChange = (e: any) => {
-    setStatus(e.target.value); // return string 
+    setStatus(e.target.value);
   };
 
   return (
-    <div className="filter-wrapper">
-      <div className="filter-header">
-        <label className="block font-semibold m-0">Hiển thị</label>
-        <div className="toggle-icon-wrapper" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <CaretUpOutlined /> : <CaretDownOutlined />}
+    <div className="filter-wrapper p-[1vw] border border-solid border-gray-200 rounded-[0.5vw] mb-[1vw]">
+      <div className="filter-header flex justify-between items-center mb-[0.8vw]">
+        <label className="block font-semibold m-0 text-[0.95vw]">
+          Hiển thị
+        </label>
+        <div
+          className="toggle-icon-wrapper text-[0.9vw] cursor-pointer hover:text-blue-500 transition-colors"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? (
+            <CaretUpOutlined className="text-[0.9vw]" />
+          ) : (
+            <CaretDownOutlined className="text-[0.9vw]" />
+          )}
         </div>
       </div>
 
       {isOpen && (
-        <Radio.Group
-          value={status}
-          onChange={handleChange}
-          className="custom-radio-group"
-        >
-          {options.map((opt) => (
-            <Radio key={opt.value} value={opt.value}>
-              {opt.label}
-            </Radio>
-          ))}
-        </Radio.Group>
+        <div className="pl-[0.5vw]">
+          <Radio.Group
+            value={status}
+            onChange={handleChange}
+            className="custom-radio-group flex flex-col gap-[0.8vw]"
+          >
+            {options.map((opt) => (
+              <Radio
+                key={opt.value}
+                value={opt.value}
+                className="radio-item text-[0.9vw] m-0 hover:text-blue-500"
+              >
+                <span className="text-[0.9vw]">{opt.label}</span>
+              </Radio>
+            ))}
+          </Radio.Group>
+        </div>
       )}
     </div>
   );

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { message, Table, Tag } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import './PriceMenuList.css';
+import "./PriceMenuList.css";
 import ModalSettingPriceById from "./ModalSettingPriceById";
-import { EditOutlined } from "@ant-design/icons"
+import { EditOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
+
+// Thêm token ở đầu file
+const token = localStorage.getItem("Token");
 
 interface PriceMenuListProps {
   search: string;
@@ -20,7 +23,11 @@ interface PriceMenuItem {
   productVat: number;
 }
 
-const PriceMenuList: React.FC<PriceMenuListProps> = ({ search, category, menuStatus }) => {
+const PriceMenuList: React.FC<PriceMenuListProps> = ({
+  search,
+  category,
+  menuStatus,
+}) => {
   const [items, setItems] = useState<PriceMenuItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -31,7 +38,8 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({ search, category, menuSta
   const createQueryParams = () => {
     const params = new URLSearchParams();
     if (search.trim()) params.append("productNameOrId", search.trim());
-    if (category.length > 0 && !category.includes("all")) params.append("categoryId", category[0]);
+    if (category.length > 0 && !category.includes("all"))
+      params.append("categoryId", category[0]);
     if (menuStatus !== "all") params.append("status", menuStatus);
     params.append("sortBy", "ProductId");
     params.append("sortDirection", "asc");
@@ -41,7 +49,12 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({ search, category, menuSta
   const fetchData = () => {
     setLoading(true);
     const queryParams = createQueryParams();
-    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`)
+    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`, {
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setItems(data.data ?? []);
@@ -53,12 +66,16 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({ search, category, menuSta
       })
       .finally(() => setLoading(false));
   };
-  
 
   useEffect(() => {
     setLoading(true);
     const queryParams = createQueryParams();
-    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`)
+    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`, {
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setItems(data.data ?? []);
@@ -77,46 +94,66 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({ search, category, menuSta
   };
 
   const columns: TableColumnsType<PriceMenuItem> = [
-    { title: "Mã hàng hóa", dataIndex: "productId", key: "productId", width: 100 },
     {
-      title: "Tên hàng",
+      title: <span className="text-[0.95vw] font-semibold">Mã hàng hóa</span>,
+      dataIndex: "productId",
+      key: "productId",
+      width: "8vw",
+      render: (text) => <span className="text-[0.9vw]">{text}</span>,
+    },
+    {
+      title: <span className="text-[0.95vw] font-semibold">Tên hàng</span>,
       dataIndex: "productName",
       key: "productName",
-      render: (text) => <span className="font-medium">{text}</span>,
+      width: "20vw",
+      render: (text) => (
+        <span className="font-medium text-[0.9vw]">{text}</span>
+      ),
     },
     {
-      title: "Giá vốn",
+      title: <span className="text-[0.95vw] font-semibold">Giá vốn</span>,
       dataIndex: "costPrice",
       key: "costPrice",
-      render: (price) => <span>{price?.toLocaleString()}đ</span>,
+      width: "12vw",
+      render: (price) => (
+        <span className="text-[0.9vw]">{price?.toLocaleString()}đ</span>
+      ),
     },
     {
-      title: "Đơn giá",
+      title: <span className="text-[0.95vw] font-semibold">Đơn giá</span>,
       dataIndex: "sellPrice",
       key: "sellPrice",
-      render: (price) => <span>{price?.toLocaleString()}đ</span>,
+      width: "12vw",
+      render: (price) => (
+        <span className="text-[0.9vw]">{price?.toLocaleString()}đ</span>
+      ),
     },
     {
-      title: "Giá sau KM",
+      title: <span className="text-[0.95vw] font-semibold">Giá sau KM</span>,
       dataIndex: "salePrice",
       key: "salePrice",
-      render: (price) => <span>{price?.toLocaleString()}đ</span>,
+      width: "12vw",
+      render: (price) => (
+        <span className="text-[0.9vw]">{price?.toLocaleString()}đ</span>
+      ),
     },
     {
-      title: "Chỉnh sửa",
+      title: <span className="text-[0.95vw] font-semibold">Chỉnh sửa</span>,
       key: "action",
+      width: "10vw",
       render: (_, record) => (
-        <button 
-            onClick={() => handleOpenModal(record)}
-            className="edit-button">
-            <EditOutlined className="mr-1" /> Cập nhật
+        <button
+          onClick={() => handleOpenModal(record)}
+          className="edit-button text-[0.9vw] flex items-center"
+        >
+          <EditOutlined className="mr-[0.5vw]" /> Cập nhật
         </button>
       ),
     },
   ];
 
   return (
-    <div className="mt-4 custom-table-wrapper">
+    <div className="mt-[1vw] custom-table-wrapper">
       <Table<PriceMenuItem>
         rowKey="productId"
         loading={loading}
@@ -127,8 +164,27 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({ search, category, menuSta
           total: total,
           current: page,
           onChange: (page) => setPage(page),
+          className: "custom-pagination text-[0.9vw]",
+          showSizeChanger: false,
+          showQuickJumper: false,
+          showTotal: (total) => (
+            <span className="text-[0.9vw]">Tổng {total} mục</span>
+          ),
+          itemRender: (_, type, originalElement) => {
+            if (type === "prev") {
+              return <LeftOutlined className="text-[0.9vw]" />;
+            }
+            if (type === "next") {
+              return <RightOutlined className="text-[0.9vw]" />;
+            }
+            return <div className="text-[0.9vw]">{originalElement}</div>;
+          },
         }}
-        locale={{ emptyText: "Không có dữ liệu phù hợp." }}
+        locale={{
+          emptyText: (
+            <span className="text-[0.9vw]">Không có dữ liệu phù hợp.</span>
+          ),
+        }}
         className="custom-table"
       />
 
