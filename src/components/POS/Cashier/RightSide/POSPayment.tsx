@@ -6,7 +6,7 @@ import {
   SplitCellsOutlined,
 } from "@ant-design/icons";
 import { Empty, Input, Modal, message } from "antd";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import DrawerPaymentFinal from "./DrawerPaymentFinal";
 import ModalSplitOrder from "./ModalSplitAndCombineOrders";
 import AddDeliveryInformation from "./AddDeliveryInformation";
@@ -167,6 +167,15 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterPayment , se
   const showDrawerPayment = () => setIsDrawerPaymentVisible(true);
   const onClosePaymentDrawer = () => setIsDrawerPaymentVisible(false);
 
+
+  const getOrderGeneralData = async () => {
+    if (selectedOrder == null) {
+      setOrderData(null);
+      return;
+    }
+    const data = await fetchGeneralData(selectedOrder);
+    setOrderData(data);
+  };
   useSignalR(
     {
       eventName: "OrderUpdate",
@@ -174,7 +183,6 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterPayment , se
       callback: (updatedOrderId: any) => {
         const parsedId = Number(updatedOrderId);
         if (isNaN(parsedId)) {
-          console.warn("OrderUpdate nhận dữ liệu không hợp lệ:", updatedOrderId);
           return;
         }
         if (parsedId === selectedOrder) {
@@ -183,6 +191,27 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterPayment , se
       },
     },
     [selectedOrder]
+  );
+  const debounceCustomerUpdateOrder = useCallback(() => {
+    let timeout: NodeJS.Timeout;
+    return (updatedOrderId: number) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        message.info(`Khách hàng đã thêm một yêu cầu mới vào hóa đơn ${updatedOrderId}.`);
+        if (updatedOrderId === selectedOrder) {
+          getOrderGeneralData();
+        }
+      }, 500);
+    };
+  }, [selectedOrder, getOrderGeneralData]);
+
+  useSignalR(
+    {
+      eventName: "CustomerUpdateOrder",
+      groupName: "order",
+      callback: debounceCustomerUpdateOrder(),
+    },
+    [debounceCustomerUpdateOrder]
   );
   const handleConfirm = async () => {
     if (orderData==null || selectedOrder==null) {
@@ -200,14 +229,6 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterPayment , se
     } else {
       message.error("Xác nhận đơn hàng thất bại.");
     }
-  };
-  const getOrderGeneralData = async () => {
-    if (selectedOrder == null) {
-      setOrderData(null);
-      return;
-    }
-    const data = await fetchGeneralData(selectedOrder);
-    setOrderData(data);
   };
   useEffect(() => {
     getOrderGeneralData();

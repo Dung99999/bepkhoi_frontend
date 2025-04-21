@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useCallback } from "react";
 import { Button, Modal, Input, message } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
 // import SignalR_Connection from "../../../../services/signalRService";
@@ -246,6 +246,10 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder }) => {
   //       .catch((err) => console.error("Leave group thất bại:", err));
   //   };
   // }, [selectedOrder]);
+  const fetchData = async () => {
+    const orderDetails = await fetchOrderDetail(selectedOrder);
+    setSelectedOrders(orderDetails);
+  };
   useSignalR(
     {
       eventName: "OrderUpdate",
@@ -258,11 +262,26 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder }) => {
     },
     [selectedOrder]
   );
-  
-  const fetchData = async () => {
-    const orderDetails = await fetchOrderDetail(selectedOrder);
-    setSelectedOrders(orderDetails);
-  };
+  const debounceCustomerUpdateOrder = useCallback(() => {
+    let timeout: NodeJS.Timeout;
+    return (updatedOrderId: number) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (updatedOrderId === selectedOrder) {
+          fetchData();
+        }
+      }, 500);
+    };
+  }, [selectedOrder, fetchData]);
+
+  useSignalR(
+    {
+      eventName: "CustomerUpdateOrder",
+      groupName: "order",
+      callback: debounceCustomerUpdateOrder(),
+    },
+    [debounceCustomerUpdateOrder]
+  );
 
   const handleUpdateOrderDetailAddMinus = async (isAdd: boolean, orderDetailId: number) => {
     if (selectedOrder !== null) {
