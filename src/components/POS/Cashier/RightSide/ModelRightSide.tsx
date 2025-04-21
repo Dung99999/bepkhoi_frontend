@@ -5,6 +5,7 @@ import POSListOfOrder from "./POSListOfOrder";
 import POSPayment from "./POSPayment";
 import styles from "../../../../styles/POS/main.module.css";
 import ModalCreateCustomer from "./ModalCreateCustomer";
+import useSignalR from "../../../../CustomHook/useSignalR";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 const token = localStorage.getItem("Token");
 
@@ -14,11 +15,12 @@ interface props{
   orderType: number | null;
   setSelectedOrder: (orderId: number | null) => void;
   selectedOrder : number | null;
-  isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;  
-  
 }
+
+
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
+
+
 interface OrderModel {
   orderId: number;
   customerId: number | null;
@@ -64,7 +66,6 @@ async function fetchOrders(roomId: number | null, shipperId: number | null, orde
     if (orderTypeId !== null) {
       query.append("orderTypeId", orderTypeId.toString());
     }
-
     // Gửi request với query parameters nếu có
     const response = await fetch(
       `${API_BASE_URL}api/orders/get-order-by-type-pos?${query.toString()}`,
@@ -153,21 +154,18 @@ const fetchRemoveOrder = async (orderId: number): Promise<void> => {
 };
 
 
-const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, orderType, selectedOrder, setSelectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct }) => {
+const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, orderType, selectedOrder, setSelectedOrder }) => {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [tabs, setTabs] = useState<Tab[]>([]);
+  // const[order, setOrder] = useState<OrderModel[]>([]);
+  const [activeKey, setActiveKey] = useState("");
+  const [isReloadAfterPayment, setIsReloadAfterPayment] = useState<boolean>(false);
+  const [previousSelectedOrderId, setPreviousSelectedOrderId] = useState<number | null>(null);
+
   const openCustomerModal = () => {
-    console.log("Setting isCustomerModalOpen to true");
     setIsCustomerModalOpen(true);
   };
   const closeCustomerModal = () => setIsCustomerModalOpen(false);
-  const [tabs, setTabs] = useState<Tab[]>([]);
-  const[order, setOrder] = useState<OrderModel[]>([]);
-  const [activeKey, setActiveKey] = useState("");
-  const [isReload, setIsReload] = useState<boolean>(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null); 
-  const [isReloadAfterUpdateQuantity, setIsReloadAfterUpdateQuantity] = useState<boolean>(false);
-  const [isReloadAfterConfirm, setIsReloadAfterConfirm] = useState<boolean>(false);
-  const [isReloadAfterPayment, setIsReloadAfterPayment] = useState<boolean>(false);
 
   const onChange = (newActiveKey: string) => {
     setActiveKey(newActiveKey);
@@ -193,40 +191,13 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       // Gọi API tạo đơn hàng và chỉ nhận orderId
       const newOrderId = await fetchCreateNewOrder(newOrderData);
       // Cập nhật tab đang được chọn sang đơn hàng vừa tạo
-      setActiveKey(newOrderId.toString());
-      setSelectedOrder(newOrderId);
-      setIsReload(true);
+      // setActiveKey(newOrderId.toString());
+      // setSelectedOrder(newOrderId);
     } catch (error) {
       console.error("Không thể tạo đơn hàng mới:", error);
+      message.error("Tạo đơn hàng thất bại");
     }
   };
-  
-
-  // const removeTab = async (targetKey: TargetKey) => {
-  //   try {
-  //     const orderIdToRemove = Number(targetKey);  
-  //     await fetchRemoveOrder(orderIdToRemove);
-  //     setTabs((prevTabs) => prevTabs.filter((tab) => tab.value !== targetKey));
-  //     if (activeKey === targetKey) {
-  //       setActiveKey("");  
-  //       setSelectedOrder(null);
-  //     }
-  //     const updatedOrders = await fetchOrders(selectedTable, selectedShipper, orderType);
-  //     if (updatedOrders.length === 0) {
-  //       setTabs([]);  
-  //       setOrder([]);  
-  //     } else {
-  //       const updatedTabs: Tab[] = updatedOrders.map((order) => ({
-  //         label: `Đơn ${order.orderId}`,
-  //         value: order.orderId.toString(),
-  //       }));
-  //       setTabs(updatedTabs);
-  //       setOrder(updatedOrders);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error removing tab:", error);
-  //   }
-  // };
 
   const removeTab = (targetKey: TargetKey) => {
     Modal.confirm({
@@ -240,24 +211,10 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
           const orderIdToRemove = Number(targetKey);  
           await fetchRemoveOrder(orderIdToRemove);
           message.success("Xoá đơn hàng thành công");
-  
           setTabs((prevTabs) => prevTabs.filter((tab) => tab.value !== targetKey));
           if (activeKey === targetKey) {
             setActiveKey("");  
             setSelectedOrder(null);
-          }
-  
-          const updatedOrders = await fetchOrders(selectedTable, selectedShipper, orderType);
-          if (updatedOrders.length === 0) {
-            setTabs([]);  
-            setOrder([]);  
-          } else {
-            const updatedTabs: Tab[] = updatedOrders.map((order) => ({
-              label: `Đơn ${order.orderId}`,
-              value: order.orderId.toString(),
-            }));
-            setTabs(updatedTabs);
-            setOrder(updatedOrders);
           }
         } catch (error) {
           console.error("Error removing tab:", error);
@@ -276,55 +233,46 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       removeTab(targetKey);
     }
   };
-  async function getOrder() {
+
+
+async function getOrder() {
     try {
+      console.log("getOrder called, current selectedOrder:", selectedOrder);
       const orders = await fetchOrders(selectedTable, selectedShipper, orderType);
       if (!orders || orders.length === 0) {
-        // Không có đơn hàng nào
         setTabs([]);
         console.log("Không có đơn hàng nào phù hợp.");
-        setOrder([])
-        setSelectedOrder(null)
+        setSelectedOrder(null);
+        setActiveKey("");
+        setPreviousSelectedOrderId(null);
         return;
       }
-      // Nếu có đơn hàng thì map sang tab
       const generatedTabs: Tab[] = orders.map((order) => ({
         label: `Đơn ${order.orderId}`,
         value: order.orderId.toString(),
       }));
       setTabs(generatedTabs);
-      setActiveKey(generatedTabs[0].value);
-      setSelectedOrder(Number(generatedTabs[0].value))
-      setOrder(orders); 
+
+      const currentTab = selectedOrder
+        ? generatedTabs.find((tab) => Number(tab.value) === selectedOrder)
+        : null;
+      if (currentTab) {
+        setActiveKey(currentTab.value);
+        setSelectedOrder(Number(currentTab.value));
+        setPreviousSelectedOrderId(Number(currentTab.value));
+      } else {
+        setActiveKey(generatedTabs[0].value);
+        setSelectedOrder(Number(generatedTabs[0].value));
+        setPreviousSelectedOrderId(Number(generatedTabs[0].value));
+      }
     } catch (error) {
       console.log("Failed to get orders:", error);
-      setOrder([])
-      setSelectedOrder(null)
+      setSelectedOrder(null);
+      setActiveKey("");
+      setPreviousSelectedOrderId(null);
     }
   }
-  async function ReloadAfterCreateOrder() {
-    try {
-      const orders = await fetchOrders(selectedTable, selectedShipper, orderType);
-      if (!orders || orders.length === 0) {
-        // Không có đơn hàng nào
-        setTabs([]);
-        console.log("Không có đơn hàng nào phù hợp.");
-        setIsReload(false);
-        return;
-      }
-      // Nếu có đơn hàng thì map sang tab
-      const generatedTabs: Tab[] = orders.map((order) => ({
-        label: `Đơn ${order.orderId}`,
-        value: order.orderId.toString(),
-      }));
-      setTabs(generatedTabs);
-      setOrder(orders); 
-      setIsReload(false);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-      setIsReload(false);
-    }
-  }
+
   useEffect(() => {
     switch (orderType) {
       case 1:
@@ -346,12 +294,6 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
   }, [selectedTable, selectedShipper, orderType]);
   
   useEffect(() => {
-    if(isReload==true){
-      ReloadAfterCreateOrder();
-    }
-  }, [isReload]);
-
-  useEffect(() => {
     switch (orderType) {
       case 1:
         getOrder();
@@ -371,29 +313,44 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
     }
   }, []);
 
-  useEffect(() => {
-    if(isReloadAfterPayment){
-      switch (orderType) {
-        case 1:
+  useSignalR(
+    {
+      eventName: "OrderListUpdate",
+      groupName: "order",
+      callback: (data: { roomId: number | null; shipperId: number | null; orderStatusId: number }) => {
+        console.log("Received OrderListUpdate with data:", data);
+        // Kiểm tra xem client hiện tại có liên quan đến roomId hoặc shipperId trong sự kiện không
+        let shouldRefresh = false;
+        switch (orderType) {
+          case 1: // Takeaway: luôn làm mới
+            shouldRefresh = true;
+            break;
+          case 2: // Delivery: kiểm tra shipperId
+            if (selectedShipper !== null && data.shipperId === selectedShipper) {
+              shouldRefresh = true;
+            }
+            break;
+          case 3: // Dine-in: kiểm tra roomId
+            if (selectedTable !== null && data.roomId === selectedTable) {
+              shouldRefresh = true;
+            }
+            break;
+          default:
+            break;
+        }
+        if (shouldRefresh) {
+          console.log("Refreshing order list for orderType:", orderType);
           getOrder();
-          break;
-        case 2:
-          if (selectedShipper !== null) {
-            getOrder();
-          }
-          break;  
-        case 3:
-          if (selectedTable !== null) {
-            getOrder();
-          }
-          break;
-        default:
-          break;
-      }
-      setIsReloadAfterPayment(false);
-    }
-  }, [isReloadAfterPayment]);
-  
+        } else {
+          console.log("Skipping refresh, client not related to event data");
+        }
+      },
+    },
+    [orderType, selectedShipper, selectedTable]
+  );
+
+
+
   return (
     <div className="p-3 bg-[#FFFFFF] w-full rounded-lg h-[calc(100vh-2rem)] flex flex-col">
       <Tabs
@@ -413,7 +370,6 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
                 <POSTableAndCustomerBar
                   selectedTable={selectedTable}
                   onCreateCustomer={openCustomerModal}
-                  onCustomerSelect={setSelectedCustomerId}
                   selectedOrder={selectedOrder}
                   orderType={orderType}
                   selectedShipper={selectedShipper}
@@ -423,12 +379,6 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
               <div className="flex-1 overflow-y-auto min-h-[100px]">
                 <POSListOfOrder 
                 selectedOrder={selectedOrder}
-                isReloadAfterAddProduct={isReloadAfterAddProduct}
-                setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
-                isReloadAfterUpdateQuantity={isReloadAfterUpdateQuantity}
-                setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
-                isReloadAfterConfirm={isReloadAfterConfirm}
-                setIsReloadAfterConfirm={setIsReloadAfterConfirm}
                 />
               </div>
             </div>
@@ -438,15 +388,8 @@ const ModelRightSide: React.FC<props> = ({ selectedTable, selectedShipper, order
       <div className="flex-none border-none min-w-full rounded-mdflex-grow-0">
         <POSPayment 
         selectedOrder={selectedOrder}
-        isReloadAfterAddProduct={isReloadAfterAddProduct}
-        setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
-        isReloadAfterUpdateQuantity={isReloadAfterUpdateQuantity}
-        setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
-        isReloadAfterConfirm={isReloadAfterConfirm}
-        setIsReloadAfterConfirm={setIsReloadAfterConfirm}
         isReloadAfterPayment={isReloadAfterPayment}
         setIsReloadAfterPayment={setIsReloadAfterPayment}
-        order={order}
         orderType={orderType}
         />
       </div>

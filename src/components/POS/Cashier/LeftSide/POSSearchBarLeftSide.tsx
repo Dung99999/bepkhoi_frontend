@@ -7,7 +7,6 @@ const token = localStorage.getItem("Token");
 
 interface Props {
   selectedOrder: number | null;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
 }
 
 
@@ -80,6 +79,7 @@ async function fetchAddProductToOrder(
       {
         method: "POST",
         headers: {
+          "Authorization": "Bearer " + token,
           "Content-Type": "application/json",
           accept: "*/*",
         },
@@ -99,7 +99,7 @@ async function fetchAddProductToOrder(
     throw error;
   }
 }
-const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder, setIsReloadAfterAddProduct}) => {
+const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [allProducts, setAllProducts] = useState<menuItem[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<menuItem[]>([]);
@@ -148,7 +148,7 @@ const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder, setIsReloadAfterA
     if (selectedOrder != null) {
       try {
         const result = await fetchAddProductToOrder(selectedOrder, item.productId);
-        setIsReloadAfterAddProduct(true);
+        // setIsReloadAfterAddProduct(true);
         console.log("Product added:", result.message);
       } catch (error: any) {
         console.error("Failed to add product:", error.message);

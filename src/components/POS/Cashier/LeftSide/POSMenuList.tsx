@@ -8,8 +8,6 @@ const token = localStorage.getItem("Token");
 interface Props {
   selectedTable: number | null;
   selectedOrder: number | null;
-  isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
 }
 const ITEMS_PER_PAGE = 8;
 interface categoryOption {
@@ -137,9 +135,12 @@ async function fetchCategoryFilter(
     }
 
     // Gửi request với query parameters
-    const response = await fetch(
-      `${API_BASE_URL}api/Menu/filter-menu-pos?${query.toString()}`
-    );
+    const response = await fetch(`${API_BASE_URL}api/Menu/filter-menu-pos?${query.toString()}`, {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json",
+      }});
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -178,6 +179,7 @@ async function fetchAddProductToOrder(
       {
         method: "POST",
         headers: {
+          "Authorization": "Bearer " + token,
           "Content-Type": "application/json",
           accept: "*/*",
         },
@@ -201,8 +203,6 @@ async function fetchAddProductToOrder(
 const POSMenuList: React.FC<Props> = ({
   selectedTable,
   selectedOrder,
-  isReloadAfterAddProduct,
-  setIsReloadAfterAddProduct,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [categoryOptionList, setCategoryOptionList] = useState<
@@ -255,7 +255,7 @@ const POSMenuList: React.FC<Props> = ({
             selectedOrder,
             item.productId
           );
-          setIsReloadAfterAddProduct(true);
+          // setIsReloadAfterAddProduct(true);
           console.log("Product added:", result.message);
         } catch (error: any) {
           console.error("Failed to add product:", error.message);

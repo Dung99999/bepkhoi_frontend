@@ -19,8 +19,6 @@ interface SplitOrderModalProps {
   onCancel: () => void;
   onOk: () => void;
   selectedOrder: number | null;
-  setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
 }
 interface OrderModel {
   orderId: number;
@@ -383,8 +381,6 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
   onCancel,
   onOk,
   selectedOrder,
-  setIsReloadAfterUpdateQuantity,
-  setIsReloadAfterAddProduct
 }) => {
   const [splitMode, setSplitMode] = useState<"split" | "merge">("split");
   //Split to state
@@ -541,8 +537,6 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
       console.log("Tách đơn thành công:", result.message);
       message.success("Tách đơn thành công");
       onOk(); 
-      setIsReloadAfterUpdateQuantity(true);
-      setIsReloadAfterAddProduct(true);
     } else {
       console.error("Tách đơn thất bại:", result.error || result.message);
       message.error("Tách đơn thất bại. Vui lòng thử lại.");
@@ -557,8 +551,6 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
       const result = await fetchCombineOrder(request);
       if (result.success) {
         message.success(result.message);
-        setIsReloadAfterAddProduct(true);
-        setIsReloadAfterUpdateQuantity(true);
         onOk(); 
       } else {
         message.error(result.message);

@@ -9,8 +9,6 @@ interface ModelLeftSideProps {
   setSelectedTable: (tableId: number | null) => void;
   selectedOrder: number | null;
   setSelectedOrder: (orderId: number | null) => void;
-  isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
   selectedShipper: number | null;
   setSelectedShipper: (shipperId: number | null) => void;
   orderType: number | null;
@@ -36,8 +34,6 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
   setSelectedTable,
   selectedOrder,
   setSelectedOrder,
-  isReloadAfterAddProduct,
-  setIsReloadAfterAddProduct,
   selectedShipper,
   setSelectedShipper,
   orderType,
@@ -93,7 +89,6 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
         <div className="ml-[3vw] mr-[3vw]">
           <POSSearchBarLeftSide 
           selectedOrder={selectedOrder}
-          setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
           />
         </div>
       </div>
@@ -125,8 +120,6 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
           <POSMenuList
             selectedTable={selectedTable}
             selectedOrder={selectedOrder}
-            isReloadAfterAddProduct={isReloadAfterAddProduct}
-            setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
           />
         )}
       </div>

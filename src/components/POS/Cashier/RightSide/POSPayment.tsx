@@ -10,6 +10,7 @@ import React, { useState, useEffect } from "react";
 import DrawerPaymentFinal from "./DrawerPaymentFinal";
 import ModalSplitOrder from "./ModalSplitAndCombineOrders";
 import AddDeliveryInformation from "./AddDeliveryInformation";
+import useSignalR from "../../../../CustomHook/useSignalR";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 const token = localStorage.getItem("Token");
 
@@ -17,15 +18,8 @@ const token = localStorage.getItem("Token");
 
 interface Props {
   selectedOrder: number | null;
-  isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
-  isReloadAfterUpdateQuantity: boolean;
-  setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
-  isReloadAfterConfirm: boolean;
-  setIsReloadAfterConfirm: (isReload: boolean) => void;
   isReloadAfterPayment: boolean;
   setIsReloadAfterPayment: (isReload: boolean) => void;
-  order: OrderModel[];
   orderType: number | null;
 }
 
@@ -163,16 +157,33 @@ const fetchGeneralData = async (orderId: number): Promise<OrderGeneralDataPosDto
   }
 };
 
-const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterAddProduct , setIsReloadAfterAddProduct , isReloadAfterConfirm , setIsReloadAfterConfirm , isReloadAfterPayment , setIsReloadAfterPayment , order , orderType}) => {
+const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterPayment , setIsReloadAfterPayment  , orderType}) => {
   const [isModalNoteOrderOpen, setIsNoteOrderModalOpen] = useState(false);
   const [isModalSplitOrderOpen, setIsModalSplitOrderOpen] = useState(false);
   const [note, setNote] = useState("");
   const [isDrawerPaymentVisible, setIsDrawerPaymentVisible] = useState(false);
   const [orderData, setOrderData] = useState<OrderGeneralDataPosDto | null>(null);
   const [isAddDeliveryInformationOpen, setIsAddDeliveryInformationOpen] = useState<boolean>(false);
-
   const showDrawerPayment = () => setIsDrawerPaymentVisible(true);
   const onClosePaymentDrawer = () => setIsDrawerPaymentVisible(false);
+
+  useSignalR(
+    {
+      eventName: "OrderUpdate",
+      groupName: "order",
+      callback: (updatedOrderId: any) => {
+        const parsedId = Number(updatedOrderId);
+        if (isNaN(parsedId)) {
+          console.warn("OrderUpdate nhận dữ liệu không hợp lệ:", updatedOrderId);
+          return;
+        }
+        if (parsedId === selectedOrder) {
+          getOrderGeneralData();
+        }
+      },
+    },
+    [selectedOrder]
+  );
   const handleConfirm = async () => {
     if (orderData==null || selectedOrder==null) {
       message.warning("Không tìm thấy đơn hàng.");
@@ -185,7 +196,7 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
     const confirmed = await confirmOrderPos(selectedOrder);
     if (confirmed) {
       message.success("Đơn hàng đã được xác nhận!");
-      setIsReloadAfterConfirm(true);
+      // setIsReloadAfterConfirm(true);
     } else {
       message.error("Xác nhận đơn hàng thất bại.");
     }
@@ -202,26 +213,26 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
     getOrderGeneralData();
   }, [selectedOrder]);
 
-  useEffect(() => {
-    if(isReloadAfterAddProduct == true){
-      getOrderGeneralData();
-      setIsReloadAfterAddProduct(false);
-    }
-  }, [isReloadAfterAddProduct]);
+  // useEffect(() => {
+  //   if(isReloadAfterAddProduct == true){
+  //     getOrderGeneralData();
+  //     setIsReloadAfterAddProduct(false);
+  //   }
+  // }, [isReloadAfterAddProduct]);
 
-  useEffect(() => {
-    if(isReloadAfterUpdateQuantity == true){
-      getOrderGeneralData();
-      setIsReloadAfterUpdateQuantity(false);
-    }
-  }, [isReloadAfterUpdateQuantity]);
+  // useEffect(() => {
+  //   if(isReloadAfterUpdateQuantity == true){
+  //     getOrderGeneralData();
+  //     setIsReloadAfterUpdateQuantity(false);
+  //   }
+  // }, [isReloadAfterUpdateQuantity]);
 
-  useEffect(() => {
-    if(isReloadAfterConfirm == true){
-      getOrderGeneralData();
-      setIsReloadAfterConfirm(false);
-    }
-  }, [isReloadAfterConfirm]);
+  // useEffect(() => {
+  //   if(isReloadAfterConfirm == true){
+  //     getOrderGeneralData();
+  //     setIsReloadAfterConfirm(false);
+  //   }
+  // }, [isReloadAfterConfirm]);
   
   useEffect(() => {
     if (orderData?.orderNote && orderData.orderNote.trim() !== "") {
@@ -341,7 +352,6 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
         isVisible={isDrawerPaymentVisible}
         onClose={onClosePaymentDrawer}
         selectedOrder={selectedOrder}
-        order={order}
         isReloadAfterPayment={isReloadAfterPayment}
         setIsReloadAfterPayment={setIsReloadAfterPayment}
       />
@@ -394,8 +404,6 @@ const POSPayment: React.FC<Props> = ({ selectedOrder , isReloadAfterUpdateQuanti
           setIsModalSplitOrderOpen(false);
         }}
         selectedOrder={selectedOrder}
-        setIsReloadAfterUpdateQuantity={setIsReloadAfterUpdateQuantity}
-        setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
       />
     {/* {Modal Add Delivery Information} */}
     <AddDeliveryInformation

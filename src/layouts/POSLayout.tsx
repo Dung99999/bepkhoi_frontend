@@ -9,7 +9,6 @@ const POSLayout: React.FC = () => {
     const [selectedShipper, setSelectedShipper] = useState<number | null>(null);
     const [orderType, setOrderType] = useState<number | null>(null);    
     const [selectedOrder, setSelectedOrder] = useState<number|null>(null);
-    const [isReloadAfterAddProduct, setIsReloadAfterAddProduct] = useState(false);
 
     const handleSelectTable = (tableId: number | null) => {
         setSelectedTable(tableId);
@@ -25,12 +24,10 @@ const POSLayout: React.FC = () => {
                             setSelectedTable={handleSelectTable}
                             selectedOrder={selectedOrder}
                             setSelectedOrder={setSelectedOrder} 
-                            isReloadAfterAddProduct={isReloadAfterAddProduct}
-                            setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
                             selectedShipper={selectedShipper}
                             setSelectedShipper={setSelectedShipper}
                             orderType={orderType}
-                            setOrderType={setOrderType}
+                            setOrderType={setOrderType}                         
                         />
                     </div>
                     <div className="w-1/2">
@@ -40,8 +37,6 @@ const POSLayout: React.FC = () => {
                         orderType={orderType} 
                         selectedOrder={selectedOrder} 
                         setSelectedOrder={setSelectedOrder}
-                        isReloadAfterAddProduct={isReloadAfterAddProduct}
-                        setIsReloadAfterAddProduct={setIsReloadAfterAddProduct}
                         />
                     </div>
                 </div>

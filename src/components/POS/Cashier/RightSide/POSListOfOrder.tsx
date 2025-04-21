@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Input, message } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
-import SignalR_Connection from "../../../../services/signalRService";
+// import SignalR_Connection from "../../../../services/signalRService";
+import useSignalR from "../../../../CustomHook/useSignalR";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 const token = localStorage.getItem("Token");
 
 
 interface props {
   selectedOrder: number | null
-  isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
-  isReloadAfterUpdateQuantity: boolean;
-  setIsReloadAfterUpdateQuantity: (isReload: boolean) => void;
-  isReloadAfterConfirm: boolean;
-  setIsReloadAfterConfirm: (isReload: boolean) => void;
 }
 interface OrderDetailModel {
   orderDetailId: number;
@@ -210,7 +205,7 @@ async function fetchDeleteConfirmOrderDetail(
 }
 
 
-const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduct, setIsReloadAfterAddProduct , isReloadAfterUpdateQuantity , setIsReloadAfterUpdateQuantity , isReloadAfterConfirm , setIsReloadAfterConfirm }) => {
+const POSListOfOrder: React.FC<props> = ({ selectedOrder }) => {
   const [selectedOrders, setSelectedOrders] = useState<OrderDetailModel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentOrderDetail, setCurrentOrderDetail] = useState<OrderDetailModel | null>(null);
@@ -218,35 +213,51 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
   const [deleteReason, setDeleteReason] = useState("");
   const [deletingOrderDetailId, setDeletingOrderDetailId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!selectedOrder) return;
+  // useEffect(() => {
+  //   if (!selectedOrder) return;
+  //   const connection = SignalR_Connection;
+  //   const setupSignalRListeners = () => {
+  //     connection.on("OrderUpdate", (updatedOrderId: number) => {
+  //       if (updatedOrderId === selectedOrder) {
+  //         fetchData();
+  //         message.info(`Đơn hàng ${updatedOrderId} đã được cập nhật`);
+  //       }
+  //     });
+  //     connection.invoke("JoinGroup", "order")
+  //       .then()
+  //       .catch((err) => console.error("Join group thất bại:", err));
+  //   };
   
-    const connection = SignalR_Connection;
+  //   if (connection.state === "Disconnected") {
+  //     connection.start()
+  //       .then(() => {
+  //         setupSignalRListeners();
+  //       })
+  //       .catch(() => console.error("Kết nối SignalR thất bại"));
+  //   } else {
+  //     setupSignalRListeners();
+  //   }
   
-    const setupSignalRListeners = () => {
-      connection.on("ReceiveOrderUpdate", (updatedOrderId: number) => {
+  //   // 🧹 Cleanup khi unmount component
+  //   return () => {
+  //     connection.off("OrderUpdate");
+  //     connection.invoke("LeaveGroup", "order")
+  //       .then()
+  //       .catch((err) => console.error("Leave group thất bại:", err));
+  //   };
+  // }, [selectedOrder]);
+  useSignalR(
+    {
+      eventName: "OrderUpdate",
+      groupName: "order",
+      callback: (updatedOrderId: number) => {
         if (updatedOrderId === selectedOrder) {
-          console.log(`📡 Nhận sự kiện cập nhật cho order ${updatedOrderId}`);
-          fetchData(); 
+          fetchData();
         }
-      });
-    };
-  
-    if (connection.state === "Disconnected") {
-      connection.start()
-        .then(() => {
-          console.log("🔌 SignalR connected");
-          setupSignalRListeners();
-        })
-        .catch((err) => console.error("❌ Kết nối SignalR thất bại:", err));
-    } else {
-      setupSignalRListeners();
-    }
-  
-    return () => {
-      connection.off("ReceiveOrderUpdate"); // cleanup khi component unmount
-    };
-  }, [selectedOrder]);
+      },
+    },
+    [selectedOrder]
+  );
   
   const fetchData = async () => {
     const orderDetails = await fetchOrderDetail(selectedOrder);
@@ -263,8 +274,8 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
       };
       const updatedOrderDetail = await updateOrderDetailQuantity(request);
       if (updatedOrderDetail) {
-        fetchData();
-        setIsReloadAfterUpdateQuantity(true);
+        // fetchData();
+        // setIsReloadAfterUpdateQuantity(true);
       } else {
         console.error('Failed to update order detail');
       }
@@ -277,19 +288,19 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
     }
   }, [selectedOrder]);
 
-  useEffect(() => {
-    if (selectedOrder !== null && isReloadAfterAddProduct === true) {
-      fetchData();
-      setIsReloadAfterAddProduct(false);
-    }
-  }, [isReloadAfterAddProduct]);
+  // useEffect(() => {
+  //   if (selectedOrder !== null && isReloadAfterAddProduct === true) {
+  //     fetchData();
+  //     setIsReloadAfterAddProduct(false);
+  //   }
+  // }, [isReloadAfterAddProduct]);
 
-  useEffect(() => {
-    if (selectedOrder !== null && isReloadAfterConfirm == true) {
-      fetchData();
-      setIsReloadAfterConfirm(false);
-    }
-  }, [isReloadAfterConfirm]);
+  // useEffect(() => {
+  //   if (selectedOrder !== null && isReloadAfterConfirm == true) {
+  //     fetchData();
+  //     setIsReloadAfterConfirm(false);
+  //   }
+  // }, [isReloadAfterConfirm]);
   const openNoteModal = (orderDetail: OrderDetailModel) => {
     setCurrentOrderDetail({...orderDetail});
     setIsModalOpen(true);
@@ -336,7 +347,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
         setIsModalDeleteOrderdetailOpen(false);
         message.success("Xóa món thành công");
         setDeletingOrderDetailId(null);
-        setIsReloadAfterUpdateQuantity(true);
+        // setIsReloadAfterUpdateQuantity(true);
       }
     } else {
       const success = await fetchDeleteUnconfirmOrderDetail(
@@ -347,7 +358,7 @@ const POSListOfOrder: React.FC<props> = ({ selectedOrder, isReloadAfterAddProduc
         fetchData();
         message.success("Xóa món thành công");
         setDeletingOrderDetailId(null);
-        setIsReloadAfterUpdateQuantity(true);
+        // setIsReloadAfterUpdateQuantity(true);
       }
     }
   };
