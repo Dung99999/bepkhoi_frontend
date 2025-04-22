@@ -431,30 +431,17 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
     }));
     const result = await fetchCreateInvoiceForPayment(invoiceInfo, invoiceDetails);
     if (result.success) {
-      setIsReloadAfterPayment(true);
-      onClose(); 
       if(result.invoiceId){
         try {
           await fetchVnPayUrl(result.invoiceId);
-          setIsReloadAfterPayment(true);
-          onClose(); 
         } catch (error) {
           console.error("Lỗi khi xử lý thanh toán vnpay:", error);
         }
-        printInvoicePdf(result.invoiceId);
       }
     } else {
       message.error(`Thanh toán thất bại: ${result.message}`);
       console.error("Chi tiết lỗi:", result.error);
     }
-    /////////////////////
-    // const orderId = 1;
-    // try {
-    //   await fetchVnPayUrl(orderId);
-    // } catch (error) {
-    //   console.error("Lỗi khi xử lý thanh toán:", error);
-    //   alert("Có lỗi xảy ra khi thanh toán.");
-    // }
   };
 
   return (
