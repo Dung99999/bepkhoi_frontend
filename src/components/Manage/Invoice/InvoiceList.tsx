@@ -93,7 +93,7 @@ const InvoiceList: React.FC<Props> = ({ invoices, loading }) => {
   const expandedRowRender = (record: Invoice) => {
     return (
       <div className="bg-gray-50 p-[0.5vw] rounded-[1.5vw] border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-[1vw] gap-[0.5vw] mb-[0.5vw]">
+        <div className="grid grid-cols-1 gap-[0.5vw] mb-[0.5vw]">
           <div className="bg-white p-[0.75vw] rounded-lg shadow-sm">
             <h3 className="font-semibold text-gray-700 mb-[0.5vw]">
               Thông tin hóa đơn

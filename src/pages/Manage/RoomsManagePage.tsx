@@ -52,9 +52,9 @@ const RoomsManagePage: React.FC = () => {
       if (search) {
         apiUrl = `${
           process.env.REACT_APP_API_APP_ENDPOINT
-        }api/rooms/search-by-name?limit=1000&name=${encodeURIComponent(
-          search
-        )}`;
+          }api/rooms/search-by-name?limit=1000&name=${encodeURIComponent(
+            search
+          )}`;
       }
 
       const response = await fetch(apiUrl);
@@ -222,7 +222,7 @@ const RoomsManagePage: React.FC = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.message ||
-            "Bàn đã ngừng kinh doanh. Vui lòng cập nhật trạng thái!"
+          "Bàn đã ngừng kinh doanh. Vui lòng cập nhật trạng thái!"
         );
       }
 
@@ -269,11 +269,11 @@ const RoomsManagePage: React.FC = () => {
 
   const handleGenerateQR = async () => {
     if (!selectedRoom) return;
-
+    const path = `${window.location.origin}/shopRedirect/`;
     setQrLoading(true);
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/generate-qr/${selectedRoom.roomId}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/generate-qr/${selectedRoom.roomId}?UrlBase=${encodeURIComponent(path)}`,
         {
           method: "POST",
           headers: {

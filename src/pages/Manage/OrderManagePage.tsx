@@ -39,6 +39,7 @@ const OrderManagePage: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const fetchOrders = async (fromDate?: string, toDate?: string) => {
     setLoading(true);
@@ -148,6 +149,8 @@ const OrderManagePage: React.FC = () => {
           dateTo={dateTo}
           setDateFrom={setDateFrom}
           setDateTo={setDateTo}
+          search={search}
+          setSearch={setSearch}
         />
         <main className="flex-1 overflow-auto">
           <div className="flex justify-between items-center mb-4">
