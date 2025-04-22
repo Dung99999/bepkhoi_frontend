@@ -4,6 +4,7 @@ import { SaveOutlined, CloseOutlined, KeyOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
+const token = localStorage.getItem("Token");
 
 interface User {
   userId: number;
@@ -26,7 +27,7 @@ interface Props {
 const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
   const [formData, setFormData] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("UserId");
   const navigate = useNavigate(); 
 
   useEffect(() => {
@@ -38,7 +39,15 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
   const fetchUserData = async (id: string) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${process.env.REACT_APP_API_APP_ENDPOINT}get-user-by-id/${id}`);
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}get-user-by-id/${id}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json", 
+          },
+        }
+      );
       const user = response.data.data;
       setFormData({
         ...user,
@@ -72,7 +81,16 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
     };
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_APP_ENDPOINT}update-user/${userId}`, payload);
+      await axios.put(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}update-user/${userId}`,
+        payload,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       message.success("Cập nhật thành công!");
       onClose();
       onReload();

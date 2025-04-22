@@ -89,8 +89,7 @@ const HeaderManage: React.FC = () => {
             <span>Tiếng Việt (VN)</span>
           </button>
           <div className="flex items-center gap-[0.3vw]">
-            <PhoneOutlined />
-            <span className="font-medium text-yellow-500">0975307087</span>
+            <span className="font-bold text-yellow-500">{localStorage.getItem("UserName")}</span>
           </div>
           <button
             onClick={handleOpenModal}

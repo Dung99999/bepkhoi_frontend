@@ -28,11 +28,12 @@ interface AddMenuModalProps {
   onClose: () => void;
 }
 
+const token = localStorage.getItem("Token");
+
 const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
-  const [productCategories, setProductCategories] = useState<ProductCategory[]>(
-    []
-  );
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [fileList, setFileList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     productName: "",
     productCategoryId: null as number | null,
@@ -55,6 +56,31 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
     salePrice: false,
     unitId: false,
   });
+
+  const resetForm = () => {
+    setFormData({
+      productName: "",
+      productCategoryId: null,
+      costPrice: null,
+      sellPrice: null,
+      salePrice: null,
+      productVat: 10,
+      description: "",
+      unitId: null,
+      isAvailable: true,
+      status: true,
+      isDelete: false,
+    });
+    setFileList([]);
+    setErrors({
+      productName: false,
+      productCategoryId: false,
+      costPrice: false,
+      sellPrice: false,
+      salePrice: false,
+      unitId: false,
+    });
+  };
 
   useEffect(() => {
     fetchProductCategories();
@@ -128,7 +154,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
         formData.salePrice !== null &&
         formData.costPrice !== null &&
         formData.sellPrice !== null &&
-        (formData.salePrice < formData.costPrice &&
+        (formData.salePrice < formData.costPrice ||
           formData.salePrice > formData.sellPrice)
           ? true
           : false,
@@ -140,7 +166,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
     if (Object.values(newErrors).some((error) => error)) {
       if (newErrors.costPrice) message.error("Giá nhập gốc phải lớn hơn 0");
       if (newErrors.sellPrice)
-        message.error("Giá bán phải lớn hơn hoặc bằng giá bán");
+        message.error("Giá bán phải lớn hơn hoặc bằng giá nhập gốc");
       if (newErrors.salePrice)
         message.error(
           "Giá khuyến mãi phải nằm trong khoảng giá gốc và giá bán"
@@ -155,14 +181,39 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
     if (!validateForm()) return;
 
     try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("ProductName", formData.productName);
+      formDataToSend.append("ProductCategoryId", formData.productCategoryId!.toString());
+      formDataToSend.append("CostPrice", formData.costPrice!.toString());
+      formDataToSend.append("SellPrice", formData.sellPrice!.toString());
+      if (formData.salePrice !== null) {
+        formDataToSend.append("SalePrice", formData.salePrice.toString());
+      }
+      formDataToSend.append("ProductVat", formData.productVat.toString());
+      if (formData.description) {
+        formDataToSend.append("Description", formData.description);
+      }
+      formDataToSend.append("UnitId", formData.unitId!.toString());
+      formDataToSend.append("IsAvailable", formData.isAvailable.toString());
+      formDataToSend.append("Status", formData.status.toString());
+
+      // Thêm file ảnh nếu có
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        formDataToSend.append("Image", fileList[0].originFileObj);
+      }
+
       const response = await fetch("https://localhost:7257/api/Menu/add", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formDataToSend,
       });
+
       const result = await response.json();
       if (response.ok) {
         message.success("Món ăn đã được thêm thành công!");
+        resetForm();
         onClose();
       } else {
         message.error(result.message || "Lỗi khi thêm món ăn");
@@ -176,7 +227,10 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
     <Modal
       title="Thêm hàng hóa"
       open={visible}
-      onCancel={onClose}
+      onCancel={() => {
+        resetForm();
+        onClose();
+      }}
       footer={null}
       width={800}
       className="p-4"
@@ -263,7 +317,13 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
           </div>
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">Thêm ảnh:</label>
-            <Upload>
+            <Upload
+              fileList={fileList}
+              beforeUpload={() => false}
+              onChange={({ fileList }) => setFileList(fileList)}
+              accept="image/*"
+              maxCount={1}
+            >
               <Button icon={<UploadOutlined />}>Upload</Button>
             </Upload>
           </div>
@@ -333,7 +393,10 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
         >
           Lưu
         </Button>
-        <Button className="bg-gray-300 px-6 py-2 rounded-md" onClick={onClose}>
+        <Button className="bg-gray-300 px-6 py-2 rounded-md" onClick={() => {
+          resetForm();
+          onClose();
+        }}>
           Bỏ qua
         </Button>
       </div>

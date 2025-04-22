@@ -84,7 +84,7 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
                         <div className="w-5/12 flex flex-col">
                             <h3 className="text-lg font-semibold mb-4">{data.productName}</h3>
                             <img
-                                src="https://scontent.fhan2-4.fna.fbcdn.net/v/t39.30808-6/475727971_3953200668258684_3644677166554499849_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeE-_jy99-pQ1ieraOKZhwyrBC1rB0X3P4sELWsHRfc_i64FioIMe_P0OU5MGMAF0SySCN88EINfLtfWtKTBEhq9&_nc_ohc=2D-vTpCVpNAQ7kNvgEwBSbB&_nc_oc=AdgBEdFuEvcLF_p8aOBl3tCpiI2FTh_cYl6NndpO4WaL0KdIf_10V2ggut8K0oTOgQI&_nc_zt=23&_nc_ht=scontent.fhan2-4.fna&_nc_gid=3SDnosxQifGxiQFtKycVcA&oh=00_AYH23S8nMaN4sFN2_nhBo8k6U-VJINpRQghkssZhvGNfeQ&oe=67DE598F"
+                                src=""
                                 alt={data.productName}
                                 className="w-full h-auto rounded-lg object-cover"
                             />
