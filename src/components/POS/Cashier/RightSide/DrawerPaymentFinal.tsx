@@ -485,7 +485,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
             {/* List of order */}
             <div className="pt-3 border-t-2">
               <div className="font-semibold bg-gray-200 w-full p-2">
-                Thông tin Order
+                Mã Đơn Hàng {selectedOrder}
               </div>
               {/* List of order */}
               <table className="w-full mt-2">
