@@ -1,5 +1,6 @@
 import React from "react";
-import { Modal, Descriptions, Divider, Table, Button } from "antd";
+import { Modal, Descriptions, Divider, Table, Button, Skeleton, Collapse } from "antd";
+import type { ColumnsType } from "antd/es/table";
 
 interface OrderDetailItem {
   orderDetailId: number;
@@ -7,6 +8,25 @@ interface OrderDetailItem {
   quantity: number;
   price: number;
   productNote: string;
+}
+
+interface DeliveryInformation {
+  deliveryInformationId: number;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  deliveryNote: string;
+}
+
+interface CancellationHistoryItem {
+  orderCancellationHistoryId: number;
+  orderId: number;
+  cashierId: number;
+  cashierName: string;
+  productId: number;
+  productName: string;
+  quantity: number;
+  reason: string;
 }
 
 interface OrderDetailProps {
@@ -18,8 +38,14 @@ interface OrderDetailProps {
   orderNote?: string;
   items: OrderDetailItem[];
   loading: boolean;
+  deliveryInfo?: DeliveryInformation | null;
+  deliveryLoading?: boolean;
+  cancellationHistory: CancellationHistoryItem[];
+  historyLoading: boolean;
   onClose: () => void;
 }
+
+const { Panel } = Collapse;
 
 const OrderDetail: React.FC<OrderDetailProps> = ({
   visible,
@@ -30,8 +56,37 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
   orderNote,
   items,
   loading,
+  deliveryInfo,
+  deliveryLoading,
+  cancellationHistory,
+  historyLoading,
   onClose
 }) => {
+  const cancellationColumns: ColumnsType<CancellationHistoryItem> = [
+    {
+      title: "Món đã hủy",
+      dataIndex: "productName",
+      key: "productName",
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      key: "quantity",
+      align: 'center',
+    },
+    {
+      title: "Nhân viên",
+      dataIndex: "cashierName",
+      key: "cashierName",
+    },
+    {
+      title: "Lý do",
+      dataIndex: "reason",
+      key: "reason",
+      render: (reason) => reason || 'Không có lý do',
+    },
+  ];
+
   return (
     <Modal
       title={`Chi tiết đơn hàng #${orderId}`}
@@ -63,8 +118,33 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
             </Descriptions.Item>
           </Descriptions>
 
+          {deliveryLoading ? (
+            <div className="mt-4">
+              <Divider orientation="left">Thông tin giao hàng</Divider>
+              <Skeleton active paragraph={{ rows: 4 }} />
+            </div>
+          ) : deliveryInfo ? (
+            <>
+              <Divider orientation="left">Thông tin giao hàng</Divider>
+              <Descriptions bordered column={2}>
+                <Descriptions.Item label="Người nhận">
+                  {deliveryInfo.receiverName}
+                </Descriptions.Item>
+                <Descriptions.Item label="Số điện thoại">
+                  {deliveryInfo.receiverPhone}
+                </Descriptions.Item>
+                <Descriptions.Item label="Địa chỉ" span={2}>
+                  {deliveryInfo.receiverAddress}
+                </Descriptions.Item>
+                <Descriptions.Item label="Ghi chú giao hàng" span={2}>
+                  {deliveryInfo.deliveryNote || 'Không có ghi chú'}
+                </Descriptions.Item>
+              </Descriptions>
+            </>
+          ) : null}
+
           <Divider orientation="left">Danh sách món</Divider>
-          
+
           <Table<OrderDetailItem>
             rowKey="orderDetailId"
             dataSource={items}
@@ -100,6 +180,24 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               },
             ]}
           />
+
+          {cancellationHistory.length > 0 && (
+            <>
+              <Divider orientation="left">Lịch sử hủy món</Divider>
+              <Collapse defaultActiveKey={['1']}>
+                <Panel header="Xem chi tiết các món đã hủy" key="1">
+                  <Table<CancellationHistoryItem>
+                    rowKey="orderCancellationHistoryId"
+                    dataSource={cancellationHistory}
+                    loading={historyLoading}
+                    pagination={false}
+                    columns={cancellationColumns}
+                    size="small"
+                  />
+                </Panel>
+              </Collapse>
+            </>
+          )}
         </>
       )}
     </Modal>

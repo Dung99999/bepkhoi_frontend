@@ -3,7 +3,6 @@ import OrderList from "../../components/Manage/Order/OrderList";
 import OrderDetail from "../../components/Manage/Order/OrderDetail";
 import Sidebar from "../../components/Manage/Order/SideBar";
 
-// Thêm token ở đầu file
 const token = localStorage.getItem("Token");
 
 interface Customer {
@@ -19,6 +18,7 @@ interface Order {
   amountDue: number;
   orderNote: string;
   customerName?: string;
+  deliveryInformationId: number | null;
 }
 
 interface OrderDetailItem {
@@ -27,6 +27,25 @@ interface OrderDetailItem {
   quantity: number;
   price: number;
   productNote: string;
+}
+
+interface DeliveryInformation {
+  deliveryInformationId: number;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  deliveryNote: string;
+}
+
+interface CancellationHistoryItem {
+  orderCancellationHistoryId: number;
+  orderId: number;
+  cashierId: number;
+  cashierName: string;
+  productId: number;
+  productName: string;
+  quantity: number;
+  reason: string;
 }
 
 const OrderManagePage: React.FC = () => {
@@ -40,6 +59,57 @@ const OrderManagePage: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInformation | null>(null);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [cancellationHistory, setCancellationHistory] = useState<CancellationHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchDeliveryInfo = async (deliveryInfoId: number) => {
+    setDeliveryLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/DeliveryInformation/${deliveryInfoId}`,
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch delivery information");
+
+      const data = await response.json();
+      setDeliveryInfo(data.data);
+    } catch (error) {
+      console.error("Error fetching delivery information:", error);
+      setDeliveryInfo(null);
+    } finally {
+      setDeliveryLoading(false);
+    }
+  };
+
+  const fetchCancellationHistory = async (orderId: number) => {
+    setHistoryLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/cancellation-history/${orderId}`,
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch cancellation history");
+      const data = await response.json();
+      setCancellationHistory(data.data || []);
+    } catch (error) {
+      console.error("Error fetching cancellation history:", error);
+      setCancellationHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const fetchOrders = async (fromDate?: string, toDate?: string) => {
     setLoading(true);
@@ -125,6 +195,12 @@ const OrderManagePage: React.FC = () => {
     setSelectedOrder(record);
     setIsDetailModalOpen(true);
     await fetchOrderDetails(record.orderId);
+    if (record.deliveryInformationId) {
+      await fetchDeliveryInfo(record.deliveryInformationId);
+    } else {
+      setDeliveryInfo(null);
+    }
+    await fetchCancellationHistory(record.orderId);
   };
 
   useEffect(() => {
@@ -172,6 +248,10 @@ const OrderManagePage: React.FC = () => {
         orderNote={selectedOrder?.orderNote}
         items={orderDetails}
         loading={detailLoading}
+        deliveryInfo={deliveryInfo}
+        deliveryLoading={deliveryLoading}
+        cancellationHistory={cancellationHistory}
+        historyLoading={historyLoading}
         onClose={() => setIsDetailModalOpen(false)}
       />
     </div>
