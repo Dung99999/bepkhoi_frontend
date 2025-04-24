@@ -9,7 +9,27 @@ interface CustomerInfo {
     phone: string;
     name: string;
 }
-
+async function notifyCustomerJoin(roomId:number, customerId:number, customerName:string, phone:string) {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/notify-customer-join`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ roomId: roomId, customerId: customerId, customerName: customerName, phone: phone }),
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        console.log("Sự kiện CustomerJoin đã được gửi:", result.message);
+      } else {
+        console.error("Lỗi gửi sự kiện:", result.message);
+      }
+    } catch (error) {
+      console.error("Lỗi kết nối tới server:", error);
+    }
+  }
+  
 const GuessPage: React.FC = () => {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [name, setName] = useState("");
@@ -126,7 +146,6 @@ const GuessPage: React.FC = () => {
                         method: 'POST',
                         headers: {
                              'Content-Type': 'application/json',
-                              Authorization: `Bearer ${token}`,
                             },
                         body: JSON.stringify({ phone: phoneNumber, customerName: name })
                     }
@@ -139,10 +158,7 @@ const GuessPage: React.FC = () => {
                 const newSearchResponse = await fetch(
                     `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${phoneNumber}`,
                     {
-                      method: "GET",
-                      headers: {
-                        Authorization: `Bearer ${token}`
-                      }
+                      method: "GET"
                     }
                   );
                 customerData = await newSearchResponse.json();
@@ -158,6 +174,8 @@ const GuessPage: React.FC = () => {
             if (!customerInfo.customerId) throw new Error("Không có thông tin khách hàng");
 
             sessionStorage.setItem('customerInfo', JSON.stringify(customerInfo));
+            const roomId = parseInt(sessionStorage.getItem('roomId') || '0', 10);
+            notifyCustomerJoin(roomId, Number(customerInfo.customerId), customerInfo.name, customerInfo.phone);
             navigate('/shop/menu');
         } catch (err) {
             setError(err instanceof Error ? err.message : "Có lỗi xảy ra");

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import MenuList from "../../components/Shop/Menu/MenuList";
 import MenuTop from "../../components/Shop/Menu/MenuTop";
 import ProductModal from "../../components/Shop/Menu/ProductModal";
 import { Drawer } from "antd";
 import axios from "axios";
+import useSignalR from "../../CustomHook/useSignalR";
 const token = localStorage.getItem("Token"); 
 
 interface Product {
@@ -201,6 +202,36 @@ const MenuPage: React.FC = () => {
         setIsModalVisible(false);
         setSelectedProduct(null);
     };
+    const debounceOrderListUpdate = useCallback(() => {
+        let timeout: NodeJS.Timeout;
+        return (data: { customerId: number }) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const customerInfo = sessionStorage.getItem("customerInfo");
+                let storedCustomerId: number | null = null;
+                if (customerInfo) {
+                    try {
+                        storedCustomerId = JSON.parse(customerInfo).customerId;
+                    } catch (error) {
+                        return
+                    }
+                    if (data.customerId === storedCustomerId) {
+                        fetchOrderIds();
+                    } else {
+                        return
+                    }
+                }
+            }, 500);
+        };
+    }, [fetchOrderIds]);
+      useSignalR(
+        {
+          eventName: "CustomerOrderListUpdate",
+          groupName: "order",
+          callback: debounceOrderListUpdate(),
+        },
+        [debounceOrderListUpdate]
+      );
 
     useEffect(() => {
         fetchAllData();
