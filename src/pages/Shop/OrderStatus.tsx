@@ -3,8 +3,9 @@ import CartAction from "../../components/Shop/Cart/CartAction";
 import { useNavigate } from "react-router-dom";
 import { Spin, Tag } from "antd";
 import axios from "axios";
+import useSignalR from "../../CustomHook/useSignalR";
 const token = localStorage.getItem("Token");
-
+const selectedOrder = parseInt(sessionStorage.getItem('selectedOrderId') || '0', 10);
 interface OrderDetail {
     orderDetailId: number;
     orderId: number;
@@ -20,34 +21,44 @@ const OrderStatus: React.FC = () => {
     const [orderDetails, setOrderDetails] = useState<OrderDetail[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchOrderDetails = async () => {
-            try {
-                const orderId = sessionStorage.getItem('selectedOrderId');
-                if (!orderId) {
-                    navigate('/shop/menu');
-                    return;
-                }
-
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/get-order-details-by-order-id`,
-                    {
-                      params: { orderId },
-                      headers: {
-                        Authorization: `Bearer ${token}`
-                      }
-                    }
-                  );
-                
-                setOrderDetails(response.data || []);
-            } catch (error) {
-                console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
-            } finally {
-                setLoading(false);
+    useSignalR(
+        {
+          eventName: "OrderUpdate",
+          groupName: "order",
+          callback: (updatedOrderId: number) => {
+            if (updatedOrderId === selectedOrder) {
+                fetchOrderDetails();
             }
-        };
+          },
+        },
+        [selectedOrder]
+      );
+      const fetchOrderDetails = async () => {
+        try {
+            const orderId = sessionStorage.getItem('selectedOrderId');
+            if (!orderId) {
+                navigate('/shop/menu');
+                return;
+            }
 
+            const response = await axios.get(
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/get-order-details-by-order-id`,
+                {
+                  params: { orderId },
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+              );
+            
+            setOrderDetails(response.data || []);
+        } catch (error) {
+            console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
         fetchOrderDetails();
     }, [navigate]);
 

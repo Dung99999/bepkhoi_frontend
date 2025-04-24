@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import ModelLeftSide from "../components/POS/Cashier/LeftSide/ModelLeftSide";
 import ModelRightSide from "../components/POS/Cashier/RightSide/ModelRightSide";
+import useSignalR from "../CustomHook/useSignalR";
+import { message } from "antd";
 
 const POSLayout: React.FC = () => {
     const location = useLocation();
@@ -9,11 +11,35 @@ const POSLayout: React.FC = () => {
     const [selectedShipper, setSelectedShipper] = useState<number | null>(null);
     const [orderType, setOrderType] = useState<number | null>(null);    
     const [selectedOrder, setSelectedOrder] = useState<number|null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleSelectTable = (tableId: number | null) => {
         setSelectedTable(tableId);
     }
-
+    interface CustomerJoinEvent {
+        roomId: number;
+        customerId: number;
+        customerName: string;
+        phone: string;
+      }
+    const debounceCustomerJoin = useCallback(() => {
+        return (data: CustomerJoinEvent) => {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(() => {
+            message.info(
+              `Khách hàng ${data.customerName} (ID: ${data.customerId}, SĐT: ${data.phone}) đã vào phòng ${data.roomId}`
+            );
+          }, 500);
+        };
+      }, []);
+      useSignalR(
+        {
+          eventName: "CustomerJoin",
+          groupName: "common",
+          callback: debounceCustomerJoin(),
+        },
+        [debounceCustomerJoin]
+      );
     return (
         <div className="min-h-screen w-full bg-[#faedd7] flex">
             {location.pathname === "/pos/cashier" ? (
