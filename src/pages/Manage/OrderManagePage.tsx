@@ -3,7 +3,6 @@ import OrderList from "../../components/Manage/Order/OrderList";
 import OrderDetail from "../../components/Manage/Order/OrderDetail";
 import Sidebar from "../../components/Manage/Order/SideBar";
 
-// Thêm token ở đầu file
 const token = localStorage.getItem("Token");
 
 interface Customer {
@@ -19,6 +18,7 @@ interface Order {
   amountDue: number;
   orderNote: string;
   customerName?: string;
+  deliveryInformationId: number | null;
 }
 
 interface OrderDetailItem {
@@ -27,6 +27,25 @@ interface OrderDetailItem {
   quantity: number;
   price: number;
   productNote: string;
+}
+
+interface DeliveryInformation {
+  deliveryInformationId: number;
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  deliveryNote: string;
+}
+
+interface CancellationHistoryItem {
+  orderCancellationHistoryId: number;
+  orderId: number;
+  cashierId: number;
+  cashierName: string;
+  productId: number;
+  productName: string;
+  quantity: number;
+  reason: string;
 }
 
 const OrderManagePage: React.FC = () => {
@@ -40,43 +59,105 @@ const OrderManagePage: React.FC = () => {
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInformation | null>(null);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [cancellationHistory, setCancellationHistory] = useState<CancellationHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
-  const fetchOrders = async (fromDate?: string, toDate?: string) => {
-    setLoading(true);
+  const fetchDeliveryInfo = async (deliveryInfoId: number) => {
+    setDeliveryLoading(true);
     try {
-      const baseUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders`;
-      const url =
-        fromDate && toDate
-          ? `${baseUrl}/filter-by-date?fromDate=${fromDate}&toDate=${toDate}`
-          : `${baseUrl}/get-all-orders`;
-
-      const response = await fetch(url, {
-        headers: {
-          Authorization: "Bearer " + token,
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      });
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/DeliveryInformation/${deliveryInfoId}`,
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch delivery information");
 
       const data = await response.json();
-      const ordersData = data.data || [];
-
-      const ordersWithCustomerNames = ordersData.map((order: Order) => ({
-        ...order,
-        customerName:
-          customers.find((c) => c.customerId === order.customerId)
-            ?.customerName || "Khách vãng lai",
-      }));
-
-      setOrders(ordersWithCustomerNames);
+      setDeliveryInfo(data.data);
     } catch (error) {
-      console.error("Error fetching orders:", error);
-      setOrders([]);
+      console.error("Error fetching delivery information:", error);
+      setDeliveryInfo(null);
     } finally {
-      setLoading(false);
+      setDeliveryLoading(false);
     }
   };
+
+  const fetchCancellationHistory = async (orderId: number) => {
+    setHistoryLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/cancellation-history/${orderId}`,
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch cancellation history");
+      const data = await response.json();
+      setCancellationHistory(data.data || []);
+    } catch (error) {
+      console.error("Error fetching cancellation history:", error);
+      setCancellationHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+  setLoading(true);
+  try {
+    let url = `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/filter-by-date-and-order-id`;
+    
+    const formatDateForAPI = (dateString: string | null): string | null => {
+      if (!dateString) return null;
+      const parts = dateString.split('/');
+      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateString;
+    };
+
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('fromDate', formatDateForAPI(dateFrom) || '');
+    if (dateTo) params.append('toDate', formatDateForAPI(dateTo) || '');
+    if (search) params.append('orderId', search);
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    });
+    if (!response.ok) 
+      throw new Error(`HTTP error! status: ${response.status}`);
+
+    const data = await response.json();
+    const ordersData = data.data || [];
+
+    const ordersWithCustomerNames = ordersData.map((order: Order) => ({
+      ...order,
+      customerName:
+        customers.find((c) => c.customerId === order.customerId)
+          ?.customerName || "Khách vãng lai",
+    }));
+
+    setOrders(ordersWithCustomerNames);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchCustomers = async () => {
     try {
@@ -125,6 +206,12 @@ const OrderManagePage: React.FC = () => {
     setSelectedOrder(record);
     setIsDetailModalOpen(true);
     await fetchOrderDetails(record.orderId);
+    if (record.deliveryInformationId) {
+      await fetchDeliveryInfo(record.deliveryInformationId);
+    } else {
+      setDeliveryInfo(null);
+    }
+    await fetchCancellationHistory(record.orderId);
   };
 
   useEffect(() => {
@@ -133,13 +220,9 @@ const OrderManagePage: React.FC = () => {
 
   useEffect(() => {
     if (customers.length > 0) {
-      if (dateFrom && dateTo) {
-        fetchOrders(dateFrom, dateTo);
-      } else {
-        fetchOrders();
-      }
+      fetchOrders();
     }
-  }, [customers, dateFrom, dateTo]);
+  }, [customers, dateFrom, dateTo, search]);
 
   return (
     <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">
@@ -172,6 +255,10 @@ const OrderManagePage: React.FC = () => {
         orderNote={selectedOrder?.orderNote}
         items={orderDetails}
         loading={detailLoading}
+        deliveryInfo={deliveryInfo}
+        deliveryLoading={deliveryLoading}
+        cancellationHistory={cancellationHistory}
+        historyLoading={historyLoading}
         onClose={() => setIsDetailModalOpen(false)}
       />
     </div>
