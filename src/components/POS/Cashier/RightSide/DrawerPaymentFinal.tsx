@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Drawer,
   Dropdown,
@@ -14,6 +14,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { CheckboxGroupProps } from "antd/es/checkbox";
+import useSignalR from "../../../../CustomHook/useSignalR";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 const token = localStorage.getItem("Token");
 
@@ -281,7 +282,34 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
   const [discount, setDiscount] = useState<number>(0);
   const [finalAmount, setFinalAmount] = useState<number>();
   const [customerPayAmount, setCustomerPayAmount] = useState<number>(0);
+  const [currentVnpayInvoice, setCurrentVnpayInvoice] = useState<number | null>(null);
 
+  const debounceOrderListUpdate = useCallback(() => {
+    let timeout: NodeJS.Timeout;
+    return (data: { invoiceId: number, status: boolean }) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (Number(currentVnpayInvoice) == Number(data.invoiceId)) {
+          if(data.status) {
+            message.info("Đơn hàng đã được thanh toán thành công!");
+            printInvoicePdf(data.invoiceId);
+          }else{
+            message.warning("Thanh toán đơn hàng thất bại. Vui lòng thử lại!");
+          }
+        } else {
+          return
+        }
+      }, 500);
+    };
+  }, [printInvoicePdf, currentVnpayInvoice]);
+  useSignalR(
+    {
+      eventName: "PaymentStatus",
+      groupName: "payment",
+      callback: debounceOrderListUpdate(),
+    },
+    [debounceOrderListUpdate]
+  );
   const getOrderPayment = async (orderId: number) => {
     const result = await fetchOrderPayment(orderId);
     if (result === null) {
@@ -311,6 +339,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
         getOrderPayment(selectedOrder);
         setOtherPayment(0);
         setDiscount(0);
+        setCurrentVnpayInvoice(null);
       }
     }
   }, [isVisible]);
@@ -403,7 +432,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
       return;
     }
     const invoiceInfo: InvoiceForPaymentDto = {
-      paymentMethodId: 1, // Tiền mặt
+      paymentMethodId: 2, 
       orderId: orderPaymentInfo.orderId,
       orderTypeId: orderPaymentInfo.orderTypeId,
       cashierId: 2, 
@@ -434,6 +463,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
       if(result.invoiceId){
         try {
           await fetchVnPayUrl(result.invoiceId);
+          setCurrentVnpayInvoice(result.invoiceId);
         } catch (error) {
           console.error("Lỗi khi xử lý thanh toán vnpay:", error);
         }
