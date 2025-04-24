@@ -10,6 +10,7 @@ interface Order {
     amountDue: number;
     orderNote: string;
     customerName?: string;
+    deliveryInformationId: number | null;
 }
 
 interface OrderListProps {
