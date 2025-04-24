@@ -111,42 +111,53 @@ const OrderManagePage: React.FC = () => {
     }
   };
 
-  const fetchOrders = async (fromDate?: string, toDate?: string) => {
-    setLoading(true);
-    try {
-      const baseUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders`;
-      const url =
-        fromDate && toDate
-          ? `${baseUrl}/filter-by-date?fromDate=${fromDate}&toDate=${toDate}`
-          : `${baseUrl}/get-all-orders`;
+  const fetchOrders = async () => {
+  setLoading(true);
+  try {
+    let url = `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/filter-by-date-and-order-id`;
+    
+    const formatDateForAPI = (dateString: string | null): string | null => {
+      if (!dateString) return null;
+      const parts = dateString.split('/');
+      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateString;
+    };
 
-      const response = await fetch(url, {
-        headers: {
-          Authorization: "Bearer " + token,
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      });
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
-      const data = await response.json();
-      const ordersData = data.data || [];
-
-      const ordersWithCustomerNames = ordersData.map((order: Order) => ({
-        ...order,
-        customerName:
-          customers.find((c) => c.customerId === order.customerId)
-            ?.customerName || "Khách vãng lai",
-      }));
-
-      setOrders(ordersWithCustomerNames);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      setOrders([]);
-    } finally {
-      setLoading(false);
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('fromDate', formatDateForAPI(dateFrom) || '');
+    if (dateTo) params.append('toDate', formatDateForAPI(dateTo) || '');
+    if (search) params.append('orderId', search);
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
     }
-  };
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    });
+    if (!response.ok) 
+      throw new Error(`HTTP error! status: ${response.status}`);
+
+    const data = await response.json();
+    const ordersData = data.data || [];
+
+    const ordersWithCustomerNames = ordersData.map((order: Order) => ({
+      ...order,
+      customerName:
+        customers.find((c) => c.customerId === order.customerId)
+          ?.customerName || "Khách vãng lai",
+    }));
+
+    setOrders(ordersWithCustomerNames);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchCustomers = async () => {
     try {
@@ -209,13 +220,9 @@ const OrderManagePage: React.FC = () => {
 
   useEffect(() => {
     if (customers.length > 0) {
-      if (dateFrom && dateTo) {
-        fetchOrders(dateFrom, dateTo);
-      } else {
-        fetchOrders();
-      }
+      fetchOrders();
     }
-  }, [customers, dateFrom, dateTo]);
+  }, [customers, dateFrom, dateTo, search]);
 
   return (
     <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">
