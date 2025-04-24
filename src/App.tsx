@@ -18,6 +18,7 @@ import posRoutes from "./Routes/POSRoutes";
 import landingRoutes from "./Routes/LandingRoutes";
 import LandingPageLayout from "./layouts/LandingPageLayout";
 import { startConnection } from "../src/services/signalRService";
+import VnpayTransactionResult from "./pages/POS/VnpayTransactionResult";
 // // import POSRoutes from "./Routes/POSRoutes";
 // import { POSTableList } from "./components/POS/POSTableList";
 // import { POSMenuList } from "./components/POS/POSMenuList";
@@ -103,6 +104,7 @@ const App: React.FC = () => {
         <Route path="/guess" element={<GuessPage />} />
         <Route path="/navi" element={<ShopNavi />} />
         <Route path="/shopRedirect/:roomId" element={<ShopMenuRedirect />} />
+        <Route path="/vnpay-result" element={<VnpayTransactionResult />} />
       </Routes>
     </Router>
   );
