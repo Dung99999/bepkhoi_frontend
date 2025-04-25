@@ -3,25 +3,25 @@ import { Modal, Button, message } from 'antd';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from 'axios';
 
-interface MenuItem {
-  productId: number;
-  productName: string;
-  productCategoryId: number;
-  costPrice: number;
-  sellPrice: number;
-  salePrice: number;
-  productVat: number;
-  description: string;
-  unitId: number;
-  isAvailable: boolean;
-  status: boolean;
-  isDelete: boolean;
-}
-
+interface MenuDetail{
+    productId: number;
+    productName: string;
+    productCategoryId: number;
+    costPrice: number;
+    sellPrice: number;
+    salePrice: number;
+    productVat: number;
+    description: string;
+    unitId: number;
+    isAvailable: boolean;
+    status: boolean;
+    isDelete: boolean;
+    imageUrl: string;
+  }
 interface MenuDetailModalProps {
   open: boolean;
   loading: boolean;
-  data: MenuItem | null;
+  data: MenuDetail | null;
   onClose: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -84,7 +84,7 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
                         <div className="w-5/12 flex flex-col">
                             <h3 className="text-lg font-semibold mb-4">{data.productName}</h3>
                             <img
-                                src=""
+                                src={data.imageUrl}
                                 alt={data.productName}
                                 className="w-full h-auto rounded-lg object-cover"
                             />

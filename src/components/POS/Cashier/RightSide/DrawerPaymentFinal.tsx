@@ -388,7 +388,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
       paymentMethodId: 1, // Tiền mặt
       orderId: orderPaymentInfo.orderId,
       orderTypeId: orderPaymentInfo.orderTypeId,
-      cashierId: 2, 
+      cashierId: localStorage.getItem("UserId") ? Number(localStorage.getItem("UserId")) : 0, 
       shipperId: orderPaymentInfo.shipperId ?? undefined,
       customerId: orderPaymentInfo.customerId ?? undefined,
       roomId: orderPaymentInfo.roomId ?? undefined,
@@ -435,7 +435,7 @@ const DrawerPaymentFinal: React.FC<DrawerPaymentFinalProps> = ({
       paymentMethodId: 2, 
       orderId: orderPaymentInfo.orderId,
       orderTypeId: orderPaymentInfo.orderTypeId,
-      cashierId: 2, 
+      cashierId: localStorage.getItem("UserId") ? Number(localStorage.getItem("UserId")) : 0, 
       shipperId: orderPaymentInfo.shipperId ?? undefined,
       customerId: orderPaymentInfo.customerId ?? undefined,
       roomId: orderPaymentInfo.roomId ?? undefined,
