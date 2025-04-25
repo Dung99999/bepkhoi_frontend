@@ -9,8 +9,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
-import UserUpdateModal from "./UserUpdateModal";
-
+import UserUpdateModalPos from "./UserUpdateModalPos";
 
 const navItems = [
   { label: "Tổng quan", path: "/manage/dashboard" },
@@ -100,60 +99,7 @@ const HeaderManage: React.FC = () => {
           </button>
         </div>
       </div>
-
-      <div className="flex justify-between items-center px-[8vw] h-[3vw] bg-[#FFEBCD] border-t">
-        <nav className="flex space-x-[1vw] text-[1vw]">
-          {navItems.map((item, index) =>
-            item.submenu ? (
-              <Dropdown
-                key={index}
-                menu={{
-                  items: item.submenu.map((subItem, subIndex) => ({
-                    key: subIndex,
-                    label: <NavLink to={subItem.path}>{subItem.label}</NavLink>,
-                    style: {
-                      fontSize: "1vw",
-                    },
-                  })),
-                }}
-                trigger={["hover"]}
-              >
-                <div className="px-[1vw] py-[0.5vw] rounded-lg font-medium cursor-pointer hover:bg-[#FFE4B5] hover:text-black transition-all">
-                  {item.label}
-                </div>
-              </Dropdown>
-            ) : (
-              <NavLink
-                key={index}
-                to={item.path}
-                className={({ isActive }) =>
-                  `px-[1vw] py-[0.5vw] rounded-[1vw] font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-[#FFE4B5] text-black"
-                      : "hover:bg-[#FFE4B5] hover:text-black"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            )
-          )}
-        </nav>
-
-        <button
-          className="bg-white p-[0.5vw] w-[2vw] h-[2vw] rounded-[0.6vw] hover:bg-gray-100 transition flex items-center justify-center"
-          title="Chỉnh sửa"
-        >
-          <a
-            href="/pos/cashier"
-            className="w-[1.8vw] h-[1.8vw] flex items-center justify-center"
-          >
-            <EditOutlined className="text-[1vw]" />
-          </a>
-        </button>
-      </div>
-
-      <UserUpdateModal
+      <UserUpdateModalPos
         open={isModalVisible}
         onClose={handleCloseModal}
         onReload={handleReloadUser}

@@ -5,6 +5,8 @@ import { Button } from "antd";
 import { PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import AddUserModal from "../../components/Manage/Cashier/AddUserModal";
 import './MenuPage.css';
+const token = localStorage.getItem("Token");
+
 
 const CashierManagePage: React.FC = () => {
   const [search, setSearch] = useState("");
@@ -17,6 +19,7 @@ const CashierManagePage: React.FC = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          "Authorization": "Bearer " + token,
         }
       });
 

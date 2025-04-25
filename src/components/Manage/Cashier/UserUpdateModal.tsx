@@ -3,6 +3,8 @@ import { Modal, Input, Button, message, DatePicker } from 'antd';
 import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import moment from 'moment';
+const token = localStorage.getItem("Token");
+
 
 interface User {
   userId: number,
@@ -58,7 +60,7 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       const response = await axios.put(
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${formData.userId}`,
         formattedData,
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json', "Authorization": "Bearer " + token, } }
       );
 
       console.log("Phản hồi từ API:", response.data);

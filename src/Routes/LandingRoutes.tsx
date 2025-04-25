@@ -13,9 +13,9 @@ interface RouteItem {
 }
 
 const landingRoutes: RouteItem[] = [
-  { index: true, element: <HomeLanding />, roles: ["admin", "employee"] },
-  { path: "/contact", element: <ContactUs />, roles: ["admin"] },
-  { path: "/about-us", element: <AboutUsLanding />, roles: ["admin"] },
+  { index: true, element: <HomeLanding />, roles: [] },
+  { path: "/contact", element: <ContactUs />, roles: [] },
+  { path: "/about-us", element: <AboutUsLanding />, roles: [] },
 ];
 
 export default landingRoutes;

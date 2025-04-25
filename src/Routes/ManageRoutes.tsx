@@ -19,22 +19,18 @@ interface RouteItem {
 }
 
 const manageRoutes: RouteItem[] = [
-    { index: true, element: <Navigate to="menu" replace />, roles: ["admin", "employee"] },
-    { path: "/manage", element: <Navigate to="/manage/menu" replace />, roles: ["admin", "employee"] }, 
-    { path: "/manage/menu", element: <MenuPage />, roles: ["admin"] },
-    {
-        path: "/manage/dashboard",
-        element: <DashboardManagePage />,
-        roles: ["admin"],
-      },
-    { path: "/manage/settingPrice", element: <SettingPricePage />, roles: ["admin"] },
-    { path: "/manage/customer", element: <CustomerManagePage />, roles: ["admin"] },
-    { path: "/manage/cashier", element: <CashierManagePage />, roles: ["admin"] },
-    { path: "/manage/shipper", element: <ShipperManagePage />, roles: ["admin"] },
-    { path: "/manage/roomArea", element: <RoomAreaManagePage />, roles: ["admin"] },
-    { path: "/manage/rooms", element: <RoomsManagePage />, roles: ["admin"] },
-    { path: "/manage/order", element: <OrderManagePage />, roles: ["admin"] },
-    { path: "/manage/invoice", element: <InvoiceManagePage />, roles: ["admin"] },
+    { index: true, element: <Navigate to="dashboard" replace />, roles: ["manager"] },
+    { path: "/manage", element: <Navigate to="/manage/dashboard" replace />, roles: ["manager"] }, 
+    { path: "/manage/menu", element: <MenuPage />, roles: ["manager"] },
+    { path: "/manage/dashboard", element: <DashboardManagePage />, roles: ["manager"],},
+    { path: "/manage/settingPrice", element: <SettingPricePage />, roles: ["manager"] },
+    { path: "/manage/customer", element: <CustomerManagePage />, roles: ["manager"] },
+    { path: "/manage/cashier", element: <CashierManagePage />, roles: ["manager"] },
+    { path: "/manage/shipper", element: <ShipperManagePage />, roles: ["manager"] },
+    { path: "/manage/roomArea", element: <RoomAreaManagePage />, roles: ["manager"] },
+    { path: "/manage/rooms", element: <RoomsManagePage />, roles: ["manager"] },
+    { path: "/manage/order", element: <OrderManagePage />, roles: ["manager"] },
+    { path: "/manage/invoice", element: <InvoiceManagePage />, roles: ["manager"] },
 ];
 
 export default manageRoutes;

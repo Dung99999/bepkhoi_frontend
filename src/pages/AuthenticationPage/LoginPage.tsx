@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import styles from "../../styles/LoginPage/css/main.module.css";
 import loginImage from "../../styles/LoginPage/images/login_image.png";
 import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
+import { useAuth } from "../../context/AuthContext";
+const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 interface LoginForm {
   username: string;
@@ -15,6 +17,7 @@ export default function LoginPage() {
     username: "",
     password: "",
   });
+  const { authInfo, setAuthInfo } = useAuth()
 
   // Xử lý khi người dùng nhập dữ liệu vào form
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +34,7 @@ export default function LoginPage() {
     const { username, password } = formData;
 
     try {
-      const response = await fetch("https://localhost:7257/login", {
+      const response = await fetch(`${API_BASE_URL}login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,12 +57,15 @@ export default function LoginPage() {
       }
 
       if (data.message === "successful") {
-        localStorage.setItem("Token", data.token);
-        localStorage.setItem("UserId", data.userId);
-        localStorage.setItem("RoleName", data.roleName);
-        localStorage.setItem("UserName", data.userName);
+        setAuthInfo({
+          token: data.token,
+          userId: data.userId,
+          roleName: data.roleName || null,
+          userName: data.userName || null,
+        });
         alert("Đăng nhập thành công!");
-        navigate("/manage/menu");
+        // Chuyển hướng dựa trên roleName
+        navigate(data.roleName === "manager" ? "/manage/menu" : "/pos");
       }
     } catch (error) {
       console.error("Error in login process:", error);
@@ -68,11 +74,10 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/manage/menu");
+    if (authInfo.token) {
+      navigate(authInfo.roleName === "manager" ? "/manage" : "/pos");
     }
-  }, [navigate]);
+  }, [authInfo.token, authInfo.roleName, navigate]);
 
   return (
     <div className={styles.loginContainer}>
@@ -173,3 +178,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

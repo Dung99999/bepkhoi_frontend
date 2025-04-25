@@ -26,7 +26,7 @@ interface Props {
   onReload: () => void;
 }
 
-const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
+const UserUpdateModalPos: React.FC<Props> = ({ open, onClose, onReload }) => {
   const { authInfo, clearAuthInfo } = useAuth()
   const [formData, setFormData] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -333,4 +333,4 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
   );
 };
 
-export default UserUpdateModal;
+export default UserUpdateModalPos;
