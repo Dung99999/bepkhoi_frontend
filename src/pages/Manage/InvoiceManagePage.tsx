@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { FileTextOutlined } from "@ant-design/icons";
 import InvoiceList from "../../components/Manage/Invoice/InvoiceList";
-import Sidebar from "../../components/Manage/Invoice/SideBar";
-import { Card, Spin } from "antd";
+import FilterSidebar from "../../components/Manage/Invoice/FilterSidebar";
+import { Card, Spin, message } from "antd";
 
 const token = localStorage.getItem("Token");
 
@@ -35,50 +35,59 @@ interface Invoice {
   }[];
 }
 
+export interface InvoiceFilterParams {
+  invoiceId?: number;
+  customerKeyword?: string;
+  cashierKeyword?: string;
+  fromDate?: string;
+  toDate?: string;
+  status?: boolean;
+  paymentMethod?: number;
+}
+
 const InvoiceManagePage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
-  const [dateFrom, setDateFrom] = useState<string | null>(null);
-  const [dateTo, setDateTo] = useState<string | null>(null);
+  const [filterParams, setFilterParams] = useState<InvoiceFilterParams>({});
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = async (params: InvoiceFilterParams = {}) => {
     setLoading(true);
     try {
-      let url = `${process.env.REACT_APP_API_APP_ENDPOINT}api/Invoice`;
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Invoice/filter-invoices`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(params),
+        }
+      );
 
-      const params = new URLSearchParams();
-      if (dateFrom) params.append('fromDate', dateFrom);
-      if (dateTo) params.append('toDate', dateTo);
-      if (search) params.append('search', search);
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url, {
-        headers: {
-          Authorization: "Bearer " + token,
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      });
-
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       setInvoices(data);
     } catch (error) {
       console.error("Error fetching invoices:", error);
+      message.error("Lỗi khi tải dữ liệu hóa đơn");
       setInvoices([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleFilterSubmit = (values: InvoiceFilterParams) => {
+    setFilterParams(values);
+    fetchInvoices(values);
+  };
+
   useEffect(() => {
     fetchInvoices();
-  }, [dateFrom, dateTo, search]);
+  }, []);
 
   const calculateTotalRevenue = () => {
     return invoices
@@ -93,14 +102,12 @@ const InvoiceManagePage: React.FC = () => {
   return (
     <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">
       <div className="flex flex-1 p-4 gap-4">
-        <Sidebar
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          setDateFrom={setDateFrom}
-          setDateTo={setDateTo}
-          search={search}
-          setSearch={setSearch}
+      <div className="h-fit"> {/* Thêm wrapper div với h-fit */}
+        <FilterSidebar
+          onFilterSubmit={handleFilterSubmit}
+          loading={loading}
         />
+      </div>
         <main className="flex-1 overflow-auto">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold flex items-center">
