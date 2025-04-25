@@ -29,6 +29,22 @@ interface MenuItem {
   isDelete: boolean;
 }
 
+interface MenuDetail {
+  productId: number;
+  productName: string;
+  productCategoryId: number;
+  costPrice: number;
+  sellPrice: number;
+  salePrice: number;
+  productVat: number;
+  description: string;
+  unitId: number;
+  isAvailable: boolean;
+  status: boolean;
+  isDelete: boolean;
+  imageUrl: string;
+}
+
 const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -37,10 +53,10 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   const [total, setTotal] = useState<number>(0);
 
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
-  const [detailData, setDetailData] = useState<MenuItem | null>(null);
+  const [detailData, setDetailData] = useState<MenuDetail | null>(null);
   const [openDetail, setOpenDetail] = useState<boolean>(false);
-  const [openUpdate, setOpenUpdate] = useState(false);
-  const [updateData, setUpdateData] = useState<MenuItem | null>(null);
+  const [openUpdate, setOpenUpdate] = useState<boolean>(false);
+  const [updateData, setUpdateData] = useState<MenuDetail | null>(null);
 
   // Function create query params
   const createQueryParams = () => {
@@ -60,27 +76,37 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     return params.toString();
   };
 
+  const fetchMenuList = async () => {
+    setLoading(true);
+    try {
+      const queryParams = createQueryParams();
+      console.log("Query Params call to API:", queryParams);
+      const response = await fetch(
+        `https://localhost:7257/api/Menu/get-all-menus?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setItems(data.data ?? []);
+      setTotal(data.totalRecords || 0);
+    } catch (error) {
+      console.error("Lỗi tải menu:", error);
+      message.error("Không thể tải danh sách menu!");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // API call when search, category, status, page change
   useEffect(() => {
-    setLoading(true);
-    const queryParams = createQueryParams();
-    console.log("Query Params call to API:", queryParams);
-
-    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setItems(data.data ?? []);
-        setTotal(data.totalRecords || 0);
-      })
-      .catch((error) => {
-        console.error("Error fetching menu:", error);
-        setItems([]);
-      })
-      .finally(() => setLoading(false));
+    fetchMenuList();
   }, [search, category, status, page]);
 
   // Handle close row to close detail modal
@@ -89,48 +115,18 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
     setDetailData(null); // reset data
   };
 
-  const fetchMenuList = async () => {
-    setLoading(true);
-    try {
-      const queryParams = createQueryParams();
-      const response = await fetch(
-        `https://localhost:7257/api/Menu/get-all-menus?${queryParams}`,
-        {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-      const data = await response.json();
-      setItems(data.data ?? []);
-      setTotal(data.totalRecords || 0);
-    } catch (error) {
-      console.error("Lỗi tải menu:", error);
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMenuList();
-  }, [search, category, status, page]);
-
   // Handle delete
   const handleDelete = async () => {
-    if (
-      detailData &&
-      window.confirm(
-        `Bạn chắc chắn muốn xóa món \"${detailData.productName}\"?`
-      )
-    ) {
+    if (!detailData) return;
+
+    if (window.confirm(`Bạn chắc chắn muốn xóa món "${detailData.productName}"?`)) {
       try {
         const response = await fetch(
           `https://localhost:7257/api/Menu/delete-menu/${detailData.productId}`,
           {
             method: "DELETE",
             headers: {
-              Authorization: "Bearer " + token,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -139,35 +135,45 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
           handleCloseDetail();
           await fetchMenuList();
         } else {
-          message.error("Xóa thất bại, thử lại sau!");
+          const errorData = await response.json();
+          message.error(errorData.message || "Xóa thất bại, thử lại sau!");
         }
-      } catch {
+      } catch (error) {
+        console.error("Lỗi khi xóa món:", error);
         message.error("Có lỗi xảy ra khi xóa!");
       }
     }
   };
 
   // Handle click row to open detail modal
-  const handleRowClick = (record: MenuItem) => {
+  const handleRowClick = async (record: MenuItem) => {
     setOpenDetail(true);
     setLoadingDetail(true);
-    // Fetch APT Get Product By Id
-    fetch(
-      `https://localhost:7257/api/Menu/get-menu-by-id/${record.productId}`,
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
+    try {
+      const response = await fetch(
+        `https://localhost:7257/api/Menu/get-menu-by-id/${record.productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    )
-      .then((response) => response.json())
-      .then((res) => setDetailData(res.data))
-      .catch((error) => console.error("Error fetching detail:", error))
-      .finally(() => setLoadingDetail(false));
+      const res = await response.json();
+      setDetailData(res.data || null);
+    } catch (error) {
+      console.error("Error fetching detail:", error);
+      message.error("Không thể tải chi tiết món!");
+      setDetailData(null);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   // Handle update
-  const handleOpenUpdate = (record: MenuItem) => {
+  const handleOpenUpdate = (record: MenuDetail) => {
     setUpdateData(record);
     setOpenUpdate(true);
   };
@@ -287,23 +293,11 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
         <MenuUpdateModal
           open={openUpdate}
           data={updateData}
-          onClose={() => setOpenUpdate(false)}
-          onReload={() => {
-            const queryParams = createQueryParams();
-            fetch(
-              `https://localhost:7257/api/Menu/get-all-menus?${queryParams}`,
-              {
-                headers: {
-                  Authorization: "Bearer " + token,
-                },
-              }
-            )
-              .then((response) => response.json())
-              .then((data) => {
-                setItems(data.data ?? []);
-                setTotal(data.totalRecords || 0);
-              });
+          onClose={() => {
+            setOpenUpdate(false);
+            setUpdateData(null);
           }}
+          onReload={fetchMenuList}
         />
       )}
     </div>

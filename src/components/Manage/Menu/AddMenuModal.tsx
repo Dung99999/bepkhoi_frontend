@@ -240,13 +240,13 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
         <div className="space-y-3">
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">
-              <span className="text-red-500 mr-[0.2vw]">*</span>Mã hàng hóa:
+              Mã hàng hóa:<span className="text-red-500 mr-[0.2vw]">*</span>
             </label>
             <span className="text-gray-500">Mã hàng tự động</span>
           </div>
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">
-              <span className="text-red-500 mr-[0.2vw]">*</span>Tên hàng:
+              Tên hàng:<span className="text-red-500 mr-[0.2vw]">*</span>
             </label>
             <Input
               className={`flex-1 ${errors.productName ? "border-red-500" : ""}`}
@@ -259,7 +259,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
           </div>
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">
-              <span className="text-red-500 mr-[0.2vw]">*</span>Giá nhập gốc:
+              Giá nhập gốc:<span className="text-red-500 mr-[0.2vw]">*</span>
             </label>
             <InputNumber
               className={`flex-1 ${errors.costPrice ? "border-red-500" : ""}`}
@@ -271,7 +271,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
           </div>
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">
-              <span className="text-red-500 mr-[0.2vw]">*</span>Giá bán:
+              Giá bán:<span className="text-red-500 mr-[0.2vw]">*</span>
             </label>
             <InputNumber
               className={`flex-1 ${errors.sellPrice ? "border-red-500" : ""}`}
@@ -333,7 +333,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
         <div className="space-y-3">
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">
-              <span className="text-red-500 mr-[0.2vw]">*</span>Thuế VAT:
+              Thuế VAT:<span className="text-red-500 mr-[0.2vw]">*</span>
             </label>
             <InputNumber
               className="flex-1"
@@ -353,7 +353,7 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
           </div>
           <div className="flex items-center space-x-3">
             <label className="w-32 font-medium">
-              <span className="text-red-500 mr-[0.2vw]">*</span>Đơn vị:
+              Đơn vị:<span className="text-red-500 mr-[0.2vw]">*</span>
             </label>
             <Select
               className={`flex-1 ${errors.unitId ? "border-red-500" : ""}`}
