@@ -14,21 +14,6 @@ interface ModelLeftSideProps {
   orderType: number | null;
   setOrderType: (shipperId: number | null) => void;
 }
-
-interface Order {
-  orderId: number;
-  customerName: string;
-  address: string;
-  status: "Đang giao" | "Đã giao";
-}
-
-interface Props {
-  selectedTable: number | null;
-  selectedOrder: number | null;
-  isReloadAfterAddProduct: boolean;
-  setIsReloadAfterAddProduct: (isReload: boolean) => void;
-}
-
 const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
   selectedTable,
   setSelectedTable,
@@ -41,10 +26,6 @@ const ModelLeftSide: React.FC<ModelLeftSideProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<"room" | "menu" | "shiper">("room");
 
-  // When loading page
-  // useEffect(() => {
-  //   setSelectedTable(1);
-  // }, []);
   function handleChangeTab(tab: "room" | "menu" | "shiper") {
     setActiveTab(tab);
   }

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "../../styles/VerifyAccount/VerifyAccount.module.css"; // Import CSS module
-import wallImage from "../../styles/VerifyAccount/restaurant.jpg"; // import backgroundImage
+import styles from "../../styles/VerifyAccount/VerifyAccount.module.css"; 
+import wallImage from "../../styles/VerifyAccount/restaurant.jpg"; 
+const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+
 
 export default function VerifyPassword() {
   const navigate = useNavigate();
@@ -26,7 +28,7 @@ export default function VerifyPassword() {
       // request OTP
       try {
         const response = await fetch(
-          "https://localhost:7257/api/Passwords/send-otp",
+          `${API_BASE_URL}api/Passwords/send-otp`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -47,7 +49,7 @@ export default function VerifyPassword() {
     } else {
       // authorize OTP
       try {
-        const response = await fetch("https://localhost:7257/api/Passwords/verify", {
+        const response = await fetch(`${API_BASE_URL}api/Passwords/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, otp }),
@@ -59,7 +61,7 @@ export default function VerifyPassword() {
         if (response.ok) {
           alert("Xác thực thành công!");
           console.log(data);
-          localStorage.setItem("token", data.token); // save token to localStorage
+          localStorage.setItem("token", data.token); 
           localStorage.setItem("userId", data.UserId);
           navigate("/manage/menu");
         } else {
