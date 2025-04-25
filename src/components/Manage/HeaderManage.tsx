@@ -21,11 +21,11 @@ const navItems = [
     ],
   },
   {
-    label: "Phòng/Bàn",
+    label: "Quản lý phòng",
     path: "/manage/rooms",
     submenu: [
-      { label: "Bàn", path: "/manage/rooms" },
-      { label: "Phòng", path: "/manage/roomArea" },
+      { label: "Phòng", path: "/manage/rooms" },
+      { label: "Khu vực phòng", path: "/manage/roomArea" },
     ],
   },
   {

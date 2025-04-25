@@ -59,7 +59,7 @@ export default function LoginPage() {
         localStorage.setItem("RoleName", data.roleName);
         localStorage.setItem("UserName", data.userName);
         alert("Đăng nhập thành công!");
-        navigate("/manage/menu");
+        navigate("/manage/dashboard");
       }
     } catch (error) {
       console.error("Error in login process:", error);
@@ -70,7 +70,7 @@ export default function LoginPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/manage/menu");
+      navigate("/manage/dashboard");
     }
   }, [navigate]);
 
