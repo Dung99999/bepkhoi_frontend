@@ -51,7 +51,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [page, setPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(0);
-
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
   const [detailData, setDetailData] = useState<MenuDetail | null>(null);
   const [openDetail, setOpenDetail] = useState<boolean>(false);
@@ -113,36 +112,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   const handleCloseDetail = () => {
     setOpenDetail(false);
     setDetailData(null); // reset data
-  };
-
-  // Handle delete
-  const handleDelete = async () => {
-    if (!detailData) return;
-
-    if (window.confirm(`Bạn chắc chắn muốn xóa món "${detailData.productName}"?`)) {
-      try {
-        const response = await fetch(
-          `https://localhost:7257/api/Menu/delete-menu/${detailData.productId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          message.success("Xóa món thành công!");
-          handleCloseDetail();
-          await fetchMenuList();
-        } else {
-          const errorData = await response.json();
-          message.error(errorData.message || "Xóa thất bại, thử lại sau!");
-        }
-      } catch (error) {
-        console.error("Lỗi khi xóa món:", error);
-        message.error("Có lỗi xảy ra khi xóa!");
-      }
-    }
   };
 
   // Handle click row to open detail modal
@@ -235,6 +204,22 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       className: "text-[0.8vw]",
     },
     {
+      title: "Tình trạng",
+      dataIndex: "isAvailable",
+      key: "isAvailable",
+      className: "text-[0.8vw]",
+      render: (value: boolean) =>
+        value ? (
+          <Tag color="green" className="text-[0.8vw]">
+            Còn hàng 
+          </Tag>
+        ) : (
+          <Tag color="red" className="text-[0.8vw]">
+            Hết hàng
+          </Tag>
+        ),
+    },
+    {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
@@ -242,11 +227,11 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       render: (value: boolean) =>
         value ? (
           <Tag color="green" className="text-[0.8vw]">
-            Đang bán
+            Đang kinh doanh
           </Tag>
         ) : (
           <Tag color="red" className="text-[0.8vw]">
-            Ngừng bán
+            Ngừng kinh doanh
           </Tag>
         ),
     },
@@ -285,7 +270,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
         data={detailData}
         onClose={() => setOpenDetail(false)}
         onUpdate={() => detailData && handleOpenUpdate(detailData)}
-        onDelete={handleDelete}
         onReloadMenuList={fetchMenuList}
       />
 
