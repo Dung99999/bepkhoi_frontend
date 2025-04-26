@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import OrderList from "../../components/Manage/Order/OrderList";
 import OrderDetail from "../../components/Manage/Order/OrderDetail";
-import Sidebar from "../../components/Manage/Order/SideBar";
+import FilterSidebar from "../../components/Manage/Order/FilterSidebar";
 
 const token = localStorage.getItem("Token");
 
@@ -48,6 +48,15 @@ interface CancellationHistoryItem {
   reason: string;
 }
 
+interface OrderFilterParams {
+  orderId?: number;
+  customerKeyword?: string;
+  fromDate?: string;
+  toDate?: string;
+  orderStatus?: number;
+  orderType?: number;
+}
+
 const OrderManagePage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -56,9 +65,6 @@ const OrderManagePage: React.FC = () => {
   const [orderDetails, setOrderDetails] = useState<OrderDetailItem[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [dateFrom, setDateFrom] = useState<string | null>(null);
-  const [dateTo, setDateTo] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInformation | null>(null);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [cancellationHistory, setCancellationHistory] = useState<CancellationHistoryItem[]>([]);
@@ -111,53 +117,43 @@ const OrderManagePage: React.FC = () => {
     }
   };
 
-  const fetchOrders = async () => {
-  setLoading(true);
-  try {
-    let url = `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/filter-by-date-and-order-id`;
-    
-    const formatDateForAPI = (dateString: string | null): string | null => {
-      if (!dateString) return null;
-      const parts = dateString.split('/');
-      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateString;
-    };
+  const fetchOrders = async (filterParams: OrderFilterParams = {}) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/filter-orders`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(filterParams),
+        }
+      );
 
-    const params = new URLSearchParams();
-    if (dateFrom) params.append('fromDate', formatDateForAPI(dateFrom) || '');
-    if (dateTo) params.append('toDate', formatDateForAPI(dateTo) || '');
-    if (search) params.append('orderId', search);
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+      const ordersData = data.data || [];
+
+      const ordersWithCustomerNames = ordersData.map((order: Order) => ({
+        ...order,
+        customerName: customers.find((c) => c.customerId === order.customerId)?.customerName || "Khách vãng lai",
+      }));
+
+      setOrders(ordersWithCustomerNames);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    });
-    if (!response.ok) 
-      throw new Error(`HTTP error! status: ${response.status}`);
-
-    const data = await response.json();
-    const ordersData = data.data || [];
-
-    const ordersWithCustomerNames = ordersData.map((order: Order) => ({
-      ...order,
-      customerName:
-        customers.find((c) => c.customerId === order.customerId)
-          ?.customerName || "Khách vãng lai",
-    }));
-
-    setOrders(ordersWithCustomerNames);
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    setOrders([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleFilterSubmit = (values: OrderFilterParams) => {
+    fetchOrders(values);
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -222,19 +218,17 @@ const OrderManagePage: React.FC = () => {
     if (customers.length > 0) {
       fetchOrders();
     }
-  }, [customers, dateFrom, dateTo, search]);
+  }, [customers]);
 
   return (
     <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">
-      <div className="flex flex-1 p-4 gap-[7px]">
-        <Sidebar
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          setDateFrom={setDateFrom}
-          setDateTo={setDateTo}
-          search={search}
-          setSearch={setSearch}
-        />
+      <div className="flex flex-1 p-4 gap-4">
+        <div className="w-72 min-w-[288px] h-fit sticky top-4">
+          <FilterSidebar
+            onFilterSubmit={handleFilterSubmit}
+            loading={loading}
+          />
+        </div>
         <main className="flex-1 overflow-auto">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">Quản lý đơn hàng</h1>
