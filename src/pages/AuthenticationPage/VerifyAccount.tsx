@@ -3,22 +3,24 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../styles/VerifyAccount/VerifyAccount.module.css"; 
 import wallImage from "../../styles/VerifyAccount/restaurant.jpg"; 
+import { useAuth } from "../../context/AuthContext";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 
 
 export default function VerifyPassword() {
   const navigate = useNavigate();
+  const { authInfo, setAuthInfo } = useAuth()
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpStage, setIsOtpStage] = useState(false); // Trạng thái giữa lần bấm đầu và thứ hai
   const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state để kiểm soát trạng thái submit
 
+  // Chuyển hướng nếu đã đăng nhập
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/manage/menu");
+    if (authInfo.token) {
+      navigate(authInfo.roleName === "manager" ? "/manage/menu" : "/pos");
     }
-  }, [navigate]);
+  }, [authInfo.token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,10 +62,13 @@ export default function VerifyPassword() {
 
         if (response.ok) {
           alert("Xác thực thành công!");
-          console.log(data);
-          localStorage.setItem("token", data.token); 
-          localStorage.setItem("userId", data.UserId);
-          navigate("/manage/menu");
+          setAuthInfo({
+            token: data.token,
+            userId: data.userId,
+            roleName: data.roleName || null, 
+            userName: data.userName || null, 
+          });
+          navigate(data.roleName === "manager" ? "/manage/menu" : "/pos");
         } else {
           alert(data.message || "OTP không hợp lệ!");
         }

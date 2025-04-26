@@ -2,7 +2,8 @@ import React from 'react';
 import { Modal, Button, message } from 'antd';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from 'axios';
-
+import { useAuth } from '../../../context/AuthContext';
+const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
 interface MenuDetail{
     productId: number;
     productName: string;
@@ -24,7 +25,6 @@ interface MenuDetailModalProps {
   data: MenuDetail | null;
   onClose: () => void;
   onUpdate: () => void;
-  onDelete: () => void;
   onReloadMenuList: () => void;
 }
 
@@ -34,12 +34,12 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
     data, 
     onClose,
     onUpdate,
-    onDelete,
     onReloadMenuList
   }) => {
+    
+    const { authInfo, clearAuthInfo } = useAuth()
     const handleDelete = async () => {
         if(!data) return;
-
         Modal.confirm({
             title: 'Xác nhận xóa',
             content: `Bạn có chắc chắn muốn xóa món "${data.productName}" không?`,
@@ -48,8 +48,11 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
             okButtonProps: { style: { backgroundColor: "#FF4D4F", borderColor: "#FF4D4F", color: "#fff" } },
             onOk: async () => {
                 try {
-                    const res = await axios.delete(`https://localhost:7257/api/Menu/${data.productId}`, {
-                        headers: { 'Content-Type': 'application/json; charset=utf-8' }
+                    const res = await axios.delete(`${API_BASE_URL}api/Menu/${data.productId}`, {
+                        headers: {
+                             'Content-Type': 'application/json; charset=utf-8',
+                              Authorization: authInfo.token ? `Bearer ${authInfo.token}` : "" 
+                            }
                     });
                     console.log("Phản hồi từ API:", res.data);
                     message.success('Xóa món ăn thành công!');
@@ -97,8 +100,8 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
                                 <p><strong>Giá vốn:</strong> {data.costPrice?.toLocaleString()}đ</p>
                                 <p><strong>Giá bán:</strong> {data.salePrice?.toLocaleString()}đ</p>
                                 <p><strong>Đơn vị:</strong> Xuất</p>
-                                <p><strong>Còn hàng:</strong> {data.isAvailable ? 'Còn' : 'Hết'}</p>
-                                <p><strong>Hiển thị:</strong> {data.status ? 'Có' : 'Không'}</p>
+                                <p><strong>Còn hàng:</strong> {data.isAvailable ? 'Còn hàng' : 'Hết hàng'}</p>
+                                <p><strong>Hiển thị:</strong> {data.status ? 'Đang kinh doanh' : 'Ngừng kinh doanh'}</p>
                                 <p><strong>Mô tả:</strong> {data.description || 'Không có mô tả'}</p>
                             </div>
 
