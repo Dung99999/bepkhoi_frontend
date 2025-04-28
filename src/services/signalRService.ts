@@ -87,9 +87,7 @@ export const joinGroup = async (groupName: string): Promise<void> => {
     if (connection.state === signalR.HubConnectionState.Connected) {
       try {
         await connection.invoke("JoinGroup", groupName);
-        console.log(`Tham gia group ${groupName} thành công`);
       } catch (err) {
-        console.error(`Tham gia group ${groupName} thất bại:`, err);
         throw err;
       }
     }
@@ -104,10 +102,8 @@ export const leaveGroup = async (groupName: string): Promise<void> => {
       if (connection.state === signalR.HubConnectionState.Connected) {
         try {
           await connection.invoke("LeaveGroup", groupName);
-          console.log(`Rời group ${groupName} thành công`);
           delete groupReferences[groupName];
         } catch (err) {
-          console.error(`Rời group ${groupName} thất bại:`, err);
           throw err;
         }
       }

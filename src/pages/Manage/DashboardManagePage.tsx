@@ -12,6 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import { Spin, message } from "antd";
+import { useAuth } from "../../context/AuthContext";
 const token = localStorage.getItem("Token");
 
 ChartJS.register(
@@ -26,6 +27,7 @@ ChartJS.register(
 );
 
 const DashboardManagePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [loading, setLoading] = useState(false);
   const [chartData, setChartData] = useState<any>(null);
   const [summary, setSummary] = useState({
@@ -37,6 +39,12 @@ const DashboardManagePage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!authInfo.token) {
+        message.error("Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+
       setLoading(true);
       try {
         // Fetch orders data
@@ -45,19 +53,21 @@ const DashboardManagePage: React.FC = () => {
           {
             method: "GET",
             headers: {
-              Authorization: "Bearer " + token,
+              Authorization: `Bearer ${authInfo.token}`,
               "Content-Type": "application/json; charset=utf-8",
             },
           }
         );
-
+        if (ordersResponse.status === 401) {
+          message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+          clearAuthInfo();
+          return;
+        }
         if (!ordersResponse.ok) {
           throw new Error("Failed to fetch orders");
         }
-
         const ordersData = await ordersResponse.json();
         const orders = ordersData.data;
-
         // Process data to group by date and calculate total revenue
         const revenueByDate = orders.reduce(
           (acc: { [key: string]: number }, order: any) => {
@@ -109,16 +119,19 @@ const DashboardManagePage: React.FC = () => {
           {
             method: "GET",
             headers: {
-              Authorization: "Bearer " + token,
+              Authorization: `Bearer ${authInfo.token}`,
               "Content-Type": "application/json; charset=utf-8",
             },
           }
         );
-
+        if (customersResponse.status === 401) {
+          message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+          clearAuthInfo();
+          return;
+        }
         if (!customersResponse.ok) {
           throw new Error("Failed to fetch top customers");
         }
-
         const customersData = await customersResponse.json();
         // Sắp xếp khách hàng theo totalAmountSpent giảm dần và lấy top 5
         const sortedCustomers = customersData
@@ -127,7 +140,6 @@ const DashboardManagePage: React.FC = () => {
 
         setTopCustomers(sortedCustomers);
       } catch (error) {
-        console.error("Error fetching data:", error);
         message.error("Không thể tải dữ liệu!");
       } finally {
         setLoading(false);

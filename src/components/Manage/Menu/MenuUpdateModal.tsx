@@ -11,6 +11,7 @@ import {
 } from "antd";
 import { UploadOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 
 const { Option } = Select;
 
@@ -53,6 +54,7 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
   onClose,
   onReload,
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [formData, setFormData] = useState<MenuDetail | null>(null);
   const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -75,22 +77,31 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
   }, [open, data]);
 
   const fetchProductCategories = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
     try {
       const response = await fetch(
-        "https://localhost:7257/api/product-categories/get-all-categories",
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("Token")}`,
+            Authorization: `Bearer ${authInfo.token}`,
           },
         }
       );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
       setProductCategories(result);
     } catch (error) {
-      console.error("Error fetching categories:", error);
       message.error("Không thể tải danh mục hàng hóa");
     }
   };
@@ -98,12 +109,7 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
   const fetchUnits = async () => {
     try {
       const response = await fetch(
-        "https://localhost:7257/api/units/get-all-units",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("Token")}`,
-          },
-        }
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/units/get-all-units`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -111,7 +117,6 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
       const result = await response.json();
       setUnits(result);
     } catch (error) {
-      console.error("Error fetching units:", error);
       message.error("Không thể tải danh sách đơn vị");
     }
   };
@@ -224,18 +229,12 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
             formDataToSend.append("Image", fileList[0].originFileObj);
           }
 
-          const token = localStorage.getItem("Token");
-          if (!token) {
-            message.error("Vui lòng đăng nhập để thực hiện hành động này!");
-            return;
-          }
-
           const response = await axios.put(
             `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/update-menu/${formData.productId}`,
             formDataToSend,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${authInfo.token}`,
                 "Content-Type": "multipart/form-data",
               },
             }
@@ -248,14 +247,15 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
           console.error("Lỗi khi cập nhật món ăn:", error);
           if (error.response) {
             const { status, data } = error.response;
-            if (status === 400) {
+            if (status === 401) {
+              message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+              clearAuthInfo();
+            } else if (status === 400) {
               const errorMessage =
                 data.errors?.join(", ") || data.message || "Dữ liệu không hợp lệ!";
               message.error(errorMessage);
             } else if (status === 404) {
               message.error(data.message || "Không tìm thấy món ăn!");
-            } else if (status === 401) {
-              message.error("Bạn không có quyền thực hiện hành động này!");
             } else {
               message.error(data.message || "Cập nhật thất bại!");
             }
@@ -396,7 +396,23 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
               listType="picture"
               maxCount={1}
               fileList={fileList}
-              beforeUpload={() => false}
+              accept=".jpg,.jpeg,.png,.bmp"
+              beforeUpload={(file) => {
+                const isImage =
+                  file.type === "image/jpeg" ||
+                  file.type === "image/png" ||
+                  file.type === "image/bmp";
+                  
+                const isLt2M = file.size / 1024 / 1024 < 2;
+              
+                if (!isImage) {
+                  message.error("Chỉ hỗ trợ file JPG/PNG/BMP!");
+                }
+                if (!isLt2M) {
+                  message.error("Ảnh phải nhỏ hơn 2MB!");
+                }
+                return isImage && isLt2M;
+              }}
               onChange={({ fileList }) => setFileList(fileList)}
               defaultFileList={
                 formData.imageUrl

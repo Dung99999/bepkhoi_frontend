@@ -287,7 +287,7 @@ async function printInvoicePdf(
       setTimeout(() => {
         document.body.removeChild(iframe);
         URL.revokeObjectURL(blobUrl);
-      }, 1000); // Giảm thời gian timeout
+      }, 7000); 
     };
   } catch (err) {
     console.error("Lỗi khi in hóa đơn:", err);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, InputNumber, Form, Button, message } from "antd";
+import { useAuth } from "../../../context/AuthContext";
 
 interface ModalSettingPriceProps {
   open: boolean;
@@ -21,6 +22,7 @@ const ModalSettingPriceById: React.FC<ModalSettingPriceProps> = ({
   onClose,
   onReload,
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [sellPrice, setSellPrice] = useState<number>(0);
   const [salePrice, setSalePrice] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
@@ -57,7 +59,11 @@ const ModalSettingPriceById: React.FC<ModalSettingPriceProps> = ({
       message.error("Giá sau KM phải nằm trong khoảng từ giá vốn đến đơn giá!");
       return;
     }
-
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
     setLoading(true);
     const requestData = {
       productId: product.productId,
@@ -68,20 +74,23 @@ const ModalSettingPriceById: React.FC<ModalSettingPriceProps> = ({
     };
 
     try {
-      console.log("🛠 Gửi dữ liệu API:", requestData);
-
       const response = await fetch(
-        `https://localhost:7257/api/Menu/update-price/${product.productId}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/update-price/${product.productId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authInfo.token}`,
+          },
           body: JSON.stringify(requestData),
         }
       );
-
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       const responseData = await response.json();
-      console.log("📩 API Response:", response.status, responseData);
-
       if (response.ok) {
         message.success("Cập nhật giá thành công!");
         onClose();
@@ -92,7 +101,6 @@ const ModalSettingPriceById: React.FC<ModalSettingPriceProps> = ({
         );
       }
     } catch (error) {
-      console.error("❌ Lỗi khi gọi API:", error);
       message.error("Lỗi khi cập nhật giá!");
     } finally {
       setLoading(false);
