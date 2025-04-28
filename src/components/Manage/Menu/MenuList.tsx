@@ -4,9 +4,7 @@ import type { TableColumnsType, TableProps } from "antd";
 import "./MenuList.css";
 import MenuDetailModal from "./MenuDetailModal";
 import MenuUpdateModal from "./MenuUpdateModal";
-import axios from "axios";
-
-const token = localStorage.getItem("Token");
+import { useAuth } from "../../../context/AuthContext";
 
 interface MenuListProps {
   search: string;
@@ -46,6 +44,7 @@ interface MenuDetail {
 }
 
 const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -76,18 +75,28 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   };
 
   const fetchMenuList = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     setLoading(true);
     try {
       const queryParams = createQueryParams();
-      console.log("Query Params call to API:", queryParams);
       const response = await fetch(
-        `https://localhost:7257/api/Menu/get-all-menus?${queryParams}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/get-all-menus?${queryParams}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authInfo.token}`,
           },
         }
       );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -95,7 +104,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       setItems(data.data ?? []);
       setTotal(data.totalRecords || 0);
     } catch (error) {
-      console.error("Lỗi tải menu:", error);
       message.error("Không thể tải danh sách menu!");
       setItems([]);
     } finally {
@@ -106,7 +114,7 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   // API call when search, category, status, page change
   useEffect(() => {
     fetchMenuList();
-  }, [search, category, status, page]);
+  }, [search, category, page, authInfo.token]);
 
   // Handle close row to close detail modal
   const handleCloseDetail = () => {
@@ -116,24 +124,34 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
 
   // Handle click row to open detail modal
   const handleRowClick = async (record: MenuItem) => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     setOpenDetail(true);
     setLoadingDetail(true);
     try {
       const response = await fetch(
-        `https://localhost:7257/api/Menu/get-menu-by-id/${record.productId}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/get-menu-by-id/${record.productId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authInfo.token}`,
           },
         }
       );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const res = await response.json();
       setDetailData(res.data || null);
     } catch (error) {
-      console.error("Error fetching detail:", error);
       message.error("Không thể tải chi tiết món!");
       setDetailData(null);
     } finally {

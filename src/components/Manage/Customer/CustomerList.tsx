@@ -3,8 +3,7 @@ import { message, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import "./../Menu/MenuList.css";
 import CustomerDetailModal from "./CustomerDetailModal";
-
-const token = localStorage.getItem("Token");
+import { useAuth } from "../../../context/AuthContext";
 
 interface CustomerListProps {
   search: string;
@@ -18,6 +17,7 @@ interface CustomerItem {
 }
 
 const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [items, setItems] = useState<CustomerItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -27,64 +27,79 @@ const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
   const [detailData, setDetailData] = useState<CustomerItem | null>(null);
   const [openDetail, setOpenDetail] = useState<boolean>(false);
 
-  const fetchMenuList = () => {
+  const fetchCustomerList = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     setLoading(true);
     const apiUrl = search.trim()
       ? `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${encodeURIComponent(search.trim())}`
       : `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer`;
 
-    fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch customers");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setItems(data ?? []);
-        setTotal(data.length || 0);
-      })
-      .catch((error) => {
-        console.error("Error fetching menu:", error);
-        message.error("Không thể tải danh sách khách hàng.");
-        setItems([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${authInfo.token}`,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      });
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error("Failed to fetch customers");
+      }
+      const data = await response.json();
+      setItems(data ?? []);
+      setTotal(data.length || 0);
+    } catch (error) {
+      message.error("Không thể tải danh sách khách hàng.");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchMenuList();
-  }, [search, page]);
+    fetchCustomerList();
+  }, [search, page, authInfo.token]);
 
-  const handleRowClick = (record: CustomerItem) => {
+  const handleRowClick = async (record: CustomerItem) => {
     setOpenDetail(true);
     setLoadingDetail(true);
 
-    fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/${record.customerId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch customer detail");
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/${record.customerId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${authInfo.token}`,
+            "Content-Type": "application/json; charset=utf-8",
+          },
         }
-        return response.json();
-      })
-      .then((res) => setDetailData(res))
-      .catch((error) => {
-        console.error("Error fetching detail:", error);
-        message.error("Không thể tải chi tiết khách hàng.");
-      })
-      .finally(() => setLoadingDetail(false));
+      );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error("Failed to fetch customer detail");
+      }
+      const res = await response.json();
+      setDetailData(res);
+    } catch (error) {
+      message.error("Không thể tải chi tiết khách hàng.");
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const columns: TableColumnsType<CustomerItem> = [

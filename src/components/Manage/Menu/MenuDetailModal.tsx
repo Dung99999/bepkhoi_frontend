@@ -4,7 +4,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-interface MenuDetail{
+interface MenuDetail {
     productId: number;
     productName: string;
     productCategoryId: number;
@@ -18,28 +18,33 @@ interface MenuDetail{
     status: boolean;
     isDelete: boolean;
     imageUrl: string;
-  }
+}
 interface MenuDetailModalProps {
-  open: boolean;
-  loading: boolean;
-  data: MenuDetail | null;
-  onClose: () => void;
-  onUpdate: () => void;
-  onReloadMenuList: () => void;
+    open: boolean;
+    loading: boolean;
+    data: MenuDetail | null;
+    onClose: () => void;
+    onUpdate: () => void;
+    onReloadMenuList: () => void;
 }
 
-const MenuDetailModal: React.FC<MenuDetailModalProps> = ({ 
-    open, 
-    loading, 
-    data, 
+const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
+    open,
+    loading,
+    data,
     onClose,
     onUpdate,
     onReloadMenuList
-  }) => {
-    
+}) => {
+
     const { authInfo, clearAuthInfo } = useAuth()
     const handleDelete = async () => {
-        if(!data) return;
+        if (!data) return;
+        if (!authInfo.token) {
+            message.error("Vui lòng đăng nhập lại!");
+            clearAuthInfo();
+            return;
+        }
         Modal.confirm({
             title: 'Xác nhận xóa',
             content: `Bạn có chắc chắn muốn xóa món "${data.productName}" không?`,
@@ -50,20 +55,22 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
                 try {
                     const res = await axios.delete(`${API_BASE_URL}api/Menu/${data.productId}`, {
                         headers: {
-                             'Content-Type': 'application/json; charset=utf-8',
-                              Authorization: authInfo.token ? `Bearer ${authInfo.token}` : "" 
-                            }
+                            "Content-Type": "application/json; charset=utf-8",
+                            Authorization: `Bearer ${authInfo.token}`,
+                        },
                     });
-                    console.log("Phản hồi từ API:", res.data);
-                    message.success('Xóa món ăn thành công!');
+                    message.success("Xóa món ăn thành công!");
                     onClose();
                     onReloadMenuList();
+                } catch (error: any) {
+                    if (error.response?.status === 401) {
+                        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+                        clearAuthInfo();
+                    } else {
+                        message.error(error.response?.data?.message || "Xóa món ăn thất bại!");
+                    }
                 }
-                catch (error) {
-                    console.error("Lỗi API:", error);
-                    message.error('Xóa món ăn thất bại!');
-                }
-            }            
+            },
         });
     };
 
@@ -110,14 +117,14 @@ const MenuDetailModal: React.FC<MenuDetailModalProps> = ({
                                     onClick={onUpdate}
                                     className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                                 >
-                                    <EditOutlined className="icon-of-menu-list-button"/>
+                                    <EditOutlined className="icon-of-menu-list-button" />
                                     Cập nhật
                                 </button>
                                 <button
                                     onClick={handleDelete}
                                     className="px-6 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                                 >
-                                    <DeleteOutlined className="icon-of-menu-list-button"/>
+                                    <DeleteOutlined className="icon-of-menu-list-button" />
                                     Xóa
                                 </button>
                             </div>

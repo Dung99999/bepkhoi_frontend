@@ -4,9 +4,7 @@ import type { TableColumnsType, TableProps } from "antd";
 import "./PriceMenuList.css";
 import ModalSettingPriceById from "./ModalSettingPriceById";
 import { EditOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
-
-// Thêm token ở đầu file
-const token = localStorage.getItem("Token");
+import { useAuth } from "../../../context/AuthContext";
 
 interface PriceMenuListProps {
   search: string;
@@ -28,6 +26,7 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({
   category,
   menuStatus,
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [items, setItems] = useState<PriceMenuItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -46,47 +45,47 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({
     return params.toString();
   };
 
-  const fetchData = () => {
+  const fetchData = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     setLoading(true);
-    const queryParams = createQueryParams();
-    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`, {
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setItems(data.data ?? []);
-        setTotal(data.totalRecords || 0);
-      })
-      .catch((error) => {
-        console.error("Error fetching menu:", error);
-        setItems([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const queryParams = createQueryParams();
+      const response = await fetch(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/get-all-menus?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authInfo.token}`,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
+      );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setItems(data.data ?? []);
+      setTotal(data.totalRecords || 0);
+    } catch (error) {
+      message.error("Không thể tải danh sách menu!");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    setLoading(true);
-    const queryParams = createQueryParams();
-    fetch(`https://localhost:7257/api/Menu/get-all-menus?${queryParams}`, {
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setItems(data.data ?? []);
-        setTotal(data.totalRecords || 0);
-      })
-      .catch((error) => {
-        console.error("Error fetching menu:", error);
-        setItems([]);
-      })
-      .finally(() => setLoading(false));
-  }, [search, category, menuStatus, page]);
+    fetchData();
+  }, [search, category, menuStatus, page, authInfo.token]);
 
   const handleOpenModal = (record: PriceMenuItem) => {
     setSelectedItem(record);
@@ -116,7 +115,9 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({
       key: "costPrice",
       width: "12vw",
       render: (price) => (
-        <span className="text-[0.9vw]">{price?.toLocaleString()}đ</span>
+        price != null
+        ? <span className="text-[0.9vw]">{price.toLocaleString()}đ</span>
+        : <span className="text-[0.9vw] text-gray-400 italic">--</span>
       ),
     },
     {
@@ -125,7 +126,9 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({
       key: "sellPrice",
       width: "12vw",
       render: (price) => (
-        <span className="text-[0.9vw]">{price?.toLocaleString()}đ</span>
+        price != null
+        ? <span className="text-[0.9vw]">{price.toLocaleString()}đ</span>
+        : <span className="text-[0.9vw] text-gray-400 italic">--</span>
       ),
     },
     {
@@ -134,7 +137,9 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({
       key: "salePrice",
       width: "12vw",
       render: (price) => (
-        <span className="text-[0.9vw]">{price?.toLocaleString()}đ</span>
+        price != null
+        ? <span className="text-[0.9vw]">{price.toLocaleString()}đ</span>
+        : <span className="text-[0.9vw] text-gray-400 italic">--</span>
       ),
     },
     {

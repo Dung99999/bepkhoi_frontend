@@ -46,20 +46,30 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
       fetchUserData(userId);
       fetchProvinces();
     }
-  }, [open]);
+  }, [open, userId]);
 
   const fetchUserData = async (id: string) => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
     try {
       setLoading(true);
       const response = await axios.get(
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/Manager/${id}`,
         {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${authInfo.token}`,
             "Content-Type": "application/json",
           },
         }
       );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       const user = response.data;
       setFormData({
         userId: user.userId,
@@ -139,11 +149,16 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
         dateOfBirth: formData.date_of_Birth
       };
 
-      await axios.put(
+      const response = await axios.put(
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/Manager/${userId}`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${authInfo.token}` } }
       );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       message.success("Cập nhật thành công!");
       onClose();
       onReload();
@@ -168,11 +183,16 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
     };
 
     try {
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/Passwords/change-password`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${authInfo.token}` } }
       );
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       message.success("Đổi mật khẩu thành công!");
       setOldPass("");
       setNewPass("");
