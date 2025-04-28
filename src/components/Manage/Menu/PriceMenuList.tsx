@@ -76,7 +76,6 @@ const PriceMenuList: React.FC<PriceMenuListProps> = ({
       setItems(data.data ?? []);
       setTotal(data.totalRecords || 0);
     } catch (error) {
-      message.error("Không thể tải danh sách menu!");
       setItems([]);
     } finally {
       setLoading(false);
