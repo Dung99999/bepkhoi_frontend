@@ -4,6 +4,7 @@ import type { TableColumnsType } from "antd";
 import './../Menu/MenuList.css';
 import ShipperDetailModal from "./ShipperDetailModal";
 import UserUpdateModal from "./UserUpdateModal";
+import { useAuth } from "../../../context/AuthContext";
 
 interface UserListProps {
   search: string;
@@ -25,6 +26,7 @@ interface UserProps {
 }
 
 const UserList: React.FC<UserListProps> = ({ search, status }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [items, setItems] = useState<UserProps[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -44,8 +46,24 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
       apiUrl += `&status=${statusValue}`;
     }
 
-    fetch(apiUrl)
-      .then((response) => response.json())
+    fetch(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${authInfo?.token}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    })
+      .then((response) => {
+        if (response.status === 401) {
+          clearAuthInfo();
+          message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+          setItems([]);
+          return Promise.reject("Unauthorized");
+        }
+        if (!response.ok) {
+          throw new Error("Tải xuống thất bại");
+        }
+        return response.json();
+      })
       .then((data) => {
         setItems(data ?? []);
         setTotal(data.length || 0);
@@ -61,6 +79,7 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
     setUpdateData(record);
     setOpenUpdate(true);
   };
+
   useEffect(() => {
     fetchMenuList();
   }, [search, status, page]);
@@ -69,12 +88,34 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
     setOpenDetail(true);
     setLoadingDetail(true);
 
-    fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/${record.userId}`)
-      .then((response) => response.json())
+    fetch(
+      `${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/${record.userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${authInfo?.token}`,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      }
+    )
+      .then((response) => {
+        if (response.status === 401) {
+          clearAuthInfo();
+          message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+          return Promise.reject("Unauthorized");
+        }
+        if (!response.ok) {
+          throw new Error("Lỗi khi tải chi tiết nhân viên");
+        }
+        return response.json();
+      })
       .then((res) => setDetailData(res))
-      .catch((error) => console.error("Error fetching detail:", error))
+      .catch((error) => {
+        if (error !== "Unauthorized") {
+          message.error("Lỗi khi tải chi tiết nhân viên");
+        }
+      })
       .finally(() => setLoadingDetail(false));
-  }
+  };
 
   const columns: TableColumnsType<UserProps> = [
     { title: "ID", dataIndex: "userId", key: "userId", width: 60 },
@@ -85,7 +126,11 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
       dataIndex: "status",
       key: "status",
       render: (value: boolean) =>
-        value ? <Tag color="green">Đang sử dụng</Tag> : <Tag color="red">Ngừng sử dụng</Tag>,
+        value ? (
+          <Tag color="green">Đang sử dụng</Tag>
+        ) : (
+          <Tag color="red">Ngừng sử dụng</Tag>
+        ),
     },
   ];
 

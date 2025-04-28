@@ -7,6 +7,7 @@ import AddRoomModal from "../../components/Manage/Room/AddRoomModal";
 import RoomDetailModal from "../../components/Manage/Room/RoomDetailModal";
 import EditRoomModal from "../../components/Manage/Room/EditRoomModal";
 import QRManageModal from "../../components/Manage/Room/QRManageModal";
+import { useAuth } from "../../context/AuthContext";
 
 interface RoomProps {
   roomId: number;
@@ -30,17 +31,16 @@ interface RoomAreaProps {
 }
 
 const RoomsManagePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [search, setSearch] = useState("");
   const [rooms, setRooms] = useState<RoomProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [roomAreas, setRoomAreas] = useState<RoomAreaProps[]>([]);
-
   const [selectedRoom, setSelectedRoom] = useState<RoomProps | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
 
@@ -52,12 +52,21 @@ const RoomsManagePage: React.FC = () => {
       if (search) {
         apiUrl = `${
           process.env.REACT_APP_API_APP_ENDPOINT
-          }api/rooms/search-by-name?limit=1000&name=${encodeURIComponent(
-            search
-          )}`;
+        }api/rooms/search-by-name?limit=1000&name=${encodeURIComponent(search)}`;
       }
 
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${authInfo?.token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        setRooms([]);
+        return;
+      }
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -90,8 +99,20 @@ const RoomsManagePage: React.FC = () => {
   const fetchRoomAreas = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all?limit=1000`
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all?limit=1000`,
+        {
+          headers: {
+            Authorization: `Bearer ${authInfo?.token}`,
+          },
+        }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to fetch room areas");
       const data = await response.json();
       setRoomAreas(data);
@@ -111,8 +132,19 @@ const RoomsManagePage: React.FC = () => {
     setDetailLoading(true);
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/${roomId}`
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/${roomId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authInfo?.token}`,
+          },
+        }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) throw new Error("Không tìm thấy thông tin phòng");
 
@@ -163,6 +195,7 @@ const RoomsManagePage: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
             accept: "*/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
           body: JSON.stringify({
             ...values,
@@ -172,6 +205,12 @@ const RoomsManagePage: React.FC = () => {
           }),
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -209,6 +248,7 @@ const RoomsManagePage: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
             accept: "*/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
           body: JSON.stringify({
             ...values,
@@ -218,11 +258,17 @@ const RoomsManagePage: React.FC = () => {
         }
       );
 
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
           errorData.message ||
-          "Bàn đã ngừng kinh doanh. Vui lòng cập nhật trạng thái!"
+            "Bàn đã ngừng kinh doanh. Vui lòng cập nhật trạng thái!"
         );
       }
 
@@ -251,8 +297,19 @@ const RoomsManagePage: React.FC = () => {
         try {
           const response = await fetch(
             `${process.env.REACT_APP_API_APP_ENDPOINT}api/rooms/delete/${selectedRoom.roomId}`,
-            { method: "DELETE" }
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${authInfo?.token}`,
+              },
+            }
           );
+
+          if (response.status === 401) {
+            clearAuthInfo();
+            message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+            return;
+          }
 
           if (!response.ok) throw new Error("Xóa thất bại");
 
@@ -278,9 +335,16 @@ const RoomsManagePage: React.FC = () => {
           method: "POST",
           headers: {
             accept: "*/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) throw new Error("Tạo QR thất bại");
 
@@ -317,9 +381,16 @@ const RoomsManagePage: React.FC = () => {
           method: "DELETE",
           headers: {
             accept: "*/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) throw new Error("Xóa QR thất bại");
 
@@ -354,9 +425,16 @@ const RoomsManagePage: React.FC = () => {
           method: "GET",
           headers: {
             accept: "image/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) throw new Error("Không thể tải QR code");
 

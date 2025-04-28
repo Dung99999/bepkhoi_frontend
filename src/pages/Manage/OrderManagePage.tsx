@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import OrderList from "../../components/Manage/Order/OrderList";
 import OrderDetail from "../../components/Manage/Order/OrderDetail";
 import FilterSidebar from "../../components/Manage/Order/FilterSidebar";
-
-const token = localStorage.getItem("Token");
+import { useAuth } from "../../context/AuthContext";
+import { message } from "antd";
 
 interface Customer {
   customerId: number;
@@ -58,6 +58,7 @@ interface OrderFilterParams {
 }
 
 const OrderManagePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -77,11 +78,18 @@ const OrderManagePage: React.FC = () => {
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/DeliveryInformation/${deliveryInfoId}`,
         {
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${authInfo?.token}`,
             "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to fetch delivery information");
 
       const data = await response.json();
@@ -101,11 +109,18 @@ const OrderManagePage: React.FC = () => {
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/cancellation-history/${orderId}`,
         {
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${authInfo?.token}`,
             "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to fetch cancellation history");
       const data = await response.json();
       setCancellationHistory(data.data || []);
@@ -125,12 +140,19 @@ const OrderManagePage: React.FC = () => {
         {
           method: "POST",
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${authInfo?.token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(filterParams),
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        setOrders([]);
+        return;
+      }
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -161,11 +183,18 @@ const OrderManagePage: React.FC = () => {
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer`,
         {
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${authInfo?.token}`,
             "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to fetch customers");
       const data = await response.json();
       setCustomers(data);
@@ -181,11 +210,18 @@ const OrderManagePage: React.FC = () => {
         `${process.env.REACT_APP_API_APP_ENDPOINT}api/order-detail/get-by-order-id/${orderId}`,
         {
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${authInfo?.token}`,
             "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to fetch order details");
 
       const data = await response.json();

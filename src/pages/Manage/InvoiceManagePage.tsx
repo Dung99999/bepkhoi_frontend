@@ -3,8 +3,7 @@ import { FileTextOutlined } from "@ant-design/icons";
 import InvoiceList from "../../components/Manage/Invoice/InvoiceList";
 import FilterSidebar from "../../components/Manage/Invoice/FilterSidebar";
 import { Card, Spin, message } from "antd";
-
-const token = localStorage.getItem("Token");
+import { useAuth } from "../../context/AuthContext";
 
 interface Invoice {
   invoiceId: number;
@@ -46,6 +45,7 @@ export interface InvoiceFilterParams {
 }
 
 const InvoiceManagePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterParams, setFilterParams] = useState<InvoiceFilterParams>({});
@@ -58,12 +58,19 @@ const InvoiceManagePage: React.FC = () => {
         {
           method: "POST",
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: `Bearer ${authInfo?.token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(params),
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        setInvoices([]);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -102,12 +109,12 @@ const InvoiceManagePage: React.FC = () => {
   return (
     <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">
       <div className="flex flex-1 p-4 gap-4">
-      <div className="h-fit"> {/* Thêm wrapper div với h-fit */}
+      <div className="h-fit">
         <FilterSidebar
           onFilterSubmit={handleFilterSubmit}
           loading={loading}
         />
-      </div>
+        </div>
         <main className="flex-1 overflow-auto">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold flex items-center">
