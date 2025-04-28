@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Modal, Input, Radio, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useAuth } from "../../../../context/AuthContext"; // Import AuthContext
 import useSignalR from "../../../../CustomHook/useSignalR";
 
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-const token = localStorage.getItem("Token");
 
 const ITEMS_PER_PAGE = 12;
 
@@ -38,15 +38,22 @@ interface Props {
   setOrderType: (shipperId: number | null) => void;
 }
 
-async function fetchRoomAreas(): Promise<roomAreaOption[]> {
+async function fetchRoomAreas(token: string, clearAuthInfo: () => void): Promise<roomAreaOption[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}api/roomarea/get-all?limit=20&offset=0`, {
+    const response = await fetch(`${API_BASE_URL}api/roomarea/get-all?limit=1000&offset=0`, {
       method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
@@ -68,15 +75,21 @@ async function fetchRoomAreas(): Promise<roomAreaOption[]> {
   }
 }
 
-async function fetchRooms(): Promise<room[]> {
+async function fetchRooms(token: string, clearAuthInfo: () => void): Promise<room[]> {
   try {
     const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`, {
       method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -99,7 +112,12 @@ async function fetchRooms(): Promise<room[]> {
   }
 }
 
-async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean | null): Promise<room[]> {
+async function fetchRoomFilter(
+  choosedArea: number | null,
+  choosedIsUse: boolean | null,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<room[]> {
   try {
     const query = new URLSearchParams();
     if (choosedArea !== null) {
@@ -112,10 +130,16 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
     const response = await fetch(`${API_BASE_URL}api/rooms/filter-room-pos?${query.toString()}`, {
       method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -140,7 +164,9 @@ async function fetchRoomFilter(choosedArea: number | null, choosedIsUse: boolean
 
 async function updateRoomNote(
   roomId: number | null,
-  roomNote: string
+  roomNote: string,
+  token: string,
+  clearAuthInfo: () => void
 ): Promise<boolean> {
   try {
     if (roomId === null) {
@@ -150,10 +176,16 @@ async function updateRoomNote(
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({ roomId: roomId, roomNote: roomNote }),
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return false;
+    }
 
     const data = await response.json();
 
@@ -178,6 +210,7 @@ const POSRoomTableList: React.FC<Props> = ({
   orderType,
   setOrderType,
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth(); // Sử dụng AuthContext
   const [roomAreaOptionList, setRoomAreaOptionList] = useState<
     roomAreaOption[]
   >([]);
@@ -197,15 +230,15 @@ const POSRoomTableList: React.FC<Props> = ({
     { label: "Đang sử dụng", value: true },
     { label: "Đang trống", value: false },
   ];
+
   async function getRoomAreas() {
-    const roomAreas = await fetchRoomAreas();
+    const roomAreas = await fetchRoomAreas(authInfo?.token || "", clearAuthInfo);
     setRoomAreaOptionList(roomAreas);
   }
 
   async function getRooms() {
-    const roomList = await fetchRooms();
+    const roomList = await fetchRooms(authInfo?.token || "", clearAuthInfo);
     setRoom(roomList);
-    // Điều chỉnh currentPage nếu cần
     const maxPage = Math.ceil(roomList.length / ITEMS_PER_PAGE);
     if (currentPage > maxPage && maxPage > 0) {
       setCurrentPage(maxPage);
@@ -214,9 +247,8 @@ const POSRoomTableList: React.FC<Props> = ({
 
   async function getRoomFilter() {
     console.log("Fetching rooms with filters:", { choosedArea, choosedIsUse });
-    const rooms = await fetchRoomFilter(choosedArea, choosedIsUse);
+    const rooms = await fetchRoomFilter(choosedArea, choosedIsUse, authInfo?.token || "", clearAuthInfo);
     setRoom(rooms);
-    // Điều chỉnh currentPage nếu cần
     const maxPage = Math.ceil(rooms.length / ITEMS_PER_PAGE);
     if (currentPage > maxPage && maxPage > 0) {
       console.log(`Adjusting currentPage from ${currentPage} to ${maxPage}`);
@@ -239,7 +271,6 @@ const POSRoomTableList: React.FC<Props> = ({
     return (data: { roomId: number; isUse: boolean }) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        // Kiểm tra xem roomId có liên quan đến danh sách hiện tại hoặc bộ lọc
         const roomExists = room.some((r) => r.roomId === data.roomId);
         const matchesFilter = choosedIsUse === null || choosedIsUse === data.isUse;
         if (roomExists || matchesFilter) {
@@ -343,7 +374,7 @@ const POSRoomTableList: React.FC<Props> = ({
           setSelectedRoomToNote(null);
         }}
         onOk={async () => {
-          const success = await updateRoomNote(selectedRoomToNote, note);
+          const success = await updateRoomNote(selectedRoomToNote, note, authInfo?.token || "", clearAuthInfo);
           if (success) {
             message.success("Cập nhật ghi chú thành công");
             await getRooms();

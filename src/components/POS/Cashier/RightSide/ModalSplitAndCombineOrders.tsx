@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Modal,
   Select,
-  Space,
   Radio,
   Typography,
   InputNumber,
   Table,
   Button,
-  message
+  message,
 } from "antd";
+import { useAuth } from "../../../../context/AuthContext";
+
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-const token = localStorage.getItem("Token");
 const { Text } = Typography;
 
 interface SplitOrderModalProps {
@@ -20,6 +20,7 @@ interface SplitOrderModalProps {
   onOk: () => void;
   selectedOrder: number | null;
 }
+
 interface OrderModel {
   orderId: number;
   customerId: number | null;
@@ -33,10 +34,12 @@ interface OrderModel {
   orderStatusId: number;
   orderNote: string | null;
 }
+
 interface SplitToOption {
   value: number;
   label: string;
 }
+
 interface RoomModel {
   roomId: number;
   roomName: string;
@@ -46,10 +49,12 @@ interface RoomModel {
   roomNote: string;
   isUse: boolean;
 }
+
 interface SplitToRoomOption {
   value: number;
   label: string;
 }
+
 interface ShipperModel {
   userId: number;
   userName: string;
@@ -72,11 +77,13 @@ interface OrderDetailModel {
   price: number;
   productNote: string | null;
 }
+
 interface SplitOrderPosRequestProduct {
   order_detail_id: number;
   product_id: number;
   quantity: number;
 }
+
 interface SplitOrderPosRequest {
   createNewOrder: boolean;
   orderId: number;
@@ -86,82 +93,107 @@ interface SplitOrderPosRequest {
   shipperId?: number | null;
   product: SplitOrderPosRequestProduct[];
 }
-interface RoomDtoPos {
-  roomId: number;
-  roomName: string;
-  roomAreaId: number;
-  ordinalNumber: number;
-  seatNumber: number;
-  roomNote: string;
-  isUse: boolean;
-}
-interface CombineOption{
+
+interface CombineOption {
   value: string;
   label: string;
 }
+
 interface CombineOrderPosRequestDto {
   firstOrderId: number;
   secondOrderId: number;
 }
-const fetchAllOrders = async (): Promise<OrderModel[]> => {
+
+const fetchAllOrders = async (
+  token: string,
+  clearAuthInfo: () => void
+): Promise<OrderModel[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/get-all-orders`, {
       method: "GET",
       headers: {
-        "Accept": "*/*",
-        "Authorization": "Bearer " + token,
+        Accept: "*/*",
+        Authorization: `Bearer ${token}`,
       },
     });
 
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       const errorBody = await response.json();
-      console.log("Fetch orders failed:", errorBody.message || "Unknown error");
+      message.error(errorBody.message || "Không thể lấy danh sách đơn hàng.");
       return [];
     }
 
     const result = await response.json();
     return result.data as OrderModel[];
   } catch (error) {
-    console.log("Fetch error:", error);
+    console.error("Fetch error:", error);
+    message.error("Lỗi kết nối khi lấy danh sách đơn hàng.");
     return [];
   }
 };
-const fetchAllRoom = async (): Promise<RoomModel[]> => {
+
+const fetchAllRoom = async (
+  token: string,
+  clearAuthInfo: () => void
+): Promise<RoomModel[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`, {
       method: "GET",
       headers: {
         Accept: "text/plain",
-        "Authorization": "Bearer " + token,
+        Authorization: `Bearer ${token}`,
       },
     });
 
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       const errorBody = await response.json();
-      console.error("Lỗi khi fetch room:", errorBody.message || "Unknown error");
-      return []; // hoặc throw nếu bạn muốn xử lý ở nơi gọi
+      message.error(errorBody.message || "Không thể lấy danh sách phòng.");
+      return [];
     }
 
     const result = await response.json();
     return result as RoomModel[];
   } catch (error: any) {
     console.error("Lỗi khi gọi API fetchAllRoom:", error.message || error);
+    message.error("Lỗi kết nối khi lấy danh sách phòng.");
     return [];
   }
 };
-const fetchAllShippers = async (): Promise<ShipperModel[]> => {
+
+const fetchAllShippers = async (
+  token: string,
+  clearAuthInfo: () => void
+): Promise<ShipperModel[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/Shipper`, {
       method: "GET",
       headers: {
         Accept: "text/plain",
-        "Authorization": "Bearer " + token,
+        Authorization: `Bearer ${token}`,
       },
     });
 
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       const errorBody = await response.json();
-      console.error("Lỗi khi fetch shipper:", errorBody.message || "Unknown error");
+      message.error(errorBody.message || "Không thể lấy danh sách shipper.");
       return [];
     }
 
@@ -169,25 +201,37 @@ const fetchAllShippers = async (): Promise<ShipperModel[]> => {
     return result as ShipperModel[];
   } catch (error: any) {
     console.error("Lỗi khi gọi API fetchAllShippers:", error.message || error);
+    message.error("Lỗi kết nối khi lấy danh sách shipper.");
     return [];
   }
 };
-const fetchOrderDetail = async (orderId: number): Promise<OrderDetailModel[]> => {
+
+const fetchOrderDetail = async (
+  orderId: number,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<OrderDetailModel[]> => {
   try {
     const response = await fetch(
       `${API_BASE_URL}api/orders/get-order-details-by-order-id?orderId=${orderId}`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          Accept: '*/*',
-          "Authorization": "Bearer " + token,
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
         },
       }
     );
 
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       const errorBody = await response.json();
-      console.error("Lỗi khi fetch order details:", errorBody.message || "Unknown error");
+      message.error(errorBody.message || "Không thể lấy chi tiết đơn hàng.");
       return [];
     }
 
@@ -195,186 +239,167 @@ const fetchOrderDetail = async (orderId: number): Promise<OrderDetailModel[]> =>
     return result as OrderDetailModel[];
   } catch (error: any) {
     console.error("Lỗi khi gọi API fetchOrderDetail:", error.message || error);
+    message.error("Lỗi kết nối khi lấy chi tiết đơn hàng.");
     return [];
   }
 };
 
-async function fetchSplitOrder(
-  requestData: SplitOrderPosRequest
-): Promise<{ success: boolean; message: string; error?: string }> {
+const fetchSplitOrder = async (
+  requestData: SplitOrderPosRequest,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<{ success: boolean; message: string; error?: string }> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/order-detail/SplitOrderPos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(requestData)
+      body: JSON.stringify(requestData),
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return { success: false, message: "Phiên làm việc đã hết hạn.", error: "Unauthorized" };
+    }
 
     const result = await response.json();
 
     if (response.ok) {
       return {
         success: true,
-        message: result.message || "Order split successfully"
+        message: result.message || "Tách đơn thành công.",
       };
     }
 
-    // Xử lý lỗi do request không hợp lệ (400)
     if (response.status === 400) {
       return {
         success: false,
-        message: "Request invalid or rejected",
-        error: result.message || "Bad request"
+        message: result.message || "Yêu cầu không hợp lệ.",
+        error: result.error || "Bad request",
       };
     }
 
-    // Xử lý lỗi server nội bộ (500)
     if (response.status === 500) {
       return {
         success: false,
-        message: "Server encountered an error",
-        error: result.error || "Internal server error"
+        message: "Lỗi server.",
+        error: result.error || "Internal server error",
       };
     }
 
-    // Các lỗi khác không mong đợi
     return {
       success: false,
-      message: "Unexpected error occurred",
-      error: result.error || "Unknown error"
+      message: "Lỗi không xác định.",
+      error: result.error || "Unknown error",
     };
-
   } catch (error: any) {
-    // Lỗi kết nối mạng hoặc fetch lỗi
     return {
       success: false,
-      message: "Failed to connect to server",
-      error: error.message || "Network or unknown error"
+      message: "Lỗi kết nối server.",
+      error: error.message || "Network or unknown error",
     };
   }
-}
-async function fetchOrders(roomId: number | null, shipperId: number | null, orderTypeId: number | null): Promise<OrderModel[]> {
+};
+
+const fetchOrders = async (
+  roomId: number | null,
+  shipperId: number | null,
+  orderTypeId: number | null,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<OrderModel[]> => {
   try {
-    // Tạo chuỗi query string từ các tham số
     const query = new URLSearchParams();
+    if (roomId !== null) query.append("roomId", roomId.toString());
+    if (shipperId !== null) query.append("shipperId", shipperId.toString());
+    if (orderTypeId !== null) query.append("orderTypeId", orderTypeId.toString());
 
-    // Chỉ thêm query parameter nếu giá trị không phải null
-    if (roomId !== null) {
-      query.append("roomId", roomId.toString());
-    }
-    if (shipperId !== null) {
-      query.append("shipperId", shipperId.toString());
-    }
-    if (orderTypeId !== null) {
-      query.append("orderTypeId", orderTypeId.toString());
-    }
-
-    // Gửi request với query parameters nếu có
-    const response = await fetch(`${API_BASE_URL}api/orders/get-order-by-type-pos?${query.toString()}`, {
-      method: 'GET',
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
+    const response = await fetch(
+      `${API_BASE_URL}api/orders/get-order-by-type-pos?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
 
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      const errorBody = await response.json();
+      message.error(errorBody.message || "Không thể lấy danh sách đơn hàng.");
+      return [];
     }
 
-    // Parse dữ liệu JSON và trả về kết quả
     const orders: OrderModel[] = await response.json();
     return orders;
   } catch (error) {
     console.error("Error fetching orders:", error);
-    throw error; // Ném lỗi ra ngoài để caller xử lý
+    message.error("Lỗi kết nối khi lấy danh sách đơn hàng.");
+    return [];
   }
-}
+};
 
-async function fetchCombineOrder(
-  request: CombineOrderPosRequestDto
-): Promise<{ success: boolean; message: string; error?: string }> {
+const fetchCombineOrder = async (
+  request: CombineOrderPosRequestDto,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<{ success: boolean; message: string; error?: string }> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/combine-orders`, {
       method: "PUT",
       headers: {
         Accept: "*/*",
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(request),
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return { success: false, message: "Phiên làm việc đã hết hạn.", error: "Unauthorized" };
+    }
+
     const result = await response.json();
+
     if (response.ok) {
       return {
         success: true,
-        message: result.message || "Orders combined successfully.",
+        message: result.message || "Ghép đơn thành công.",
       };
     }
-    // Handle known 400 and 404 errors
+
     if (response.status === 400 || response.status === 404) {
       return {
         success: false,
-        message: result.message || "Invalid request.",
+        message: result.message || "Yêu cầu không hợp lệ.",
       };
     }
-    // Catch-all for any other non-200 errors
+
     return {
       success: false,
-      message: "Unexpected error occurred.",
-      error: result.error || result.message || "Unknown error.",
+      message: "Lỗi không xác định.",
+      error: result.error || result.message || "Unknown error",
     };
   } catch (error: any) {
-    // Handle network/server-side fetch errors
     return {
       success: false,
-      message: "Failed to connect to server.",
-      error: error.message || "Unknown fetch error.",
+      message: "Lỗi kết nối server.",
+      error: error.message || "Unknown fetch error",
     };
   }
-}
-
-// async function fetchAllRoomsForPos(): Promise<{
-//   success: boolean;
-//   data?: RoomDtoPos[];
-//   message?: string;
-// }> {
-//   try {
-//     const response = await fetch(`${API_BASE_URL}api/rooms/get-all-room-for-pos`);
-//     if (response.ok) {
-//       const data: RoomDtoPos[] = await response.json();
-//       return {
-//         success: true,
-//         data,
-//       };
-//     } else if (response.status === 404) {
-//       const error = await response.json();
-//       return {
-//         success: false,
-//         message: error.message || "Không tìm thấy dữ liệu phòng.",
-//       };
-//     } else if (response.status === 400) {
-//       const error = await response.json();
-//       return {
-//         success: false,
-//         message: error.message || "Yêu cầu không hợp lệ.",
-//       };
-//     } else {
-//       const error = await response.json();
-//       return {
-//         success: false,
-//         message: error.message || "Lỗi không xác định.",
-//       };
-//     }
-//   } catch (err: any) {
-//     return {
-//       success: false,
-//       message: "Lỗi kết nối server hoặc mạng.",
-//     };
-//   }
-// }
+};
 
 const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
   open,
@@ -382,21 +407,20 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
   onOk,
   selectedOrder,
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [splitMode, setSplitMode] = useState<"split" | "merge">("split");
-  //Split to state
   const [splitToOptionList, setSplitToOptionList] = useState<SplitToOption[]>([
-    { value: 0, label: "Tạo đơn mới" }
+    { value: 0, label: "Tạo đơn mới" },
   ]);
-  const [splitToRoomList, setSplitToRoomList] = useState<SplitToRoomOption[]>()
+  const [splitToRoomList, setSplitToRoomList] = useState<SplitToRoomOption[]>([]);
   const [splitToShipperList, setSplitToShipperList] = useState<SplitToShipperOption[]>([]);
   const [splitToOrder, setSplitToOrder] = useState<number>(0);
-  const [splitToRoom, setSplitToRoom] = useState<number|null>(null);
-  const [splitToShipper, setSplitToShipper] = useState<number|null>(null);
-  const [orderType, setOrderType] = useState<number|undefined>(undefined);
+  const [splitToRoom, setSplitToRoom] = useState<number | null>(null);
+  const [splitToShipper, setSplitToShipper] = useState<number | null>(null);
+  const [orderType, setOrderType] = useState<number | undefined>(undefined);
   const [orderDetails, setOrderDetails] = useState<(OrderDetailModel & { splitQty: number })[]>([]);
-  //Combine state
   const [combineOptionList, setCombineOptionList] = useState<CombineOption[]>([]);
-  const [combineOptionValue, setCombineOptionValue] = useState<string|null>(null);
+  const [combineOptionValue, setCombineOptionValue] = useState<string | null>(null);
   const [combineOrderList, setCombineOrderList] = useState<OrderModel[]>([]);
   const [selectedCombineOrderId, setSelectedCombineOrderId] = useState<number | null>(null);
 
@@ -447,7 +471,6 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
     },
   ];
 
-
   const mergeColumns = [
     {
       title: "",
@@ -484,12 +507,162 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
     },
   ];
 
-  const handleSplitOrder = async () => {
-    if (!selectedOrder) {
-      console.warn("Không có đơn hàng được chọn.");
+  const getAllOrder = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
       return;
     }
-    // Lọc những sản phẩm có số lượng tách > 0
+    const orders = await fetchAllOrders(authInfo.token, clearAuthInfo);
+    const filteredOrders = orders.filter((order) => order.orderId !== selectedOrder);
+    const options: SplitToOption[] = filteredOrders.map((order) => ({
+      value: order.orderId,
+      label: `Đơn ${order.orderId} - ${order.orderNote || "Không có ghi chú"}`,
+    }));
+    setSplitToOptionList([{ value: 0, label: "Tạo đơn mới" }, ...options]);
+  }, [authInfo?.token, clearAuthInfo, selectedOrder]);
+
+  const getAllRoom = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    const rooms = await fetchAllRoom(authInfo.token, clearAuthInfo);
+    const options: SplitToRoomOption[] = rooms.map((room) => ({
+      value: room.roomId,
+      label: room.roomName,
+    }));
+    setSplitToRoomList(options);
+  }, [authInfo?.token, clearAuthInfo]);
+
+  const getAllShippers = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    const shippers = await fetchAllShippers(authInfo.token, clearAuthInfo);
+    const options: SplitToShipperOption[] = shippers
+      .filter((shipper) => shipper.status)
+      .map((shipper) => ({
+        value: shipper.userId,
+        label: `${shipper.userName} - ${shipper.phone}`,
+      }));
+    setSplitToShipperList(options);
+  }, [authInfo?.token, clearAuthInfo]);
+
+  const getOrderDetail = useCallback(
+    async (orderId: number) => {
+      if (!authInfo?.token) {
+        message.error("Vui lòng đăng nhập để tiếp tục.");
+        return;
+      }
+      const data = await fetchOrderDetail(orderId, authInfo.token, clearAuthInfo);
+      if (data.length > 0) {
+        const mapped = data.map((item) => ({
+          orderDetailId: item.orderDetailId,
+          orderId: item.orderId,
+          status: item.status,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+          productNote: item.productNote,
+          splitQty: 0,
+        }));
+        setOrderDetails(mapped);
+      } else {
+        setOrderDetails([]);
+      }
+    },
+    [authInfo?.token, clearAuthInfo]
+  );
+
+  const getCombinedOptions = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    try {
+      const [rooms, shippers] = await Promise.all([
+        fetchAllRoom(authInfo.token, clearAuthInfo),
+        fetchAllShippers(authInfo.token, clearAuthInfo),
+      ]);
+
+      const takeawayOption: CombineOption = {
+        value: "takeaway",
+        label: "Mang về",
+      };
+
+      const roomOptions: CombineOption[] = rooms.map((room) => ({
+        value: `room-${room.roomId}`,
+        label: room.roomName,
+      }));
+
+      const shipperOptions: CombineOption[] = shippers
+        .filter((shipper) => shipper.status)
+        .map((shipper) => ({
+          value: `shipper-${shipper.userId}`,
+          label: `${shipper.userName} - ${shipper.phone}`,
+        }));
+
+      setCombineOptionList([takeawayOption, ...roomOptions, ...shipperOptions]);
+    } catch (error) {
+      console.error("Error fetching combined options:", error);
+      message.error("Lỗi khi lấy tùy chọn gộp đơn.");
+    }
+  }, [authInfo?.token, clearAuthInfo]);
+
+  const handleCombineOptionChange = useCallback(
+    async (value: string) => {
+      if (!authInfo?.token) {
+        message.error("Vui lòng đăng nhập để tiếp tục.");
+        return;
+      }
+      let roomId: number | null = null;
+      let shipperId: number | null = null;
+      let orderTypeId: number | null = null;
+
+      if (value === "takeaway") {
+        orderTypeId = 1;
+      } else if (value.startsWith("room-")) {
+        roomId = parseInt(value.split("room-")[1], 10);
+        orderTypeId = 3;
+      } else if (value.startsWith("shipper-")) {
+        shipperId = parseInt(value.split("shipper-")[1], 10);
+        orderTypeId = 2;
+      }
+
+      try {
+        const orders = await fetchOrders(
+          roomId,
+          shipperId,
+          orderTypeId,
+          authInfo.token,
+          clearAuthInfo
+        );
+        const filteredOrders =
+          selectedOrder != null
+            ? orders.filter((o) => o.orderId !== selectedOrder)
+            : orders;
+        setCombineOrderList(filteredOrders);
+      } catch (error) {
+        console.error("Failed to fetch orders for merge:", error);
+        setCombineOrderList([]);
+        message.error("Lỗi khi lấy danh sách đơn hàng để gộp.");
+      }
+    },
+    [authInfo?.token, clearAuthInfo, selectedOrder]
+  );
+
+  const handleSplitOrder = async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    if (!selectedOrder) {
+      message.warning("Không có đơn hàng được chọn.");
+      return;
+    }
+
     const productsToSplit = orderDetails
       .filter((item) => item.splitQty > 0)
       .map((item) => ({
@@ -497,22 +670,29 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
         product_id: item.productId,
         quantity: item.splitQty,
       }));
-  
+
     if (productsToSplit.length === 0) {
-      console.warn("Không có sản phẩm nào được chọn để tách.");
+      message.warning("Vui lòng chọn ít nhất một sản phẩm để tách.");
       return;
     }
-  
+
     let requestData: SplitOrderPosRequest;
-  
     const isCreateNewOrder = splitToOrder === 0;
-  
+
     if (isCreateNewOrder) {
       if (!orderType) {
-        console.warn("Vui lòng chọn loại đơn khi tạo đơn mới.");
+        message.warning("Vui lòng chọn loại đơn khi tạo đơn mới.");
         return;
       }
-  
+      if (orderType === 3 && splitToRoom == null) {
+        message.warning("Vui lòng chọn phòng/bàn khi tạo đơn phòng.");
+        return;
+      }
+      if (orderType === 2 && splitToShipper == null) {
+        message.warning("Vui lòng chọn shipper khi tạo đơn giao đi.");
+        return;
+      }
+
       requestData = {
         createNewOrder: true,
         orderId: selectedOrder,
@@ -526,175 +706,73 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
         createNewOrder: false,
         orderId: selectedOrder,
         splitTo: splitToOrder,
-        orderTypeId: 0, // không cần thiết trong trường hợp này
+        orderTypeId: 0,
         product: productsToSplit,
       };
     }
-  
-    const result = await fetchSplitOrder(requestData);
-  
+
+    const result = await fetchSplitOrder(requestData, authInfo.token, clearAuthInfo);
+
     if (result.success) {
-      console.log("Tách đơn thành công:", result.message);
-      message.success("Tách đơn thành công");
-      onOk(); 
+      message.success(result.message);
+      onOk();
     } else {
-      console.error("Tách đơn thất bại:", result.error || result.message);
-      message.error("Tách đơn thất bại. Vui lòng thử lại.");
-    }
-  };
-  const handleCombineOrder = async () => {
-    if (selectedOrder !== null && selectedCombineOrderId !== null) {
-      const request: CombineOrderPosRequestDto = {
-        firstOrderId: selectedOrder,
-        secondOrderId: selectedCombineOrderId,
-      };
-      const result = await fetchCombineOrder(request);
-      if (result.success) {
-        message.success(result.message);
-        onOk(); 
-      } else {
-        message.error(result.message);
-        if (result.error) {
-          console.error("Chi tiết lỗi:", result.error);
-        }
-      }
-    } else {
-      message.warning("Không tìm thấy đơn đặt hàng.");
+      message.error(result.message);
+      console.error("Tách đơn thất bại:", result.error);
     }
   };
 
-  const getAllOrder = async () => {
-    const orders = await fetchAllOrders();
-    const filteredOrders = orders.filter(order => order.orderId !== selectedOrder);
-    const options: SplitToOption[] = filteredOrders.map((order) => ({
-      value: order.orderId,
-      label: `Đơn ${order.orderId} - ${order.orderNote || "Không có ghi chú"}`,
-    }));
-    setSplitToOptionList([
-      { value: 0, label: "Tạo đơn mới" },
-      ...options,
-    ]);
-  };
-  const getAllRoom = async () => {
-    const rooms = await fetchAllRoom();
-    const options: SplitToRoomOption[] = rooms
-      .map((room) => ({
-        value: room.roomId,
-        label: room.roomName,
-      }));
-    setSplitToRoomList(options);
-  };
-  const getAllShippers = async () => {
-    const shippers = await fetchAllShippers();
-    const options: SplitToShipperOption[] = shippers
-      .filter((shipper) => shipper.status)
-      .map((shipper) => ({
-        value: shipper.userId,
-        label: `${shipper.userName} - ${shipper.phone}`,
-      }));
-    setSplitToShipperList(options);
-  };
-  const getOrderDetail = async (orderId: number) => {
-    const data = await fetchOrderDetail(orderId);
-    if (data.length > 0) {
-      const mapped = data.map((item: any) => ({
-        orderDetailId: item.orderDetailId,
-        orderId: item.orderId,
-        status: item.status,
-        productId: item.productId,
-        productName: item.productName,
-        quantity: item.quantity,
-        price: item.price,
-        productNote: item.productNote,
-        splitQty: 0,
-      }));
-      setOrderDetails(mapped);
+  const handleCombineOrder = async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    if (!selectedOrder || !selectedCombineOrderId) {
+      message.warning("Vui lòng chọn đơn hàng để gộp.");
+      return;
+    }
+
+    const request: CombineOrderPosRequestDto = {
+      firstOrderId: selectedOrder,
+      secondOrderId: selectedCombineOrderId,
+    };
+
+    const result = await fetchCombineOrder(request, authInfo.token, clearAuthInfo);
+
+    if (result.success) {
+      message.success(result.message);
+      onOk();
     } else {
-      setOrderDetails([]);
+      message.error(result.message);
+      console.error("Ghép đơn thất bại:", result.error);
     }
   };
-  const getCombinedOptions = async () => {
-    try {
-      const [rooms, shippers] = await Promise.all([
-        fetchAllRoom(),
-        fetchAllShippers()
-      ]);
-  
-      const takeawayOption: CombineOption = {
-        value: "takeaway",
-        label: "Mang về"
-      };
-  
-      const roomOptions: CombineOption[] = rooms.map(room => ({
-        value: `room-${room.roomId.toString()}`,
-        label: room.roomName
-      }));
-  
-      const shipperOptions: CombineOption[] = shippers
-        .filter(shipper => shipper.status==true)
-        .map(shipper => ({
-          value: `shipper-${shipper.userId.toString()}`,
-          label: `${shipper.userName} - ${shipper.phone}`
-        }));
-  
-      setCombineOptionList([takeawayOption, ...roomOptions, ...shipperOptions]);
-    } catch (error) {
-      console.error("Error fetching combined options:", error);
-    }
-  };
-  const handleCombineOptionChange = async (value: string) => {
-    let roomId: number | null = null;
-    let shipperId: number | null = null;
-    let orderTypeId: number | null = null;
-  
-    if (value.trim() === "takeaway") {
-      orderTypeId = 1;
-    } else if (value.trim().startsWith("room-")) {
-      const roomIdStr = value.split("room-")[1];
-      roomId = parseInt(roomIdStr, 10);
-      orderTypeId = 3;
-    } else if (value.trim().startsWith("shipper-")) {
-      const shipperIdStr = value.split("shipper-")[1];
-      shipperId = parseInt(shipperIdStr, 10);
-      orderTypeId = 2;
-    }
-    try {
-      const orders = await fetchOrders(roomId, shipperId, orderTypeId);
-      const filteredOrders = selectedOrder != null
-      ? orders.filter((o) => o.orderId !== selectedOrder)
-      : orders;
-      setCombineOrderList(filteredOrders);
-    } catch (error) {
-      console.error("Failed to fetch orders for merge:", error);
-      setCombineOrderList([]);
-    }
-  };
+
   useEffect(() => {
-    if(combineOptionValue!==null){
-      handleCombineOptionChange(combineOptionValue)
-    }
-  }, [combineOptionValue])
-  useEffect(() => {
-    //Phần split order
-    if (open) {
+    if (open && authInfo?.token) {
       getAllOrder();
       getAllRoom();
       getAllShippers();
-      //set lại các state
+      getCombinedOptions();
       setSplitToOrder(0);
       setSplitToRoom(null);
       setSplitToShipper(null);
       setOrderType(undefined);
-      if (selectedOrder != null) {
-        getOrderDetail(selectedOrder);
-      }
-      //Phần combine order
-      getCombinedOptions();
       setCombineOptionValue(null);
       setCombineOrderList([]);
       setSelectedCombineOrderId(null);
+      if (selectedOrder != null) {
+        getOrderDetail(selectedOrder);
+      }
     }
-  }, [open])
+  }, [open, authInfo?.token, selectedOrder, getAllOrder, getAllRoom, getAllShippers, getCombinedOptions, getOrderDetail]);
+
+  useEffect(() => {
+    if (combineOptionValue !== null) {
+      handleCombineOptionChange(combineOptionValue);
+    }
+  }, [combineOptionValue, handleCombineOptionChange]);
+
   return (
     <Modal
       className="w-[60vw] h-auto"
@@ -703,10 +781,9 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
       onCancel={onCancel}
       width="60vw"
       onOk={() => {
-        if(splitMode == "split"){
+        if (splitMode === "split") {
           handleSplitOrder();
-        }
-        if(splitMode == "merge"){
+        } else if (splitMode === "merge") {
           handleCombineOrder();
         }
       }}
@@ -719,14 +796,10 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
           hover:bg-[#4096ff] 
           hover:text-white 
           hover:border-[#4096ff]
-        `
+        `,
       }}
     >
-      {/* Split/ Merge Order General */}
       <div className="w-full h-auto">
-        {/* Tab bar */}
-
-        {/* Radio Group để chọn chế độ */}
         <Radio.Group
           onChange={(e) => setSplitMode(e.target.value)}
           value={splitMode}
@@ -738,8 +811,7 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
 
         {splitMode === "split" ? (
           <div>
-            {/* Select option */}
-            <div className=" w-[100%] mt-[1vw] h-auto flex flex-row justify-between">
+            <div className="w-[100%] mt-[1vw] h-auto flex flex-row justify-between items-center">
               <p className="font-semibold">Tách đến</p>
               <Select<number>
                 showSearch
@@ -748,9 +820,10 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
                 style={{ width: 300 }}
                 onChange={(value: number) => {
                   setSplitToOrder(value);
-                  // reset orderType nếu người dùng chọn lại
                   if (value !== 0) {
                     setOrderType(undefined);
+                    setSplitToRoom(null);
+                    setSplitToShipper(null);
                   }
                 }}
                 filterOption={(input, option) =>
@@ -762,6 +835,7 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
                 <Select<number>
                   style={{ width: 300 }}
                   value={orderType}
+                  placeholder="Chọn loại đơn"
                   onChange={(value) => setOrderType(value)}
                   options={[
                     { value: 1, label: "Mang về" },
@@ -771,7 +845,7 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
                 />
               )}
               {orderType === 2 && splitToOrder === 0 && (
-                <Select
+                <Select<number>
                   placeholder="Chọn shipper"
                   style={{ width: 200 }}
                   value={splitToShipper}
@@ -780,7 +854,7 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
                 />
               )}
               {orderType === 3 && splitToOrder === 0 && (
-                <Select
+                <Select<number>
                   placeholder="Chọn Phòng/bàn"
                   style={{ width: 200 }}
                   value={splitToRoom}
@@ -789,7 +863,6 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
                 />
               )}
             </div>
-            {/* Table */}
             <Table
               className="mt-[2vw]"
               dataSource={orderDetails}
@@ -805,24 +878,20 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
           </div>
         ) : (
           <div>
-            {/* Select option */}
-            <div className=" w-[100%] mt-[1vw] h-auto flex flex-row justify-start">
+            <div className="w-[100%] mt-[1vw] h-auto flex flex-row justify-start items-center">
               <p className="font-semibold mr-3">Ghép đến</p>
-                <Select
-                  showSearch
-                  value={combineOptionValue} 
-                  placeholder="Chọn nơi bạn muốn ghép đến"
-                  style={{ width: 300 }}
-                  onChange={(value: string) => {
-                    setCombineOptionValue(value);
-                  }}
-                  filterOption={(input, option) =>
-                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={combineOptionList}
-                />
+              <Select<string>
+                showSearch
+                value={combineOptionValue}
+                placeholder="Chọn nơi bạn muốn ghép đến"
+                style={{ width: 300 }}
+                onChange={(value: string) => setCombineOptionValue(value)}
+                filterOption={(input, option) =>
+                  String(option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                }
+                options={combineOptionList}
+              />
             </div>
-            {/* Merge Order Table */}
             <Table
               className="mt-[2vw]"
               dataSource={combineOrderList}
@@ -831,7 +900,7 @@ const ModalSplitOrder: React.FC<SplitOrderModalProps> = ({
               pagination={false}
               bordered
               size="small"
-              locale={{ emptyText: "Bạn không có đơn đặt hàng nào" }}
+              locale={{ emptyText: "Không có đơn hàng nào để gộp" }}
             />
           </div>
         )}

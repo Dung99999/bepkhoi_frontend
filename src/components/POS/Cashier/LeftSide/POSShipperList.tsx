@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Radio, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { useAuth } from "../../../../context/AuthContext"; // Import AuthContext
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-const token = localStorage.getItem("Token");
 
 interface Props {
   selectedShipper: number | null;
@@ -35,20 +35,27 @@ export interface ShipperDTO {
   status: boolean;
 }
 
-async function fetchShipperList(): Promise<ShipperDTO[]> {
+async function fetchShipperList(token: string, clearAuthInfo: () => void): Promise<ShipperDTO[]> {
   try {
     const response = await fetch(`${API_BASE_URL}api/Shipper`, {
       method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
       }
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Lỗi khi lấy danh sách shipper: ${errorText}`);
     }
+
     const data: ShipperDTO[] = await response.json();
     return data;
   } catch (error) {
@@ -65,6 +72,7 @@ const POSShipperList: React.FC<Props> = ({
   orderType,
   setOrderType
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth(); // Sử dụng AuthContext
   const [currentPage, setCurrentPage] = useState(1);
   const [shippers, setShippers] = useState<Shipper[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
@@ -82,15 +90,13 @@ const POSShipperList: React.FC<Props> = ({
   useEffect(() => {
     const loadShippers = async () => {
       try {
-        const data = await fetchShipperList();
-
+        const data = await fetchShipperList(authInfo?.token || "", clearAuthInfo);
         const mapped: Shipper[] = data.map((item) => ({
           shipperId: item.userId,
           shipperName: item.userName,
           phone: item.phone,
           isActive: item.status,
         }));
-
         setShippers(mapped);
       } catch (err) {
         message.error("Không thể tải danh sách shipper.");
@@ -110,7 +116,7 @@ const POSShipperList: React.FC<Props> = ({
 
   const handleSelectItem = (item: Shipper) => {
     setSelectedShipper(item.shipperId);
-    setSelectedTable(null)
+    setSelectedTable(null);
     setOrderType(2);
   };
 

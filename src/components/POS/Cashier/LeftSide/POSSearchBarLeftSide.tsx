@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input, List, Avatar } from "antd";
+import { Input, List, Avatar, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef } from "antd";
+import { useAuth } from "../../../../context/AuthContext"; // Import AuthContext
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-const token = localStorage.getItem("Token");
 
 interface Props {
   selectedOrder: number | null;
 }
-
 
 interface menuItem {
   productId: number;
@@ -26,43 +25,53 @@ interface menuItem {
   isDelete: boolean;
 }
 
-async function fetchMenu(): Promise<menuItem[]> {
+async function fetchMenu(token: string, clearAuthInfo: () => void): Promise<menuItem[]> {
   try {
     const response = await fetch(`${API_BASE_URL}api/Menu/get-menu-pos`, {
       method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
+        "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
       }
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       throw new Error(`Network response was not ok: ${response.status}`);
     }
+
     const jsonResponse = await response.json();
     if (!jsonResponse.success) {
       throw new Error(jsonResponse.message || "Failed to fetch menu");
     }
+
     const menuItems = jsonResponse.data;
     if (!Array.isArray(menuItems)) {
       throw new Error("Unexpected API response format: data is not an array");
     }
+
     return menuItems
-    .filter((item) => item.isAvailable === true) // lọc sản phẩm sẵn sàng bán
-    .map((item) => ({
-      productId: item.productId,
-      productName: item.productName,
-      productCategoryId: item.productCategoryId,
-      costPrice: item.costPrice ?? 0,
-      sellPrice: item.sellPrice,
-      salePrice: item.salePrice ?? item.sellPrice,
-      productVat: item.productVat,
-      description: item.description ?? "",
-      unitId: item.unitId,
-      isAvailable: item.isAvailable,
-      status: item.status,
-      productImageUrl: item.productImageUrl ?? "",
-      isDelete: item.isDelete ?? false,
-    }));
+      .filter((item) => item.isAvailable === true)
+      .map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        productCategoryId: item.productCategoryId,
+        costPrice: item.costPrice ?? 0,
+        sellPrice: item.sellPrice,
+        salePrice: item.salePrice ?? item.sellPrice,
+        productVat: item.productVat,
+        description: item.description ?? "",
+        unitId: item.unitId,
+        isAvailable: item.isAvailable,
+        status: item.status,
+        productImageUrl: item.productImageUrl ?? "",
+        isDelete: item.isDelete ?? false,
+      }));
   } catch (error) {
     console.error("Error fetching menu:", error);
     return [];
@@ -71,7 +80,9 @@ async function fetchMenu(): Promise<menuItem[]> {
 
 async function fetchAddProductToOrder(
   orderId: number,
-  productId: number
+  productId: number,
+  token: string,
+  clearAuthInfo: () => void
 ): Promise<{ message: string; data: any }> {
   try {
     const response = await fetch(
@@ -79,13 +90,19 @@ async function fetchAddProductToOrder(
       {
         method: "POST",
         headers: {
-          "Authorization": "Bearer " + token,
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
           accept: "*/*",
         },
         body: JSON.stringify({ orderId, productId }),
       }
     );
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      throw new Error("Unauthorized");
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -99,7 +116,9 @@ async function fetchAddProductToOrder(
     throw error;
   }
 }
-const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder}) => {
+
+const POSSearchBarLeftSide: React.FC<Props> = ({ selectedOrder }) => {
+  const { authInfo, clearAuthInfo } = useAuth(); // Sử dụng AuthContext
   const [searchTerm, setSearchTerm] = useState("");
   const [allProducts, setAllProducts] = useState<menuItem[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<menuItem[]>([]);
@@ -109,7 +128,7 @@ const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder}) => {
 
   useEffect(() => {
     const loadData = async () => {
-      const menu = await fetchMenu();
+      const menu = await fetchMenu(authInfo?.token || "", clearAuthInfo);
       setAllProducts(menu);
     };
     loadData();
@@ -140,24 +159,29 @@ const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder}) => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const handleSelectProduct = async (item: menuItem) => {
     if (selectedOrder != null) {
       try {
-        const result = await fetchAddProductToOrder(selectedOrder, item.productId);
-        // setIsReloadAfterAddProduct(true);
+        const result = await fetchAddProductToOrder(
+          selectedOrder,
+          item.productId,
+          authInfo?.token || "",
+          clearAuthInfo
+        );
         console.log("Product added:", result.message);
       } catch (error: any) {
         console.error("Failed to add product:", error.message);
       }
     }
   };
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-  
+
     const normalizeString = (str: string) =>
       str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const normalizedValue = normalizeString(value);
@@ -206,9 +230,10 @@ const POSSearchBarLeftSide: React.FC<Props> = ({selectedOrder}) => {
             itemLayout="horizontal"
             dataSource={filteredProducts}
             renderItem={(product) => (
-              <List.Item 
-              onClick={() => handleSelectProduct(product)}
-              className="hover:bg-[#faedd7] cursor-pointer transition-colors duration-200 z-100 px-4 py-2 flex items-center">
+              <List.Item
+                onClick={() => handleSelectProduct(product)}
+                className="hover:bg-[#faedd7] cursor-pointer transition-colors duration-200 z-100 px-4 py-2 flex items-center"
+              >
                 <Avatar
                   style={{ marginLeft: "10px" }}
                   src={product.productImageUrl}
