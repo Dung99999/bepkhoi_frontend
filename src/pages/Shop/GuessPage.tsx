@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, MotionStyle } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import loginImage from "../../styles/LoginPage/images/login_image.png";
 const token = localStorage.getItem("Token"); 
@@ -9,7 +9,8 @@ interface CustomerInfo {
     phone: string;
     name: string;
 }
-async function notifyCustomerJoin(roomId:number, customerId:number, customerName:string, phone:string) {
+
+async function notifyCustomerJoin(roomId: number, customerId: number, customerName: string, phone: string) {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/notify-customer-join`, {
         method: "POST",
@@ -28,8 +29,8 @@ async function notifyCustomerJoin(roomId:number, customerId:number, customerName
     } catch (error) {
       console.error("Lỗi kết nối tới server:", error);
     }
-  }
-  
+}
+
 const GuessPage: React.FC = () => {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [name, setName] = useState("");
@@ -226,7 +227,7 @@ const GuessPage: React.FC = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    style={{ marginBottom: "30px" }}
+                    style={{ marginBottom: '30px' } as MotionStyle}
                 >
                     <h1
                         style={{
@@ -248,13 +249,13 @@ const GuessPage: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         style={{
-                            color: "#d32f2f",
-                            backgroundColor: "#fde8e8",
-                            padding: "10px",
-                            borderRadius: "8px",
-                            marginBottom: "20px",
-                            fontSize: "14px",
-                        }}
+                            color: '#d32f2f',
+                            backgroundColor: '#fde8e8',
+                            padding: '10px',
+                            borderRadius: '8px',
+                            marginBottom: '20px',
+                            fontSize: '14px',
+                        } as MotionStyle}
                     >
                         {error}
                     </motion.div>
@@ -265,17 +266,11 @@ const GuessPage: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
-                    style={{
-                        width: "100%",
-                        margin: "0 auto",
-                    }}
+                    style={{ width: '100%', margin: '0 auto' } as MotionStyle}
                 >
                     <motion.div
                         whileTap={{ scale: 0.98 }}
-                        style={{
-                            position: "relative",
-                            marginBottom: "25px",
-                        }}
+                        style={{ position: 'relative', marginBottom: '25px' } as MotionStyle}
                     >
                         <input
                             type="tel"
@@ -310,14 +305,14 @@ const GuessPage: React.FC = () => {
                             }}
                             transition={{ duration: 0.2 }}
                             style={{
-                                position: "absolute",
+                                position: 'absolute',
                                 left: 0,
                                 top: 0,
                                 padding: "0 5px",
                                 backgroundColor: "rgba(255, 255, 255, 0.8)",
                                 pointerEvents: "none",
-                                transformOrigin: "left center",
-                            }}
+                                transformOrigin: 'left center',
+                            } as MotionStyle}
                         >
                             Số điện thoại
                             {isSearching && (
@@ -339,12 +334,12 @@ const GuessPage: React.FC = () => {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 style={{
-                                    color: "#d32f2f",
+                                    color: '#d32f2f',
                                     fontSize: "12px",
                                     textAlign: "left",
                                     marginTop: "4px",
                                     marginLeft: "10px",
-                                }}
+                                } as MotionStyle}
                             >
                                 {phoneError}
                             </motion.div>
@@ -353,10 +348,7 @@ const GuessPage: React.FC = () => {
 
                     <motion.div
                         whileTap={{ scale: 0.98 }}
-                        style={{
-                            position: "relative",
-                            marginBottom: "25px",
-                        }}
+                        style={{ position: 'relative', marginBottom: '25px' } as MotionStyle}
                     >
                         <input
                             type="text"
@@ -395,7 +387,7 @@ const GuessPage: React.FC = () => {
                             }}
                             transition={{ duration: 0.2 }}
                             style={{
-                                position: "absolute",
+                                position: 'absolute',
                                 left: 0,
                                 top: 0,
                                 padding: "0 5px",
@@ -403,8 +395,8 @@ const GuessPage: React.FC = () => {
                                     ? "rgba(245, 245, 245, 0.8)"
                                     : "rgba(255, 255, 255, 0.8)",
                                 pointerEvents: "none",
-                                transformOrigin: "left center",
-                            }}
+                                transformOrigin: 'left center',
+                            } as MotionStyle}
                         >
                             Họ và tên
                         </motion.label>
@@ -416,23 +408,23 @@ const GuessPage: React.FC = () => {
                         whileTap={{ scale: 0.98 }}
                         disabled={!phoneNumber || (isNameDisabled ? false : !name) || isLoading}
                         style={{
-                            width: "100%",
-                            padding: "14px",
-                            fontSize: "16px",
-                            fontWeight: "600",
-                            color: "#fff",
+                            width: '100%',
+                            padding: '14px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: '#fff',
                             backgroundColor: phoneNumber && (isNameDisabled || name)
-                                ? (isLoading ? "#6c757d" : "#007bff")
-                                : "#aaa",
-                            border: "none",
-                            borderRadius: "12px",
+                                ? (isLoading ? '#6c757d' : '#007bff')
+                                : '#aaa',
+                            border: 'none',
+                            borderRadius: '12px',
                             cursor: phoneNumber && (isNameDisabled || name) && !isLoading
-                                ? "pointer"
-                                : "not-allowed",
-                            transition: "all 0.3s ease",
-                            marginBottom: "20px",
-                            position: "relative",
-                        }}
+                                ? 'pointer'
+                                : 'not-allowed',
+                            transition: 'all 0.3s ease',
+                            marginBottom: '20px',
+                            position: 'relative',
+                        } as MotionStyle}
                     >
                         {isLoading ? (
                             <span style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -456,7 +448,7 @@ const GuessPage: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    style={{ color: "#888", fontSize: "14px" }}
+                    style={{ color: '#888', fontSize: '14px' } as MotionStyle}
                 >
                     Click tiếp tục để đặt chỗ
                 </motion.div>

@@ -246,7 +246,6 @@ const POSRoomTableList: React.FC<Props> = ({
   }
 
   async function getRoomFilter() {
-    console.log("Fetching rooms with filters:", { choosedArea, choosedIsUse });
     const rooms = await fetchRoomFilter(choosedArea, choosedIsUse, authInfo?.token || "", clearAuthInfo);
     setRoom(rooms);
     const maxPage = Math.ceil(rooms.length / ITEMS_PER_PAGE);
@@ -254,7 +253,6 @@ const POSRoomTableList: React.FC<Props> = ({
       console.log(`Adjusting currentPage from ${currentPage} to ${maxPage}`);
       setCurrentPage(maxPage);
     }
-    console.log("Updated room list:", rooms.map((r) => ({ roomId: r.roomId, isUse: r.isUse })));
   }
 
   useEffect(() => {

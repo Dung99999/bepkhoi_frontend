@@ -87,13 +87,13 @@ async function fetchMenu(token: string, clearAuthInfo: () => void): Promise<menu
     }
 
     if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.status}`);
+      return[];
     }
 
     const jsonResponse = await response.json();
 
     if (!jsonResponse.success) {
-      throw new Error(jsonResponse.message || "Failed to fetch menu");
+      return [];
     }
 
     const menuItems = jsonResponse.data;
@@ -280,7 +280,6 @@ const POSMenuList: React.FC<Props> = ({
             authInfo?.token || "",
             clearAuthInfo
           );
-          console.log("Product added:", result.message);
         } catch (error: any) {
           console.error("Failed to add product:", error.message);
         }

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Input, Button, Modal, message } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import ModalCreateCustomer from "./ModalCreateCustomer";
+import { useAuth } from "../../../../context/AuthContext";
+
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-const token = localStorage.getItem("Token");
 
 interface Props {
   selectedTable: number | null;
@@ -20,55 +21,154 @@ interface CustomerModel {
   phone: string;
   totalAmountSpent: number;
 }
+
 interface FetchCustomerById {
   customerId: number;
   customerName: string;
-  phone: string
+  phone: string;
 }
-async function fetchCustomerList(): Promise<CustomerModel[]> {
+
+const fetchCustomerList = async (
+  token: string,
+  clearAuthInfo: () => void
+): Promise<CustomerModel[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/Customer`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return [];
+    }
+
     if (!response.ok) {
       throw new Error("Failed to fetch customer list");
     }
+
     const data: CustomerModel[] = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching customer list:", error);
     return [];
   }
-}
+};
 
-async function fetchCustomerByOrderId(orderId: number): Promise<FetchCustomerById | null> {
+const fetchCustomerByOrderId = async (
+  orderId: number,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<FetchCustomerById | null> => {
   try {
     const response = await fetch(`${API_BASE_URL}api/orders/get-customer-of-order/${orderId}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
-    if (!response.ok) {
-      console.log("Disconnect Sever...", response.json);
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return null;
     }
+
+    if (!response.ok) {
+      return null;
+    }
+    if (response.status === 404) {
+      return null;
+    }
+
     const result = await response.json();
     if (result.success && result.data) {
       return result.data as FetchCustomerById;
     } else {
-      console.log("Customer not found or API returned false.");
       return null;
     }
   } catch (error) {
     console.error("Unexpected error has been occur:", error);
     return null;
   }
-}
+};
+
+const assignCustomerToOrder = async (
+  orderId: number,
+  customerId: number,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<boolean> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}api/orders/assign-customer-to-order?orderId=${orderId}&customerId=${customerId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return false;
+    }
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error assigning customer to order:", error);
+    return false;
+  }
+};
+
+const fetchDeleteCustomerFromOrder = async (
+  orderId: number,
+  token: string,
+  clearAuthInfo: () => void
+): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}api/orders/remove-customer/${orderId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401) {
+      clearAuthInfo();
+      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      return false;
+    }
+
+    if (response.ok) {
+      const data = await response.json();
+      return true;
+    } else {
+      const errorData = await response.json();
+      console.error("Fail to deleting customer from order:", errorData);
+      return false;
+    }
+  } catch (error) {
+    console.error("Error occurred while deleting customer from order:", error);
+    alert("An error occurred. Please try again.");
+    return false;
+  }
+};
 
 const removeVietnameseTones = (str: string) => {
   return str
@@ -79,163 +179,137 @@ const removeVietnameseTones = (str: string) => {
     .toLowerCase();
 };
 
-async function assignCustomerToOrder(orderId: number, customerId: number): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}api/orders/assign-customer-to-order?orderId=${orderId}&customerId=${customerId}`, {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
-    });
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Failed to assign customer to order");
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Error assigning customer to order:", error);
-    return false;
-  }
-}
-
-const fetchDeleteCustomerFromOrder = async (orderId: number) => {
-  try {
-    // Gửi yêu cầu POST đến API để xóa CustomerId từ Order
-    const response = await fetch(`${API_BASE_URL}api/orders/remove-customer/${orderId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": "Bearer " + token,
-      },
-    });
-
-    // Kiểm tra nếu response từ API là thành công
-    if (response.ok) {
-      const data = await response.json();
-      return true;
-    } else {
-      const errorData = await response.json();
-      console.error("Fail to deleting customer from order:", errorData)
-      return false;
-    }
-  } catch (error) {
-    // Nếu có lỗi trong quá trình gọi API (ví dụ: mạng không ổn định)
-    console.error('Error occurred while deleting customer from order:', error);
-    alert('An error occurred. Please try again.');
-    return false;
-  }
-};
-
-
 const POSTableAndCustomerBar: React.FC<Props> = ({
   selectedTable,
   onCreateCustomer,
   selectedOrder,
   orderType,
   selectedShipper,
-  currentTab
+  currentTab,
 }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [searchValue, setSearchValue] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState<CustomerModel[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [customerList, setCustomerList] = useState<CustomerModel[]>([]);
   const [isLockSearch, setIsLockSearch] = useState(false);
 
-
-  const loadCustomers = async () => {
-    const customerList = await fetchCustomerList();
+  const loadCustomers = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    const customerList = await fetchCustomerList(authInfo.token, clearAuthInfo);
     setCustomerList(customerList);
-  };
-  useEffect(() => {
-    loadCustomers();
-  }, []);
-  useEffect(() => {
-    const loadCustomerByOrder = async () => {
-      if (selectedOrder !== null) {
-        const customer = await fetchCustomerByOrderId(selectedOrder);
-        if (customer) {
-          setSearchValue(`${customer.customerName} - ${customer.phone}`);
-          setIsLockSearch(true);
-        } else {
-          // Không có khách => reset
-          setSearchValue("");
-          setIsLockSearch(false);
-        }
+  }, [authInfo?.token, clearAuthInfo]);
+
+  const loadCustomerByOrder = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    if (selectedOrder !== null) {
+      const customer = await fetchCustomerByOrderId(selectedOrder, authInfo.token, clearAuthInfo);
+      if (customer) {
+        setSearchValue(`${customer.customerName} - ${customer.phone}`);
+        setIsLockSearch(true);
       } else {
-        // selectedOrder bị reset => cũng reset input
         setSearchValue("");
         setIsLockSearch(false);
       }
-    };
-    if(selectedOrder == Number(currentTab)){
+    } else {
+      setSearchValue("");
+      setIsLockSearch(false);
+    }
+  }, [authInfo?.token, clearAuthInfo, selectedOrder]);
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchValue(value);
+
+      if (value.trim()) {
+        const keyword = removeVietnameseTones(value.trim().toLowerCase());
+
+        const matchedByName = customerList.filter((customer) =>
+          removeVietnameseTones(customer.customerName).includes(keyword)
+        );
+
+        const matchedByPhone = customerList.filter(
+          (customer) => customer.phone.includes(value) && !matchedByName.includes(customer)
+        );
+
+        const combinedResults = [...matchedByName, ...matchedByPhone];
+
+        setFilteredCustomers(combinedResults);
+        setShowDropdown(true);
+      } else {
+        setFilteredCustomers([]);
+        setShowDropdown(false);
+      }
+    },
+    [customerList]
+  );
+
+  const handleSelectCustomer = useCallback(
+    async (customer: CustomerModel) => {
+      if (!authInfo?.token) {
+        message.error("Vui lòng đăng nhập để tiếp tục.");
+        return;
+      }
+      setSearchValue(`${customer.customerName} - ${customer.phone}`);
+      setShowDropdown(false);
+      setIsLockSearch(true);
+
+      if (selectedOrder !== null) {
+        const success = await assignCustomerToOrder(
+          selectedOrder,
+          customer.customerId,
+          authInfo.token,
+          clearAuthInfo
+        );
+        if (success) {
+          message.success("Thêm khách hàng thành công");
+        } else {
+          message.error("Thêm khách hàng thất bại, vui lòng thử lại");
+        }
+      } else {
+        message.error("Thêm khách hàng thất bại, vui lòng thử lại");
+      }
+    },
+    [authInfo?.token, clearAuthInfo, selectedOrder]
+  );
+
+  const handleClearCustomer = useCallback(async () => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+    if (selectedOrder !== null) {
+      const success = await fetchDeleteCustomerFromOrder(
+        selectedOrder,
+        authInfo.token,
+        clearAuthInfo
+      );
+      if (success) {
+        message.success("Đã loại bỏ khách hàng khỏi đơn");
+      } else {
+        message.error("Loại bỏ khách hàng khỏi đơn thất bại, vui lòng thử lại");
+      }
+    }
+    setSearchValue("");
+    setIsLockSearch(false);
+  }, [authInfo?.token, clearAuthInfo, selectedOrder]);
+
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
+
+  useEffect(() => {
+    if (selectedOrder == Number(currentTab)) {
       loadCustomerByOrder();
     }
-  }, [selectedOrder]);
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchValue(value);
-
-    if (value.trim()) {
-      const keyword = removeVietnameseTones(value.trim().toLowerCase());
-
-      const matchedByName = customerList.filter((customer) =>
-        removeVietnameseTones(customer.customerName).includes(keyword)
-      );
-
-      const matchedByPhone = customerList.filter(
-        (customer) =>
-          customer.phone.includes(value) && !matchedByName.includes(customer)
-      );
-
-      const combinedResults = [...matchedByName, ...matchedByPhone];
-
-      setFilteredCustomers(combinedResults);
-      setShowDropdown(true);
-    } else {
-      setFilteredCustomers([]);
-      setShowDropdown(false);
-    }
-  };
-
-  const handleSelectCustomer = async (customer: CustomerModel) => {
-    setSearchValue(`${customer.customerName} - ${customer.phone}`);
-    setShowDropdown(false);
-    setIsLockSearch(true);
-
-    // Gọi API gán khách vào đơn
-    if (selectedOrder !== null) {
-      const success = await assignCustomerToOrder(selectedOrder, customer.customerId);
-      if (success) {
-        console.log(`Customer ${customer.customerId} assigned to order ${selectedOrder}`);
-        message.success("Thêm khách hàng thành công");
-      } else {
-        console.warn("Không thể gán khách hàng vào đơn.");
-        message.error("Thêm khách hàng thất bại, vui lòng thử lại")
-      }
-    } else {
-      console.warn("Không có selectedOrder để gán khách hàng.");
-      message.error("Thêm khách hàng thất bại, vui lòng thử lại")
-    }
-  };
-  const handleClearCustomer = async () => {
-    // Gọi API để xóa khách hàng khỏi đơn hàng
-    if (selectedOrder !== null) {
-      const success = await fetchDeleteCustomerFromOrder(selectedOrder);
-      if (success) {
-        console.log(`Customer has been removed from order ${selectedOrder}`);
-        message.success("Đã loại bỏ khách hàng khỏi đơn")
-      } else {
-        console.warn("Failed to remove customer from order.");
-        message.success("Loại bỏ khách hàng khỏi đơn thất bại, vui lòng thử lại")
-      }
-    }
-    setSearchValue("");  
-    setIsLockSearch(false);  
-  };
+  }, [selectedOrder, currentTab, loadCustomerByOrder]);
 
   return (
     <div className="flex items-center rounded-md w-full h-12 mt-0 relative">
@@ -255,27 +329,10 @@ const POSTableAndCustomerBar: React.FC<Props> = ({
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
           disabled={isLockSearch}
           suffix={
-            // <PlusOutlined
-            //   className="cursor-pointer"
-            //   onClick={() => {
-            //     // console.log("Opening modal...");
-            //     onCreateCustomer();
-            //   }}
-            // />
             isLockSearch ? (
-              <DeleteOutlined
-                className="cursor-pointer"
-                onClick={handleClearCustomer}  // Thực hiện xóa khách hàng
-              />
+              <DeleteOutlined className="cursor-pointer" onClick={handleClearCustomer} />
             ) : (
-              <PlusOutlined
-                className="cursor-pointer"
-                onClick={() => {
-                  // Giả sử bạn sẽ mở modal tạo khách hàng mới
-                  //console.log("Opening modal...");
-                  onCreateCustomer();
-                }}
-              />
+              <PlusOutlined className="cursor-pointer" onClick={onCreateCustomer} />
             )
           }
         />

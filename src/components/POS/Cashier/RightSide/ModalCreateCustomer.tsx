@@ -1,90 +1,73 @@
-import React, { useState } from "react";
-import { Modal, Form, Input, Button, message } from "antd";
+import React from "react";
+import { useState, useEffect } from "react";
+import { Modal, Input, Button, Radio } from "antd";
 import { SaveOutlined, StopOutlined } from "@ant-design/icons";
-import { useAuth } from "../../../../context/AuthContext";
-
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
+const token = localStorage.getItem("Token");
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-interface CustomerData {
-  customerId: number;
-  customerName: string;
-  phone: string;
-}
-
-async function fetchCreateNewCustomer(
-  customerName: string,
-  phone: string,
-  token: string,
-  clearAuthInfo: () => void
-): Promise<CustomerData | null> {
+const fetchCreateNewCustomer = async (customerName: string, phone: string) => {
   try {
     const response = await fetch(`${API_BASE_URL}api/Customer/create-new-customer`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        "Authorization": "Bearer " + token,
       },
       body: JSON.stringify({
-        customerName,
-        phone,
+        customerName: customerName,
+        phone: phone,
       }),
     });
 
-    if (response.status === 401) {
-      clearAuthInfo();
-      message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-      return null;
-    }
-
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to create customer: ${errorText}`);
+      // Nếu response không thành công, ném lỗi
+      throw new Error(`Failed to create customer: ${response.statusText}`);
     }
-
     const result = await response.json();
-    if (result.message === "Customer created successfully" && result.data) {
-      return result.data as CustomerData;
+    // Kiểm tra xem API trả về kết quả thành công
+    if (result.message === "Customer created successfully") {
+      console.log("Customer created:", result.data);
+      return result.data;
     } else {
-      throw new Error("Failed to create customer: " + result.message);
+      throw new Error("Failed to create customer. " + result.message);
     }
   } catch (error) {
     console.error("Error creating customer:", error);
-    message.error("Tạo khách hàng thất bại. Vui lòng kiểm tra lại thông tin và thử lại.");
     return null;
   }
-}
+};
+
+// async function 
 
 const ModalCreateCustomer: React.FC<Props> = ({ open, onClose }) => {
-  const { authInfo, clearAuthInfo } = useAuth();
-  const [form] = Form.useForm();
 
-  const handleSubmit = async () => {
-    if (!authInfo?.token) {
-      message.error("Vui lòng đăng nhập để tiếp tục.");
-      return;
-    }
 
-    try {
-      const values = await form.validateFields();
-      const newCustomer = await fetchCreateNewCustomer(
-        values.customerName,
-        values.phone,
-        authInfo.token,
-        clearAuthInfo
-      );
+  const clearFormFields = () => {
+    const customerNameInput = document.getElementsByName("customerName")[0] as HTMLInputElement;
+    const phoneInput = document.getElementsByName("phone")[0] as HTMLInputElement;
+    customerNameInput.value = "";
+    phoneInput.value = "";
+  };
 
-      if (newCustomer) {
-        message.success("Tạo khách hàng thành công!");
-        form.resetFields();
-        onClose();
-      }
-    } catch (error) {
-      // Lỗi đã được xử lý trong fetchCreateNewCustomer
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const customerName = (form.elements.namedItem("customerName") as HTMLInputElement).value.trim();
+    const phone = (form.elements.namedItem("phone") as HTMLInputElement).value.trim();
+    const newCustomer = await fetchCreateNewCustomer(customerName, phone);
+    if (newCustomer) {
+      console.log("Tạo khách hàng thành công!");
+      form.reset();
+      onClose();
+    } else {
+      console.log("Tạo khách hàng thất bại!");
+      alert("Tạo khách hàng thất bại. Vui lòng kiểm tra lại thông tin và thử lại.");
     }
   };
 
@@ -92,67 +75,56 @@ const ModalCreateCustomer: React.FC<Props> = ({ open, onClose }) => {
     <Modal
       title="Thêm khách hàng"
       open={open}
-      onCancel={onClose}
+      onCancel={() => {
+        onClose();
+      }}
       footer={null}
     >
-      <Form
-        form={form}
-        onFinish={handleSubmit}
-        layout="vertical"
-        className="flex flex-col w-full"
-      >
-        <div className="flex flex-col gap-4">
-          <Form.Item
-            name="customerName"
-            label="Tên khách hàng"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên khách hàng" },
-              { whitespace: true, message: "Tên không được để trống" },
-            ]}
-          >
-            <Input
-              className="border-b border-gray-400 p-1 focus:outline-none focus:border-gray-500"
-              placeholder="Nhập tên khách hàng"
-            />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label="Điện thoại"
-            rules={[
-              { required: true, message: "Vui lòng nhập số điện thoại" },
-              {
-                pattern: /^(0|\+84)[0-9]{9}$/,
-                message: "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 chữ số",
-              },
-            ]}
-          >
-            <Input
-              className="border-b border-gray-400 p-1 focus:outline-none focus:border-gray-500"
-              placeholder="Nhập số điện thoại"
-            />
-          </Form.Item>
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-col w-full justify-between">
+          {/* Column 1 */}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <p className="w-1/3">Tên khách hàng</p>
+              <input
+                name="customerName"
+                type="text"
+                className="border-b border-gray-400 p-1 flex-1 focus:outline-none focus:border-gray-500"
+                required
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <p className="w-1/3">Điện thoại</p>
+              <input
+                name="phone"
+                type="text"
+                className="border-b border-gray-400 p-1 flex-1 focus:outline-none focus:border-gray-500"
+                pattern="^(0|\+84)[0-9]{9}$"
+                required
+              />
+            </div>
+          </div>
+          <div className="text-end my-5 ">
+            <button className="bg-[#fccb77] mx-3 px-3 py-2 rounded-lg font-semibold hover:bg-[#fab848]"
+              type="submit"
+            >
+              <SaveOutlined />
+              <span className="ml-2">Lưu</span>
+            </button>
+            <button
+              className="bg-gray-300 mx-3 px-3 py-2 rounded-lg font-semibold hover:bg-gray-400"
+              type="button"
+              onClick={() => {
+                clearFormFields();
+                onClose();
+              }}
+            >
+              <StopOutlined />
+              <span className="ml-2">Bỏ qua</span>
+            </button>
+          </div>
         </div>
-        <div className="text-end my-5">
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="bg-[#fccb77] mx-3 px-3 py-2 rounded-lg font-semibold hover:bg-[#fab848]"
-            icon={<SaveOutlined />}
-          >
-            Lưu
-          </Button>
-          <Button
-            className="bg-gray-300 mx-3 px-3 py-2 rounded-lg font-semibold hover:bg-gray-400"
-            onClick={() => {
-              form.resetFields();
-              onClose();
-            }}
-            icon={<StopOutlined />}
-          >
-            Bỏ qua
-          </Button>
-        </div>
-      </Form>
+      </form>
     </Modal>
   );
 };

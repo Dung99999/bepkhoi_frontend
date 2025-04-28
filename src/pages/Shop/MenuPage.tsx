@@ -5,7 +5,6 @@ import ProductModal from "../../components/Shop/Menu/ProductModal";
 import { Drawer } from "antd";
 import axios from "axios";
 import useSignalR from "../../CustomHook/useSignalR";
-const token = localStorage.getItem("Token"); 
 
 interface Product {
     id: number;
@@ -47,11 +46,6 @@ const MenuPage: React.FC = () => {
         try {
             const response = await axios.get(
                 `${process.env.REACT_APP_API_APP_ENDPOINT}api/units/get-all-units`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
               );
             setUnits(response.data);
         } catch (error) {
@@ -69,9 +63,6 @@ const MenuPage: React.FC = () => {
                     sortDirection: "asc",
                     productNameOrId: searchText,
                     ...(categoryId ? { categoryId } : {}),
-                  },
-                  headers: {
-                    Authorization: `Bearer ${token}`
                   }
                 }
               );
@@ -108,12 +99,7 @@ const MenuPage: React.FC = () => {
     const fetchCategories = async () => {
         try {
             const response = await axios.get(
-                `${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`
-                  }
-                }
+                `${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`
               );
             setCategories(response.data);
         } catch (error) {
@@ -152,9 +138,6 @@ const MenuPage: React.FC = () => {
                   params: {
                     roomId,
                     customerId
-                  },
-                  headers: {
-                    Authorization: `Bearer ${token}`
                   }
                 }
               );
