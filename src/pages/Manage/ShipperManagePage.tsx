@@ -4,9 +4,11 @@ import Sidebar from "../../components/Manage/Shipper/Sidebar";
 import { Button, message } from "antd";
 import { PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import AddUserModal from "../../components/Manage/Shipper/AddUserModal";
+import { useAuth } from "../../context/AuthContext";
 import './MenuPage.css';
 
 const ShipperManagePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -17,27 +19,34 @@ const ShipperManagePage: React.FC = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${authInfo?.token}`,
         }
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Shippers.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } else {
-        console.error("Tải xuống thất bại", response.statusText);
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
       }
+
+      if (!response.ok) {
+        message.error("Tải xuống thất bại");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Shippers.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Lỗi khi tải file Excel", error);
+      message.error("Lỗi khi tải file Excel");
     }
   };
-
 
   return (
     <div className="flex w-full h-full px-[8.33%] font-sans screen-menu-page">

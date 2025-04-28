@@ -3,6 +3,7 @@ import { Modal, Input, Button, message, DatePicker } from 'antd';
 import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import moment from 'moment';
+import { useAuth } from "../../../context/AuthContext";
 
 interface User {
   userId: number,
@@ -24,6 +25,7 @@ interface UserUpdateModalProps {
 }
 
 const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, onReload }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [formData, setFormData] = useState<User>({ ...data });
 
   useEffect(() => {
@@ -39,6 +41,10 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
   const handleSubmit = async () => {
     if (!formData.userId) {
       message.error("Không tìm thấy userId!");
+      return;
+    }
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
       return;
     }
     const formattedData = {
@@ -58,7 +64,7 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       const response = await axios.put(
         `${process.env.REACT_APP_API_APP_ENDPOINT}/Shipper/${formData.userId}`,
         formattedData,
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authInfo?.token}` } }
       );
 
       console.log("Phản hồi từ API:", response.data);
@@ -66,6 +72,11 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       onClose();
       onReload();
     } catch (error: any) {
+      if (error.response?.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
       console.error("Lỗi API:", error.response?.data || error.message);
       message.error(`Cập nhật thất bại! Lỗi: ${error.response?.data?.message || error.message}`);
     }

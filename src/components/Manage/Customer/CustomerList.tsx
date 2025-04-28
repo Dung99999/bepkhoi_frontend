@@ -4,7 +4,6 @@ import type { TableColumnsType } from "antd";
 import "./../Menu/MenuList.css";
 import CustomerDetailModal from "./CustomerDetailModal";
 
-// Thêm token ở đầu file
 const token = localStorage.getItem("Token");
 
 interface CustomerListProps {
@@ -31,24 +30,29 @@ const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
   const fetchMenuList = () => {
     setLoading(true);
     const apiUrl = search.trim()
-      ? `${
-          process.env.REACT_APP_API_APP_ENDPOINT
-        }api/Customer/search?searchTerm=${encodeURIComponent(search.trim())}`
+      ? `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/search?searchTerm=${encodeURIComponent(search.trim())}`
       : `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer`;
 
     fetch(apiUrl, {
+      method: "GET",
       headers: {
-        Authorization: "Bearer " + token,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json; charset=utf-8",
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch customers");
+        }
+        return response.json();
+      })
       .then((data) => {
         setItems(data ?? []);
         setTotal(data.length || 0);
       })
       .catch((error) => {
         console.error("Error fetching menu:", error);
+        message.error("Không thể tải danh sách khách hàng.");
         setItems([]);
       })
       .finally(() => setLoading(false));
@@ -62,18 +66,24 @@ const CustomerList: React.FC<CustomerListProps> = ({ search }) => {
     setOpenDetail(true);
     setLoadingDetail(true);
 
-    fetch(
-      `${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/${record.customerId}`,
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      }
-    )
-      .then((response) => response.json())
+    fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Customer/${record.customerId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch customer detail");
+        }
+        return response.json();
+      })
       .then((res) => setDetailData(res))
-      .catch((error) => console.error("Error fetching detail:", error))
+      .catch((error) => {
+        console.error("Error fetching detail:", error);
+        message.error("Không thể tải chi tiết khách hàng.");
+      })
       .finally(() => setLoadingDetail(false));
   };
 

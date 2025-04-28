@@ -2,6 +2,7 @@ import React from "react";
 import { Modal, message } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 
 interface CustomerItem {
     userId: number;
@@ -33,6 +34,8 @@ const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
     onUpdate,
     onReloadUserList,
 }) => {
+    const { authInfo, clearAuthInfo } = useAuth();
+
     const handleDelete = async () => {
         if (!data) return;
 
@@ -53,14 +56,22 @@ const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
                     const res = await axios.delete(
                         `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${data.userId}`,
                         {
-                            headers: { "Content-Type": "application/json; charset=utf-8" },
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8",
+                                Authorization: `Bearer ${authInfo?.token}`,
+                            },
                         }
                     );
                     console.log("Phản hồi từ API:", res.data);
                     message.success("Xóa người dùng thành công!");
                     onClose();
                     onReloadUserList();
-                } catch (error) {
+                } catch (error: any) {
+                    if (error.response?.status === 401) {
+                        clearAuthInfo();
+                        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+                        return;
+                    }
                     console.error("Lỗi API:", error);
                     message.error("Xóa người dùng thất bại!");
                 }
@@ -127,7 +138,6 @@ const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
                             <p>
                                 <strong>Vai trò:</strong> {data.roleName === "cashier" ? "Nhân viên quầy" : data.roleName}
                             </p>
-
                         </div>
                     </div>
                 ) : (
