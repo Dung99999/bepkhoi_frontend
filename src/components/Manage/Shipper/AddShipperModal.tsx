@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Modal, Input, Button, message } from "antd";
-import { useAuth } from "../../../context/AuthContext";
 
 interface AddShipperModalProps {
   visible: boolean;
   onClose: () => void;
+  onSubmit: (formData: any) => Promise<boolean>;
 }
 
-const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose }) => {
-  const { authInfo, clearAuthInfo } = useAuth();
+const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
@@ -31,43 +30,13 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose }) =
   };
 
   const handleSubmit = async () => {
-    if (!authInfo?.token) {
-      message.error("Vui lòng đăng nhập để tiếp tục.");
-      return;
-    }
     setLoading(true);
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authInfo?.token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+    const success = await onSubmit(formData);
+    setLoading(false);
 
-      if (response.status === 401) {
-        clearAuthInfo();
-        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        message.error(errorData.message || "Lỗi khi thêm nhân viên");
-        return;
-      }
-
-      const successMessage = await response.text();
-      message.success(successMessage || "Nhân viên đã được thêm thành công!");
+    if (success) {
       resetForm();
       onClose();
-      window.location.reload();
-
-    } catch (error) {
-      message.error("Lỗi khi thêm nhân viên");
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, Button, message, DatePicker } from 'antd';
 import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
-import axios from 'axios';
 import moment from 'moment';
-import { useAuth } from "../../../context/AuthContext";
 
 interface User {
-  userId: number,
+  userId: number;
   email: string;
   phone: string;
   userName: string;
@@ -21,12 +19,12 @@ interface UserUpdateModalProps {
   open: boolean;
   data: User;
   onClose: () => void;
-  onReload: () => void;
+  onSubmit: (userId: number, data: any) => Promise<boolean>;
 }
 
-const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, onReload }) => {
-  const { authInfo, clearAuthInfo } = useAuth();
+const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, onSubmit }) => {
   const [formData, setFormData] = useState<User>({ ...data });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -43,10 +41,8 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       message.error("Không tìm thấy userId!");
       return;
     }
-    if (!authInfo?.token) {
-      message.error("Vui lòng đăng nhập để tiếp tục.");
-      return;
-    }
+
+    setLoading(true);
     const formattedData = {
       email: formData.email,
       phone: formData.phone,
@@ -58,27 +54,11 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       dateOfBirth: formData.date_of_Birth,
     };
 
-    try {
-      console.log("Dữ liệu gửi lên API:", formattedData);
+    const success = await onSubmit(formData.userId, formattedData);
+    setLoading(false);
 
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${formData.userId}`,
-        formattedData,
-        { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authInfo?.token}` } }
-      );
-
-      console.log("Phản hồi từ API:", response.data);
-      message.success("Cập nhật thành công!");
+    if (success) {
       onClose();
-      onReload();
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        clearAuthInfo();
-        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-        return;
-      }
-      console.error("Lỗi API:", error.response?.data || error.message);
-      message.error(`Cập nhật thất bại! Lỗi: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -104,6 +84,7 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
           type="primary"
           icon={<SaveOutlined />}
           onClick={handleSubmit}
+          loading={loading}
           style={{
             backgroundColor: "#4096FF",
           }}
@@ -111,6 +92,7 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
         <Button
           icon={<CloseOutlined />}
           onClick={onClose}
+          disabled={loading}
         >Hủy</Button>
       </div>
     </Modal>
