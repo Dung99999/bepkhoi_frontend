@@ -231,7 +231,7 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
           }
 
           const response = await axios.put(
-            `${process.env.REACT_APP_API_APP_ENDPOINT || "https://localhost:7257/"}api/Menu/update-menu/${formData.productId}`,
+            `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/update-menu/${formData.productId}`,
             formDataToSend,
             {
               headers: {

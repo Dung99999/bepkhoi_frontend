@@ -2,9 +2,8 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { Modal, Input, Button, Radio, message } from "antd";
 import { SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { useAuth } from "../../../../context/AuthContext";
 const API_BASE_URL = process.env.REACT_APP_API_APP_ENDPOINT;
-const token = localStorage.getItem("Token");
-
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -25,7 +24,7 @@ interface DeliveryInformation {
     deliveryNote?: string;
   }
 // async function 
-const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInformation | null> => {
+const fetchDeliveryInformation = async (orderId: number, token: string): Promise<DeliveryInformation | null> => {
     const url = `${API_BASE_URL}api/orders/delivery-information/${orderId}`;
   
     try {
@@ -50,7 +49,7 @@ const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInform
       if (data?.data) {
         return data.data; // Trả về dữ liệu nếu có
       } else {
-        console.log('Error: Không có dữ liệu giao hàng.');
+        console.log('Không có dữ liệu giao hàng.');
         return null;
       }
     } catch (error) {
@@ -60,10 +59,10 @@ const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInform
   };
  
   const fetchEditDeliveryInformation = async (
-    payload: DeliveryInformationCreateDto
+    payload: DeliveryInformationCreateDto,
+    token: string
   ): Promise<boolean> => {
     const url = `${API_BASE_URL}api/orders/add-order-delivery-information`;
-  
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -74,7 +73,6 @@ const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInform
         },
         body: JSON.stringify(payload),
       });
-  
       if (!response.ok) {
         const errorData = await response.json();
         console.log(`API Error ${response.status}:`, errorData.message || errorData);
@@ -91,6 +89,7 @@ const fetchDeliveryInformation = async (orderId: number): Promise<DeliveryInform
   
   
 const AddDeliveryInformation: React.FC<Props> = ({ open, onClose , selectedOrder }) => {
+    const { authInfo, clearAuthInfo } = useAuth()
     const [customerName, setCustomerName] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
@@ -159,7 +158,7 @@ const AddDeliveryInformation: React.FC<Props> = ({ open, onClose , selectedOrder
           deliveryNote: note?.trim() || "",
         };
       
-        const success = await fetchEditDeliveryInformation(payload);
+        const success = await fetchEditDeliveryInformation(payload, authInfo?.token || "");
       
         if (success) {
           message.success("Thêm thông tin giao hàng thành công.");
@@ -170,7 +169,7 @@ const AddDeliveryInformation: React.FC<Props> = ({ open, onClose , selectedOrder
       };
       
   const getDeliveryInfo = async (orderId: number) => {
-    const deliveryInfo = await fetchDeliveryInformation(orderId);
+    const deliveryInfo = await fetchDeliveryInformation(orderId, authInfo?.token || "");
     if (deliveryInfo) {
       setCustomerName(deliveryInfo.receiverName);
       setPhone(deliveryInfo.receiverPhone);

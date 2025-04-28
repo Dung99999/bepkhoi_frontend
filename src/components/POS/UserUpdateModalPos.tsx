@@ -216,7 +216,7 @@ const UserUpdateModalPos: React.FC<Props> = ({ open, onClose, onReload }) => {
           <Input
             addonBefore="Email"
             value={formData.email}
-            onChange={(e) => handleChange("email", e.target.value)}
+            disabled
           />
           <Input
             addonBefore="Số điện thoại"

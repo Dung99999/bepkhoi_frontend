@@ -5,7 +5,6 @@ import { Spin, Tag } from "antd";
 import axios from "axios";
 import useSignalR from "../../CustomHook/useSignalR";
 const token = localStorage.getItem("Token");
-const selectedOrder = parseInt(sessionStorage.getItem('selectedOrderId') || '0', 10);
 interface OrderDetail {
     orderDetailId: number;
     orderId: number;
@@ -20,6 +19,9 @@ interface OrderDetail {
 const OrderStatus: React.FC = () => {
     const [orderDetails, setOrderDetails] = useState<OrderDetail[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState<number>(() => {
+        return parseInt(sessionStorage.getItem('selectedOrderId') || '0', 10);
+    });
     const navigate = useNavigate();
     useSignalR(
         {
@@ -40,7 +42,7 @@ const OrderStatus: React.FC = () => {
                 navigate('/shop/menu');
                 return;
             }
-
+            setSelectedOrder(parseInt(orderId, 10));
             const response = await axios.get(
                 `${process.env.REACT_APP_API_APP_ENDPOINT}api/orders/get-order-details-by-order-id`,
                 {
