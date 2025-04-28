@@ -4,9 +4,7 @@ import type { TableColumnsType } from "antd";
 import "./../Menu/MenuList.css";
 import CashierDetailModal from "./CashierDetailModal";
 import UserUpdateModal from "./UserUpdateModal";
-
-// Thêm token ở đầu file
-const token = localStorage.getItem("Token");
+import { useAuth } from "../../../context/AuthContext";
 
 interface UserListProps {
   search: string;
@@ -28,6 +26,7 @@ interface UserProps {
 }
 
 const UserList: React.FC<UserListProps> = ({ search, status }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [items, setItems] = useState<UserProps[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -41,9 +40,8 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
 
   const fetchMenuList = () => {
     setLoading(true);
-    let apiUrl = `${
-      process.env.REACT_APP_API_APP_ENDPOINT
-    }api/cashiers/search?searchTerm=${encodeURIComponent(search.trim())}`;
+    let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT
+      }api/cashiers/search?searchTerm=${encodeURIComponent(search.trim())}`;
     if (status === "1" || status === "0") {
       const statusValue = status === "1" ? "true" : "false";
       apiUrl += `&status=${statusValue}`;
@@ -51,11 +49,22 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
 
     fetch(apiUrl, {
       headers: {
-        Authorization: "Bearer " + token,
+        Authorization: `Bearer ${authInfo?.token}`,
         "Content-Type": "application/json; charset=utf-8",
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          clearAuthInfo();
+          message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+          setItems([]);
+          return Promise.reject("Unauthorized");
+        }
+        if (!response.ok) {
+          throw new Error("Tải xuống thất bại");
+        }
+        return response.json();
+      })
       .then((data) => {
         setItems(data ?? []);
         setTotal(data.length || 0);
@@ -84,14 +93,28 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
       `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${record.userId}`,
       {
         headers: {
-          Authorization: "Bearer " + token,
+          Authorization: `Bearer ${authInfo?.token}`,
           "Content-Type": "application/json; charset=utf-8",
         },
       }
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 401) {
+          clearAuthInfo();
+          message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+          return Promise.reject("Unauthorized");
+        }
+        if (!response.ok) {
+          throw new Error("Lỗi khi tải chi tiết nhân viên");
+        }
+        return response.json();
+      })
       .then((res) => setDetailData(res))
-      .catch((error) => console.error("Error fetching detail:", error))
+      .catch((error) => {
+        if (error !== "Unauthorized") {
+          message.error("Lỗi khi tải chi tiết nhân viên");
+        }
+      })
       .finally(() => setLoadingDetail(false));
   };
 

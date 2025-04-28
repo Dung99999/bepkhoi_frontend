@@ -6,6 +6,7 @@ import Sidebar from "../../components/Manage/Room/Sidebar";
 import AddRoomAreaModal from "../../components/Manage/Room/AddRoomAreaModal";
 import RoomAreaDetailModal from "../../components/Manage/Room/RoomAreaDetailModal";
 import EditRoomAreaModal from "../../components/Manage/Room/EditRoomAreaModal";
+import { useAuth } from "../../context/AuthContext";
 import "./MenuPage.css";
 
 interface RoomAreaProps {
@@ -16,13 +17,13 @@ interface RoomAreaProps {
 }
 
 const RoomAreaManagePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [roomAreas, setRoomAreas] = useState<RoomAreaProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const [selectedRoom, setSelectedRoom] = useState<RoomAreaProps | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -33,15 +34,24 @@ const RoomAreaManagePage: React.FC = () => {
       let apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/get-all?limit=1000`;
 
       if (search) {
-        apiUrl = `${
-          process.env.REACT_APP_API_APP_ENDPOINT
-        }api/roomarea/search-by-name-id?name=${encodeURIComponent(search)}`;
+        apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/search-by-name-id?name=${encodeURIComponent(search)}`;
       } else if (status !== "all") {
         const isDelete = status === "0";
         apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/filter?isDelete=${isDelete}`;
       }
 
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${authInfo?.token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        setRoomAreas([]);
+        return;
+      }
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -74,8 +84,19 @@ const RoomAreaManagePage: React.FC = () => {
     setDetailLoading(true);
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/${roomAreaId}`
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/${roomAreaId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authInfo?.token}`,
+          },
+        }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) throw new Error("Không tìm thấy thông tin phòng");
 
@@ -112,6 +133,7 @@ const RoomAreaManagePage: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
             accept: "*/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
           body: JSON.stringify({
             ...values,
@@ -119,6 +141,12 @@ const RoomAreaManagePage: React.FC = () => {
           }),
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -152,6 +180,7 @@ const RoomAreaManagePage: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
             accept: "*/*",
+            Authorization: `Bearer ${authInfo?.token}`,
           },
           body: JSON.stringify({
             ...values,
@@ -160,6 +189,12 @@ const RoomAreaManagePage: React.FC = () => {
           }),
         }
       );
+
+      if (response.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -191,8 +226,19 @@ const RoomAreaManagePage: React.FC = () => {
         try {
           const response = await fetch(
             `${process.env.REACT_APP_API_APP_ENDPOINT}api/roomarea/delete/${selectedRoom.roomAreaId}`,
-            { method: "DELETE" }
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${authInfo?.token}`,
+              },
+            }
           );
+
+          if (response.status === 401) {
+            clearAuthInfo();
+            message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+            return;
+          }
 
           if (!response.ok) throw new Error("Xóa thất bại");
 
@@ -223,7 +269,6 @@ const RoomAreaManagePage: React.FC = () => {
       <div className="flex flex-row  justify-center">
         <Sidebar search={search} onSearchChange={setSearch} />
         <div className="flex flex-col">
-          {/* Title */}
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">Quản lý khu vực phòng</h1>
             <div className="flex items-center font-semibold button-up-of-list">
@@ -246,7 +291,6 @@ const RoomAreaManagePage: React.FC = () => {
         onSubmit={handleAddRoomArea}
         loading={loading}
       />
-
       <RoomAreaDetailModal
         visible={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
@@ -255,7 +299,6 @@ const RoomAreaManagePage: React.FC = () => {
         onDelete={handleDeleteRoom}
         onEdit={handleEditRoom}
       />
-
       <EditRoomAreaModal
         visible={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
