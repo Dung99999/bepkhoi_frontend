@@ -10,6 +10,8 @@ import {
   Upload,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import { useAuth } from "../../../context/AuthContext";
+
 
 const { Option } = Select;
 
@@ -28,9 +30,8 @@ interface AddMenuModalProps {
   onClose: () => void;
 }
 
-const token = localStorage.getItem("Token");
-
 const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [fileList, setFileList] = useState<any[]>([]);
@@ -110,10 +111,34 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
   }, [units, productCategories]);
 
   const fetchProductCategories = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     try {
       const response = await fetch(
-        "https://localhost:7257/api/product-categories/get-all-categories"
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/product-categories/get-all-categories`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${authInfo.token}`,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
       );
+
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch categories");
+      }
+
       const data = await response.json();
       setProductCategories(data);
     } catch (error) {
@@ -122,10 +147,34 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
   };
 
   const fetchUnits = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     try {
       const response = await fetch(
-        "https://localhost:7257/api/units/get-all-units"
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/units/get-all-units`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${authInfo.token}`,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        }
       );
+
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch units");
+      }
+
       const data = await response.json();
       setUnits(data);
     } catch (error) {
@@ -180,6 +229,12 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("ProductName", formData.productName);
@@ -202,13 +257,19 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
         formDataToSend.append("Image", fileList[0].originFileObj);
       }
 
-      const response = await fetch("https://localhost:7257/api/Menu/add", {
+      const response = await fetch(`${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/add`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${authInfo.token}`,
         },
         body: formDataToSend,
       });
+
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
 
       const result = await response.json();
       if (response.ok) {
@@ -393,10 +454,13 @@ const AddMenuModal: React.FC<AddMenuModalProps> = ({ visible, onClose }) => {
         >
           Lưu
         </Button>
-        <Button className="bg-gray-300 px-6 py-2 rounded-md" onClick={() => {
-          resetForm();
-          onClose();
-        }}>
+        <Button
+          className="bg-gray-300 px-6 py-2 rounded-md"
+          onClick={() => {
+            resetForm();
+            onClose();
+          }}
+        >
           Bỏ qua
         </Button>
       </div>

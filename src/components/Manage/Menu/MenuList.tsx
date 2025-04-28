@@ -104,7 +104,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       setItems(data.data ?? []);
       setTotal(data.totalRecords || 0);
     } catch (error) {
-      message.error("Không thể tải danh sách menu!");
       setItems([]);
     } finally {
       setLoading(false);
@@ -114,7 +113,7 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
   // API call when search, category, status, page change
   useEffect(() => {
     fetchMenuList();
-  }, [search, category, page, authInfo.token]);
+  }, [search, category, status , page, authInfo.token]);
 
   // Handle close row to close detail modal
   const handleCloseDetail = () => {
