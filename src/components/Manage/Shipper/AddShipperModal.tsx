@@ -29,7 +29,50 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose, onS
     });
   };
 
+  const validateForm = () => {
+    if (!formData.userName.trim()) {
+      message.error("Tên shipper không được để trống!");
+      return false;
+    }
+
+    if (!formData.email.trim()) {
+      message.error("Email không được để trống!");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      message.error("Email không đúng định dạng!");
+      return false;
+    }
+
+    if (!formData.phone.trim()) {
+      message.error("Số điện thoại không được để trống!");
+      return false;
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      message.error("Số điện thoại phải có 10 chữ số!");
+      return false;
+    }
+
+    if (!formData.password.trim()) {
+      message.error("Mật khẩu không được để trống!");
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      message.error("Mật khẩu phải có ít nhất 6 ký tự!");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     setLoading(true);
     const success = await onSubmit(formData);
     setLoading(false);
@@ -58,6 +101,7 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose, onS
           <Input
             value={formData.userName}
             onChange={(e) => handleChange("userName", e.target.value)}
+            placeholder="Nhập tên shipper"
           />
         </div>
 
@@ -66,6 +110,7 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose, onS
           <Input
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
+            placeholder="Nhập email"
           />
         </div>
 
@@ -74,6 +119,8 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose, onS
           <Input
             value={formData.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
+            placeholder="Nhập số điện thoại"
+            maxLength={10}
           />
         </div>
 
@@ -82,6 +129,7 @@ const AddShipperModal: React.FC<AddShipperModalProps> = ({ visible, onClose, onS
           <Input.Password
             value={formData.password}
             onChange={(e) => handleChange("password", e.target.value)}
+            placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
           />
         </div>
 

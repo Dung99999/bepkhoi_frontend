@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Tag } from "antd";
+import { Table, Tag, Button, Space } from "antd";
 import type { TableColumnsType } from "antd";
 import "./../Menu/MenuList.css";
 
@@ -10,6 +10,7 @@ interface UserListProps {
   total: number;
   onPageChange: (page: number) => void;
   onRowClick: (record: any) => void;
+  onUpdateStatus: (userId: number, currentStatus: boolean) => void;
 }
 
 const UserList: React.FC<UserListProps> = ({
@@ -19,6 +20,7 @@ const UserList: React.FC<UserListProps> = ({
   total,
   onPageChange,
   onRowClick,
+  onUpdateStatus,
 }) => {
   const columns: TableColumnsType<any> = [
     { title: "ID", dataIndex: "userId", key: "userId", width: 60 },
@@ -28,12 +30,29 @@ const UserList: React.FC<UserListProps> = ({
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (value: boolean) =>
-        value ? (
-          <Tag color="green">Đang sử dụng</Tag>
-        ) : (
-          <Tag color="red">Ngừng sử dụng</Tag>
-        ),
+      align: 'center',
+      render: (value: boolean, record: any) => (
+        <Space align="center">
+          <Tag color={value ? "green" : "red"}>
+            {value ? "Đang sử dụng" : "Ngừng sử dụng"}
+          </Tag>
+          <Button 
+            size="small" 
+            type="text"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdateStatus(record.userId, value);
+            }}
+            style={{
+              color: value ? '#ff4d4f' : '#52c41a',
+              border: `1px solid ${value ? '#ff4d4f' : '#52c41a'}`,
+              marginLeft: 8
+            }}
+          >
+            {value ? "Ngừng" : "Kích hoạt"}
+          </Button>
+        </Space>
+      ),
     },
   ];
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, message } from "antd";
+import { Modal } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 interface CashierDetailModalProps {
@@ -74,11 +74,15 @@ const CashierDetailModal: React.FC<CashierDetailModalProps> = ({
                             </p>
                             <p>
                                 <strong>Ngày sinh:</strong>{" "}
-                                {new Date(data.date_of_Birth).toLocaleDateString("vi-VN", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                })}
+                                {data.date_of_Birth ? (
+                                    new Date(data.date_of_Birth).toLocaleDateString("vi-VN", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                    })
+                                ) : (
+                                    <span>Chưa cập nhật</span>
+                                )}
                             </p>
                             <p>
                                 <strong>Địa chỉ:</strong> {data.address}

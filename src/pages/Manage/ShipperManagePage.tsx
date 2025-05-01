@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import UserList from "../../components/Manage/Shipper/UserList";
-import Sidebar from "../../components/Manage/Shipper/Sidebar";
-import { Button, message, Modal } from "antd";
+import Sidebar from "../../components/Manage/Cashier/Sidebar";
+import { Button, message } from "antd";
 import { PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import AddShipperModal from "../../components/Manage/Shipper/AddShipperModal";
 import ShipperDetailModal from "../../components/Manage/Shipper/ShipperDetailModal";
-import UserUpdateModal from "../../components/Manage/Shipper/UserUpdateModal";
+import UserUpdateModal from "../../components/Manage/Cashier/UserUpdateModal";
 import { useAuth } from "../../context/AuthContext";
 import './MenuPage.css';
 import axios from 'axios';
@@ -38,6 +38,50 @@ const ShipperManagePage: React.FC = () => {
   const [openDetail, setOpenDetail] = useState<boolean>(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [updateData, setUpdateData] = useState<UserProps | null>(null);
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+  const [selectedProvince, setSelectedProvince] = useState<number | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<number | null>(null);
+
+  const fetchProvinces = async () => {
+    try {
+      const res = await axios.get(
+        "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
+        { headers: { Token: process.env.REACT_APP_GHN_TOKEN || "" } }
+      );
+      setProvinces(res.data.data);
+    } catch (err) {
+      console.error("Lỗi khi lấy tỉnh/thành:", err);
+    }
+  };
+
+  const fetchDistricts = async (provinceId: number) => {
+    try {
+      const res = await axios.post(
+        "https://online-gateway.ghn.vn/shiip/public-api/master-data/district",
+        { province_id: provinceId },
+        { headers: { Token: process.env.REACT_APP_GHN_TOKEN || "" } }
+      );
+      setDistricts(res.data.data);
+      setWards([]);
+      setSelectedDistrict(null);
+    } catch (err) {
+      console.error("Lỗi khi lấy quận/huyện:", err);
+    }
+  };
+
+  const fetchWards = async (districtId: number) => {
+    try {
+      const res = await axios.get(
+        `https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${districtId}`,
+        { headers: { Token: process.env.REACT_APP_GHN_TOKEN || "" } }
+      );
+      setWards(res.data.data);
+    } catch (err) {
+      console.error("Lỗi khi lấy phường/xã:", err);
+    }
+  };
 
   const fetchShippers = async () => {
     setLoading(true);
@@ -173,7 +217,7 @@ const ShipperManagePage: React.FC = () => {
 
     try {
       await axios.delete(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/${userId}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}${userId}`,
         {
           headers: {
             "Content-Type": "application/json; charset=utf-8",
@@ -231,18 +275,53 @@ const ShipperManagePage: React.FC = () => {
     }
   };
 
+  const handleUpdateStatus = async (userId: number, currentStatus: boolean) => {
+    if (!authInfo?.token) {
+      message.error("Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+
+    try {
+      const newStatus = !currentStatus;
+      const response = await axios.put(
+        `${process.env.REACT_APP_API_APP_ENDPOINT}status/${userId}?status=${newStatus}`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authInfo?.token}`
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        message.success("Cập nhật trạng thái thành công!");
+        fetchShippers();
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        clearAuthInfo();
+        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+      } else {
+        message.error("Cập nhật trạng thái thất bại!");
+      }
+    }
+  };
+
   const handleRowClick = (record: UserProps) => {
     setOpenDetail(true);
     fetchShipperDetail(record.userId);
   };
 
   const handleOpenUpdate = (record: UserProps) => {
+    setOpenDetail(false);
     setUpdateData(record);
     setOpenUpdate(true);
   };
 
   useEffect(() => {
     fetchShippers();
+    fetchProvinces();
   }, [search, status, page]);
 
   return (
@@ -277,6 +356,7 @@ const ShipperManagePage: React.FC = () => {
             total={total}
             onPageChange={setPage}
             onRowClick={handleRowClick}
+            onUpdateStatus={handleUpdateStatus}
           />
         </main>
       </div>
@@ -306,6 +386,13 @@ const ShipperManagePage: React.FC = () => {
           data={updateData}
           onClose={() => setOpenUpdate(false)}
           onSubmit={handleUpdateShipper}
+          addressData={{
+            provinces,
+            districts,
+            wards,
+            fetchDistricts,
+            fetchWards
+          }}
         />
       )}
     </div>

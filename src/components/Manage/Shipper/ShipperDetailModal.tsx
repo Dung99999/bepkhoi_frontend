@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, message } from "antd";
+import { Modal } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 interface ShipperDetailModalProps {
@@ -48,7 +48,7 @@ const ShipperDetailModal: React.FC<ShipperDetailModalProps> = ({
             open={open}
             onCancel={onClose}
             footer={null}
-            width="30%"
+            width="40%"
             closable={true}
             centered={true}
         >
@@ -74,11 +74,15 @@ const ShipperDetailModal: React.FC<ShipperDetailModalProps> = ({
                             </p>
                             <p>
                                 <strong>Ngày sinh:</strong>{" "}
-                                {new Date(data.date_of_Birth).toLocaleDateString("vi-VN", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                })}
+                                {data.date_of_Birth ? (
+                                    new Date(data.date_of_Birth).toLocaleDateString("vi-VN", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                    })
+                                ) : (
+                                    <span>Chưa cập nhật</span>
+                                )}
                             </p>
                             <p>
                                 <strong>Địa chỉ:</strong> {data.address}
