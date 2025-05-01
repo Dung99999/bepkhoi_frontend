@@ -10,8 +10,8 @@ interface Props {
 
 const options = [
   { label: "Tất cả", value: "all" },
-  { label: "Đang hiển thị", value: "1" },
-  { label: "Không hiển thị", value: "0" },
+  { label: "Đang kinh doanh", value: "1" },
+  { label: "Ngừng kinh doanh", value: "0" },
 ];
 
 const MenuStatusFilter: React.FC<Props> = ({ status, setStatus }) => {

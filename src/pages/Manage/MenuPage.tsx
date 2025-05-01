@@ -5,14 +5,21 @@ import { Button, message } from "antd";
 import { PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import AddMenuModal from "../../components/Manage/Menu/AddMenuModal";
 import "./MenuPage.css";
+import { useAuth } from "../../context/AuthContext";
 
 const MenuPage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string[]>([]);
   const [status, setStatus] = useState<string>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleExportExcel = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
     try {
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
@@ -31,9 +38,19 @@ const MenuPage: React.FC = () => {
       if (statusFilter)
         queryParams.append("isActive", statusFilter === "1" ? "true" : "false");
       if (searchFilter) queryParams.append("search", searchFilter);
-      const apiUrl = `https://localhost:7257/api/Menu/export-products-excel?${queryParams.toString()}`;
-      console.log("Export URL:", apiUrl);
-      const response = await fetch(apiUrl);
+      const apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/export-products-excel?${queryParams.toString()}`;
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${authInfo.token}`,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      });
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
       if (!response.ok) throw new Error("Xuất file thất bại");
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);

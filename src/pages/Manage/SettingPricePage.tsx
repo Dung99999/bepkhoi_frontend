@@ -3,14 +3,22 @@ import { Button, message } from "antd";
 import { FileExcelOutlined } from "@ant-design/icons";
 import MenuSidebar from "../../components/Manage/Menu/MenuSidebar";
 import PriceMenuList from "../../components/Manage/Menu/PriceMenuList";
+import { useAuth } from "../../context/AuthContext";
 import "./SettingPricePage.css";
 
 const SettingPricePage: React.FC = () => {
+  const { authInfo, clearAuthInfo } = useAuth();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string[]>([]);
   const [menuStatus, setMenuStatus] = useState<string>("all");
 
   const handleExportPriceExcel = async () => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+
     try {
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
@@ -35,10 +43,20 @@ const SettingPricePage: React.FC = () => {
       if (search.trim() !== "")
         queryParams.append("search", encodeURIComponent(search));
 
-      const apiUrl = `https://localhost:7257/api/Menu/export-product-price-excel?${queryParams.toString()}`;
-      console.log("Export URL:", apiUrl);
+      const apiUrl = `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/export-product-price-excel?${queryParams.toString()}`;
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${authInfo.token}`,
+        },
+      });
 
-      const response = await fetch(apiUrl);
+      if (response.status === 401) {
+        message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        clearAuthInfo();
+        return;
+      }
+
       if (!response.ok) throw new Error("Xuất file thất bại");
 
       const blob = await response.blob();
@@ -50,7 +68,7 @@ const SettingPricePage: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
 
-      message.success(`File \"${fileName}\" đã được tải xuống thành công!`);
+      message.success(`File "${fileName}" đã được tải xuống thành công!`);
     } catch (error) {
       message.error("Lỗi khi tải xuống file Excel");
     }
