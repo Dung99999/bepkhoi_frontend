@@ -69,7 +69,6 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
         setTotal(data.length || 0);
       })
       .catch((error) => {
-        console.error("Error fetching: ", error);
         setItems([]);
       })
       .finally(() => setLoading(false));
@@ -127,9 +126,9 @@ const UserList: React.FC<UserListProps> = ({ search, status }) => {
       key: "status",
       render: (value: boolean) =>
         value ? (
-          <Tag color="green">Đang sử dụng</Tag>
+          <Tag color="green">Đang hoạt động</Tag>
         ) : (
-          <Tag color="red">Ngừng sử dụng</Tag>
+          <Tag color="red">Ngừng hoạt động</Tag>
         ),
     },
   ];

@@ -128,7 +128,6 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       clearAuthInfo();
       return;
     }
-
     setOpenDetail(true);
     setLoadingDetail(true);
     try {
@@ -157,7 +156,41 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
       setLoadingDetail(false);
     }
   };
-
+  // Fetch menu detail (used by MenuUpdateModal)
+  const fetchMenuDetail = async (productId: number) => {
+    if (!authInfo.token) {
+      message.error("Vui lòng đăng nhập lại!");
+      clearAuthInfo();
+      return;
+    }
+    if (openDetail && detailData?.productId === productId) {
+      setLoadingDetail(true);
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_APP_ENDPOINT}api/Menu/get-menu-by-id/${productId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authInfo.token}`,
+            },
+          }
+        );
+        if (response.status === 401) {
+          message.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+          clearAuthInfo();
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const res = await response.json();
+        setDetailData(res.data || null);
+      } catch (error) {
+        setDetailData(null);
+      } finally {
+        setLoadingDetail(false);
+      }
+    }
+  };
   // Handle update
   const handleOpenUpdate = (record: MenuDetail) => {
     setUpdateData(record);
@@ -299,6 +332,7 @@ const MenuList: React.FC<MenuListProps> = ({ search, category, status }) => {
             setUpdateData(null);
           }}
           onReload={fetchMenuList}
+          onFetchDetail={fetchMenuDetail}
         />
       )}
     </div>

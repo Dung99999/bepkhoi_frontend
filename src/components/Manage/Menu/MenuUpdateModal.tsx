@@ -46,6 +46,7 @@ interface MenuUpdateModalProps {
   data: MenuDetail | null;
   onClose: () => void;
   onReload: () => void;
+  onFetchDetail: (productId: number) => void;
 }
 
 const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
@@ -53,6 +54,7 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
   data,
   onClose,
   onReload,
+  onFetchDetail,
 }) => {
   const { authInfo, clearAuthInfo } = useAuth();
   const [formData, setFormData] = useState<MenuDetail | null>(null);
@@ -243,6 +245,7 @@ const MenuUpdateModal: React.FC<MenuUpdateModalProps> = ({
           message.success(response.data.message || "Cập nhật thành công!");
           onClose();
           onReload();
+          onFetchDetail(formData.productId);
         } catch (error: any) {
           console.error("Lỗi khi cập nhật món ăn:", error);
           if (error.response) {

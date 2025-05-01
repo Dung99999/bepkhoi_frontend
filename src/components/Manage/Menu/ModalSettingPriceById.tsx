@@ -139,21 +139,7 @@ const ModalSettingPriceById: React.FC<ModalSettingPriceProps> = ({
               style={{ width: "100%" }}
             />
           </Form.Item>
-          <Form.Item
-            label="Đơn giá"
-            validateStatus={
-              !sellPrice || sellPrice <= 0 || sellPrice < product.costPrice
-                ? "error"
-                : ""
-            }
-            help={
-              !sellPrice || sellPrice <= 0
-                ? "Đơn giá là bắt buộc và phải lớn hơn 0"
-                : sellPrice < product.costPrice
-                ? "Đơn giá phải lớn hơn hoặc bằng giá vốn"
-                : ""
-            }
-          >
+          <Form.Item label="Đơn giá">
             <InputNumber
               min={0}
               value={sellPrice}
@@ -161,25 +147,7 @@ const ModalSettingPriceById: React.FC<ModalSettingPriceProps> = ({
               style={{ width: "100%" }}
             />
           </Form.Item>
-          <Form.Item
-            label="Giá sau KM"
-            validateStatus={
-              salePrice &&
-              (salePrice <= 0 ||
-                salePrice < product.costPrice ||
-                salePrice > sellPrice)
-                ? "error"
-                : ""
-            }
-            help={
-              salePrice && salePrice <= 0
-                ? "Giá sau KM phải lớn hơn 0"
-                : salePrice &&
-                  (salePrice < product.costPrice || salePrice > sellPrice)
-                ? "Giá sau KM phải nằm trong khoảng từ giá vốn đến đơn giá"
-                : ""
-            }
-          >
+          <Form.Item label="Giá sau KM">
             <InputNumber
               min={0}
               value={salePrice}

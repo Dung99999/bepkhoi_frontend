@@ -10,8 +10,8 @@ interface Props {
 
 const options = [
   { label: "Tất cả", value: "all"},
-  { label: "Đang sử dụng", value: "1" },
-  { label: "Ngừng sử dụng", value: "0" },
+  { label: "Đang hoạt động", value: "1" },
+  { label: "Ngừng hoạt động", value: "0" },
 ];
 
 const UserStatusFilter: React.FC<Props> = ({ status, setStatus }) => {

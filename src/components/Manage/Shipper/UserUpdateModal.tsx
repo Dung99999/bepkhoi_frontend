@@ -62,7 +62,7 @@ const UserUpdateModal: React.FC<UserUpdateModalProps> = ({ open, data, onClose, 
       console.log("Dữ liệu gửi lên API:", formattedData);
 
       const response = await axios.put(
-        `${process.env.REACT_APP_API_APP_ENDPOINT}/Shipper/${formData.userId}`,
+        `${process.env.REACT_APP_API_APP_ENDPOINT}api/Shipper/${formData.userId}`,
         formattedData,
         { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authInfo?.token}` } }
       );
