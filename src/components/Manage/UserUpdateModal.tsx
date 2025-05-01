@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
 import { useAuth } from "../../context/AuthContext";
-const token = localStorage.getItem("Token");
 const { Option } = Select;
 
 interface User {
@@ -137,6 +136,9 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
 
   const submitInfo = async () => {
     if (!formData || !userId) return;
+    if (!validateForm()) {
+      return;
+    }
     try {
       const payload = {
         email: formData.email,
@@ -164,7 +166,7 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
       onReload();
     } catch (error) {
       console.error(error);
-      message.error("Cập nhật thất bại!");
+      message.error("Cập nhật thất bại! Hãy kiểm tra lại các thông tin cần thiết.");
     }
   };
 
@@ -203,6 +205,44 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
     }
   };
 
+  const validateForm = () => {
+    if (!formData) return false;
+
+    if (!formData.userName || !formData.userName.trim()) {
+      message.error("Tên đăng nhập không được để trống");
+      return false;
+    }
+
+    if (!formData.email || !formData.email.trim()) {
+      message.error("Email không được để trống");
+      return false;
+    }
+
+    if (!formData.date_of_Birth || !formData.date_of_Birth.trim()) {
+      message.error("Ngày sinh không được để trống");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      message.error("Email không đúng định dạng");
+      return false;
+    }
+
+    if (!formData.phone || !formData.phone.trim()) {
+      message.error("Số điện thoại không được để trống");
+      return false;
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      message.error("Số điện thoại phải có đúng 10 chữ số");
+      return false;
+    }
+
+    return true;
+  };
+
   return (
     <Modal
       open={open}
@@ -218,7 +258,6 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
           CẬP NHẬT THÔNG TIN CÁ NHÂN
         </h2>
 
-        {/* Toggle switch */}
         <div className="flex justify-center items-center mb-8">
           <button
             className={`px-4 py-2 rounded-l-lg font-medium ${isInfoMode ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
@@ -240,7 +279,6 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
           </div>
         ) : isInfoMode ? (
           <div className="space-y-4">
-            {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -272,15 +310,28 @@ const UserUpdateModal: React.FC<Props> = ({ open, onClose, onReload }) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
                 <DatePicker
-                  value={formData.date_of_Birth ? moment(formData.date_of_Birth) : undefined}
-                  onChange={(d, s) => handleChange("date_of_Birth", s)}
-                  format="YYYY-MM-DD"
+                  value={formData.date_of_Birth ? moment(formData.date_of_Birth) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      handleChange("date_of_Birth", date.format('YYYY-MM-DD'));
+                    } else {
+                      handleChange("date_of_Birth", "");
+                    }
+                  }}
+                  onFocus={() => {
+                    handleChange("date_of_Birth", "");
+                  }}
+                  format="DD/MM/YYYY"
                   className="w-full"
+                  disabledDate={(current) => {
+                    return current && current > moment().endOf('day');
+                  }}
+                  allowClear={false}
+                  placeholder="Nhập ngày sinh"
                 />
               </div>
             </div>
 
-            {/* Address Section */}
             <div className="mt-6 pt-4 border-t border-gray-200">
               <h3 className="text-md font-semibold text-gray-800 mb-3">Địa chỉ</h3>
               <div className="grid grid-cols-2 gap-4">

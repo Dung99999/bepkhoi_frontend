@@ -1,42 +1,25 @@
 import React from "react";
-import { Modal, message } from "antd";
+import { Modal } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import axios from "axios";
-import { useAuth } from "../../../context/AuthContext";
 
-interface CustomerItem {
-    userId: number;
-    userName: string;
-    phone: string;
-    email: string;
-    date_of_Birth: string;
-    address: string;
-    ward_Commune: string;
-    district: string;
-    province_City: string;
-    roleName: string;
-}
-
-interface CustomerDetailModalProps {
+interface CashierDetailModalProps {
     open: boolean;
     loading: boolean;
-    data: CustomerItem | null;
+    data: any;
     onClose: () => void;
     onUpdate: () => void;
-    onReloadUserList: () => void;
+    onDelete: (userId: number, userName: string) => Promise<boolean>;
 }
 
-const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
+const CashierDetailModal: React.FC<CashierDetailModalProps> = ({
     open,
     loading,
     data,
     onClose,
     onUpdate,
-    onReloadUserList,
+    onDelete,
 }) => {
-    const { authInfo, clearAuthInfo } = useAuth();
-
-    const handleDelete = async () => {
+    const handleDelete = () => {
         if (!data) return;
 
         Modal.confirm({
@@ -52,36 +35,12 @@ const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
                 },
             },
             onOk: async () => {
-                try {
-                    const res = await axios.delete(
-                        `${process.env.REACT_APP_API_APP_ENDPOINT}api/cashiers/${data.userId}`,
-                        {
-                            headers: {
-                                "Content-Type": "application/json; charset=utf-8",
-                                Authorization: `Bearer ${authInfo?.token}`,
-                            },
-                        }
-                    );
-                    console.log("Phản hồi từ API:", res.data);
-                    message.success("Xóa người dùng thành công!");
+                const success = await onDelete(data.userId, data.userName);
+                if (success) {
                     onClose();
-                    onReloadUserList();
-                } catch (error: any) {
-                    if (error.response?.status === 401) {
-                        clearAuthInfo();
-                        message.error("Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-                        return;
-                    }
-                    console.error("Lỗi API:", error);
-                    message.error("Xóa người dùng thất bại!");
                 }
             },
         });
-    };
-
-    const handleUpdate = () => {
-        onUpdate();
-        onClose();
     };
 
     return (
@@ -115,11 +74,15 @@ const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
                             </p>
                             <p>
                                 <strong>Ngày sinh:</strong>{" "}
-                                {new Date(data.date_of_Birth).toLocaleDateString("vi-VN", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                })}
+                                {data.date_of_Birth ? (
+                                    new Date(data.date_of_Birth).toLocaleDateString("vi-VN", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                    })
+                                ) : (
+                                    <span>Chưa cập nhật</span>
+                                )}
                             </p>
                             <p>
                                 <strong>Địa chỉ:</strong> {data.address}
@@ -147,7 +110,7 @@ const CashierDetailModal: React.FC<CustomerDetailModalProps> = ({
                 {!loading && data && (
                     <div className="flex justify-end gap-3 mt-6">
                         <button
-                            onClick={handleUpdate}
+                            onClick={onUpdate}
                             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-2"
                         >
                             <EditOutlined />
