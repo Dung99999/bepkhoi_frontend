@@ -4,6 +4,7 @@ import CartList from "../../components/Shop/Cart/CartList";
 import CartConfirm from "../../components/Shop/Cart/CartConfirm";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../../CustomHook/useCart";
 
 interface Product {
   id: number;
@@ -19,6 +20,7 @@ const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Product[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const storedCart = JSON.parse(sessionStorage.getItem("cart") || "[]");
@@ -28,6 +30,7 @@ const CartPage: React.FC = () => {
   const updateCart = (updatedCart: Product[]) => {
     setCart(updatedCart);
     sessionStorage.setItem("cart", JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event("storage"));
   };
 
   const handleQuantityChange = (id: number, type: "increase" | "decrease") => {
@@ -41,6 +44,9 @@ const CartPage: React.FC = () => {
       })
       .filter((item) => item.quantity > 0);
     updateCart(updatedCart);
+    if (updatedCart.length === 0) {
+      clearCart();
+    }
   };
 
   const calculateTotal = () => cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -97,7 +103,7 @@ const CartPage: React.FC = () => {
       messageApi.success('Cập nhật đơn hàng thành công!');
 
       setTimeout(() => {
-        sessionStorage.removeItem("cart");
+        clearCart();
         navigate("/shop/status");
       }, 1000);
 

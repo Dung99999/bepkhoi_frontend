@@ -1,29 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import logoBepKhoi from "../../styles/LoginPage/images/logoBepKhoi.png";
+import { useCart } from "../../CustomHook/useCart";
 
 interface HeaderShopProps {
   setActiveTab: (tab: string) => void;
 }
 
 const HeaderShop: React.FC<HeaderShopProps> = ({ setActiveTab }) => {
-  const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const updateCartCount = () => {
-      const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
-      setCartCount(cart.length);
-    };
-
-    updateCartCount();
-    window.addEventListener("storage", updateCartCount);
-
-    return () => {
-      window.removeEventListener("storage", updateCartCount);
-    };
-  }, []);
+  const { cartCount } = useCart();
 
   const handleCartClick = () => {
     setActiveTab("cart");
