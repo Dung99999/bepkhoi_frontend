@@ -1,26 +1,12 @@
 import { AppstoreOutlined, HomeFilled, ShoppingCartOutlined } from "@ant-design/icons";
 import React from "react";
-import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useCart } from "../../CustomHook/useCart";
 
 const FooterShop: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    const updateCartCount = () => {
-      const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
-      setCartCount(cart.length);
-    };
-
-    updateCartCount();
-    window.addEventListener("storage", updateCartCount);
-
-    return () => {
-      window.removeEventListener("storage", updateCartCount);
-    };
-  }, []);
+  const { cartCount } = useCart();
 
   const handleClick = (tab: string) => {
     const tabRoutes: Record<string, string> = {

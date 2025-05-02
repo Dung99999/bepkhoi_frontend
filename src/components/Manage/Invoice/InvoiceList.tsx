@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Empty, Tag, Descriptions, Divider } from "antd";
+import { Table, Empty, Tag, Descriptions, Divider, Collapse, Button, List, Badge } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
   CaretRightOutlined,
@@ -8,7 +8,12 @@ import {
   UserOutlined,
   CreditCardOutlined,
   CheckCircleOutlined,
+  ShoppingOutlined,
+  UpOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
+
+const { Panel } = Collapse;
 
 interface InvoiceDetail {
   invoiceDetailId: number;
@@ -48,6 +53,14 @@ interface Props {
 
 const InvoiceList: React.FC<Props> = ({ invoices, loading }) => {
   const [expandedRowKeys, setExpandedRowKeys] = React.useState<number[]>([]);
+  const [showDetails, setShowDetails] = React.useState<Record<number, boolean>>({});
+
+  const toggleDetails = (invoiceId: number) => {
+    setShowDetails(prev => ({
+      ...prev,
+      [invoiceId]: !prev[invoiceId]
+    }));
+  };
 
   const formatDateTime = (dateTime: string) => {
     return new Date(dateTime).toLocaleString("vi-VN");
@@ -62,7 +75,7 @@ const InvoiceList: React.FC<Props> = ({ invoices, loading }) => {
 
   const parseCustomerInfo = (customer: string | null) => {
     if (!customer) return { name: "Khách vãng lai", phone: "" };
-    
+
     const parts = customer.split('-');
     return {
       name: parts[0] || "Khách vãng lai",
@@ -151,6 +164,7 @@ const InvoiceList: React.FC<Props> = ({ invoices, loading }) => {
 
   const expandedRowRender = (record: Invoice) => {
     const customerInfo = parseCustomerInfo(record.customer);
+    const isShowingDetails = showDetails[record.invoiceId] || false;
 
     return (
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -196,8 +210,98 @@ const InvoiceList: React.FC<Props> = ({ invoices, loading }) => {
             </Tag>
           </Descriptions.Item>
         </Descriptions>
+        <Divider orientation="left" className="!mt-6 !mb-4">
+          <ShoppingOutlined className="mr-2" />
+          Chi tiết đơn hàng
+        </Divider>
 
-        {/* ... rest of the expanded row content remains the same ... */}
+        <div className="flex justify-end mb-4">
+          <Button
+            type="link"
+            icon={isShowingDetails ? <UpOutlined /> : <DownOutlined />}
+            onClick={() => toggleDetails(record.invoiceId)}
+            className="flex items-center"
+          >
+            {isShowingDetails ? "Ẩn chi tiết" : "Xem chi tiết"}
+          </Button>
+        </div>
+
+        {isShowingDetails && (
+          <Collapse
+            defaultActiveKey={['1']}
+            ghost
+            className="bg-white rounded-lg"
+          >
+            <Panel
+              header={
+                <span className="font-medium">
+                  Sản phẩm/dịch vụ ({record.invoiceDetails.length})
+                </span>
+              }
+              key="1"
+            >
+              <List
+                itemLayout="horizontal"
+                dataSource={record.invoiceDetails}
+                renderItem={(item) => (
+                  <List.Item className="!px-0">
+                    <div className="w-full flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="font-medium">{item.productName}</div>
+                        {item.productNote && (
+                          <div className="text-gray-500 text-sm">
+                            Ghi chú: {item.productNote}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 text-right">
+                          <Badge
+                            count={`${item.quantity}x`}
+                            style={{ backgroundColor: '#1890ff' }}
+                          />
+                        </div>
+                        <div className="w-32 text-right font-medium">
+                          {item.price.toLocaleString('vi-VN')}₫
+                        </div>
+                        <div className="w-20 text-right">
+                          <Tag color="orange">{item.productVat}% VAT</Tag>
+                        </div>
+                        <div className="w-32 text-right font-medium text-green-600">
+                          {(item.price * item.quantity * (1 + item.productVat / 100)).toLocaleString('vi-VN')}₫
+                        </div>
+                      </div>
+                    </div>
+                  </List.Item>
+                )}
+              />
+            </Panel>
+          </Collapse>
+        )}
+
+        <Divider className="!my-4" />
+
+        <div className="flex justify-end gap-8">
+          <div className="text-right">
+            <div className="text-gray-600">Tổng tiền hàng:</div>
+            <div className="text-gray-600">Thuế VAT:</div>
+            <div className="text-lg font-bold">Tổng thanh toán:</div>
+          </div>
+          <div className="text-right w-48">
+            <div>{record.subtotal.toLocaleString('vi-VN')}₫</div>
+            <div>{record.totalVat.toLocaleString('vi-VN')}₫</div>
+            <div className="text-lg font-bold text-green-600">
+              {record.amountDue.toLocaleString('vi-VN')}₫
+            </div>
+          </div>
+        </div>
+
+        {record.invoiceNote && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <div className="font-medium text-yellow-800">Ghi chú hóa đơn:</div>
+            <div className="text-yellow-700">{record.invoiceNote}</div>
+          </div>
+        )}
       </div>
     );
   };
@@ -212,9 +316,8 @@ const InvoiceList: React.FC<Props> = ({ invoices, loading }) => {
         expandedRowRender,
         expandIcon: ({ expanded, onExpand, record }) => (
           <CaretRightOutlined
-            className={`transition-transform duration-200 ${
-              expanded ? "transform rotate-90" : ""
-            } text-blue-500`}
+            className={`transition-transform duration-200 ${expanded ? "transform rotate-90" : ""
+              } text-blue-500`}
             onClick={(e) => onExpand(record, e)}
           />
         ),
