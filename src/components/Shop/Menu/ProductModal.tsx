@@ -34,7 +34,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
             Modal.error({
                 title: 'Bạn chưa có phiếu đặt hàng trong hệ thống!',
                 content: 'Vui lòng liên hệ nhân viên quầy để tạo phiếu đặt hàng mới',
-                okText: 'Đã hiểu'
+                okText: 'Đã hiểu',
+                okButtonProps: {
+                    style: {
+                        backgroundColor: '#1890ff',
+                        borderColor: '#1890ff',
+                    }
+                }
             });
             return;
         }
