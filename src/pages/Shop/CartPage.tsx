@@ -73,7 +73,7 @@ const CartPage: React.FC = () => {
         productId: item.id,
         productName: item.name,
         quantity: item.quantity,
-        price: item.price * item.quantity,
+        price: item.price,
         productNote: item.productNote,
       }));
 

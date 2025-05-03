@@ -40,21 +40,36 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
         }
         if (!product) return;
         const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
-        const existingIndex = cart.findIndex(
-            (item: any) => item.id === product.id && item.orderId === parseInt(selectedOrderId)
+        const orderId = parseInt(selectedOrderId);
+        
+        const existingItems = cart.filter(
+            (item: any) => item.id === product.id && item.orderId === orderId
         );
-        if (existingIndex !== -1) {
-            cart[existingIndex].quantity += quantity;
-            cart[existingIndex].productNote = productNote;
-        } else {
+        
+        if (existingItems.length === 0 || !productNote) {
             cart.push({
                 ...product,
                 quantity,
-                orderId: parseInt(selectedOrderId),
-                productNote
+                orderId,
+                productNote: productNote || ""
             });
+        } 
+        else {
+            const itemWithSameNote = existingItems.find(
+                (item: any) => item.productNote === productNote
+            );
+            
+            if (itemWithSameNote) {
+                itemWithSameNote.quantity += quantity;
+            } else {
+                cart.push({
+                    ...product,
+                    quantity,
+                    orderId,
+                    productNote
+                });
+            }
         }
-
         sessionStorage.setItem("cart", JSON.stringify(cart));
         setQuantity(1);
         setProductNote("");
