@@ -52,13 +52,20 @@ const ProductModal: React.FC<ProductModalProps> = ({ visible, product, onClose, 
             (item: any) => item.id === product.id && item.orderId === orderId
         );
         
-        if (existingItems.length === 0 || !productNote) {
-            cart.push({
-                ...product,
-                quantity,
-                orderId,
-                productNote: productNote || ""
-            });
+        if (!productNote) {
+            const itemWithoutNote = existingItems.find(
+                (item: any) => !item.productNote
+            );
+            if (itemWithoutNote) {
+                itemWithoutNote.quantity += quantity;
+            } else {
+                cart.push({
+                    ...product,
+                    quantity,
+                    orderId,
+                    productNote: productNote || ""
+                });
+            }
         } 
         else {
             const itemWithSameNote = existingItems.find(

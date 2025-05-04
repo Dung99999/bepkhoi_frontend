@@ -33,10 +33,10 @@ const CartPage: React.FC = () => {
     window.dispatchEvent(new Event("storage"));
   };
 
-  const handleQuantityChange = (id: number, type: "increase" | "decrease") => {
+  const handleQuantityChange = (id: number, type: "increase" | "decrease", productNote?: string) => {
     const updatedCart = cart
       .map((item) => {
-        if (item.id === id) {
+        if (item.id === id && item.productNote === productNote) {
           const updatedQuantity = type === "increase" ? item.quantity + 1 : item.quantity - 1;
           return { ...item, quantity: updatedQuantity };
         }

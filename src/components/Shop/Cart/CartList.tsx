@@ -13,7 +13,7 @@ interface Product {
 
 interface CartListProps {
   cart: Product[];
-  onQuantityChange: (id: number, type: "increase" | "decrease") => void;
+  onQuantityChange: (id: number, type: "increase" | "decrease", productNote?: string) => void;
 }
 
 const CartList: React.FC<CartListProps> = ({ cart, onQuantityChange }) => {
@@ -37,9 +37,9 @@ const CartList: React.FC<CartListProps> = ({ cart, onQuantityChange }) => {
             <div className="text-right">
               <p className="font-semibold text-lg">{product.price.toLocaleString()}đ</p>
               <div className="flex items-center space-x-2 mt-2">
-                <Button onClick={() => onQuantityChange(product.id, "decrease")} className="px-2 bg-gray-200 text-black rounded-md">-</Button>
+                <Button onClick={() => onQuantityChange(product.id, "decrease", product.productNote)} className="px-2 bg-gray-200 text-black rounded-md">-</Button>
                 <span className="font-medium">{product.quantity}</span>
-                <Button onClick={() => onQuantityChange(product.id, "increase")} className="px-2 bg-gray-200 text-black rounded-md">+</Button>
+                <Button onClick={() => onQuantityChange(product.id, "increase", product.productNote)} className="px-2 bg-gray-200 text-black rounded-md">+</Button>
               </div>
             </div>
           </div>
